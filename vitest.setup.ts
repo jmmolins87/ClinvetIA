@@ -24,6 +24,41 @@ Object.defineProperty(window, "matchMedia", {
 
 window.scrollTo = () => undefined;
 
+function ensureLocalStorage() {
+  const ls = window.localStorage as unknown as { clear?: () => void } | undefined;
+  if (ls && typeof ls.clear === "function") return;
+
+  let store = new Map<string, string>();
+
+  const mock: Storage = {
+    get length() {
+      return store.size;
+    },
+    clear() {
+      store = new Map();
+    },
+    getItem(key: string) {
+      return store.has(key) ? store.get(key)! : null;
+    },
+    key(index: number) {
+      return Array.from(store.keys())[index] ?? null;
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    setItem(key: string, value: string) {
+      store.set(String(key), String(value));
+    },
+  };
+
+  Object.defineProperty(window, "localStorage", {
+    value: mock,
+    configurable: true,
+  });
+}
+
+ensureLocalStorage();
+
 vi.mock("next/link", () => {
   return {
     default: ({ href, children, ...props }: { href: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) =>

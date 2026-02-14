@@ -3,11 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 
-import { Calendar, Calculator } from "lucide-react";
-
 import { RoiButton } from "@/components/cta/roi-button";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 
@@ -86,7 +85,7 @@ export function SiteFooter({ className }: { className?: string }) {
               <RoiButton asChild>
                 <Link href="/roi">
                   <span className="flex items-center gap-2">
-                    <Calculator className="h-4 w-4" />
+                    <Icon name="Calculator" className="h-4 w-4" />
                     ROI
                   </span>
                 </Link>
@@ -94,7 +93,7 @@ export function SiteFooter({ className }: { className?: string }) {
               <Button variant="secondary" size="lg" className="h-12" asChild>
                 <Link href="/reservar">
                   <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <Icon name="Calendar" className="h-4 w-4" />
                     Reservar demo
                   </span>
                 </Link>

@@ -38,21 +38,19 @@ pnpm build-storybook
 
 ## Tests
 
-No unit/e2e test runner is configured in `package.json` (no `pnpm test` script, no `vitest/jest/playwright/cypress` config).
+Unit tests are run with Vitest (jsdom + Testing Library).
 
-- Closest “CI-like” smoke check today: `pnpm lint && pnpm exec tsc --noEmit && pnpm build`.
-- If a test runner is added later, keep a `single test` command documented in `package.json` (examples):
+- Run all tests once: `pnpm test`
+- Watch mode: `pnpm test:watch`
+- Coverage (strict; thresholds are configured in `vitest.config.mjs`): `pnpm test:coverage`
+- Run a single test file / a single test by name:
 
 ```bash
-# Vitest (example; only works once added)
-pnpm exec vitest run path/to/test.spec.ts
-
-# Jest (example; only works once added)
-pnpm exec jest path/to/test.spec.ts
-
-# Playwright (example; only works once added)
-pnpm exec playwright test path/to/test.spec.ts
+pnpm test -- components/ui/button.test.tsx
+pnpm test -- components/ui/button.test.tsx -t "renders"
 ```
+
+- Closest “CI-like” smoke check: `pnpm lint && pnpm exec tsc --noEmit && pnpm test && pnpm build`.
 
 ## Repo-Specific Notes
 
@@ -97,6 +95,11 @@ scripts/             # Utility scripts
 - Group imports with blank lines: (1) type-only, (2) React/Next, (3) third-party, (4) `@/` local.
 - Use type-only imports where helpful: `import type { Metadata } from "next"`.
 - In mixed imports, inline type modifiers are fine: `import { clsx, type ClassValue } from "clsx"`.
+
+### Icons
+
+- Use `Icon` from `components/ui/icon.tsx` instead of importing from `lucide-react` directly.
+- Prefer base icon names (e.g. `name="X"`, `name="ChevronRight"`) over `*Icon` aliases.
 
 ### Formatting
 

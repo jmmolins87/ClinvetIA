@@ -4,7 +4,14 @@ import userEvent from "@testing-library/user-event";
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +52,14 @@ describe("UI smoke", () => {
         <Switch aria-label="sw" />
         <Checkbox aria-label="cb" />
 
-        <DropdownMenu open>
-          <DropdownMenuTrigger asChild>
-            <button type="button">Open</button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+         <DropdownMenu>
+           <DropdownMenuTrigger asChild>
+             <button type="button">Open</button>
+           </DropdownMenuTrigger>
+           <DropdownMenuContent>
+             <DropdownMenuItem>Item</DropdownMenuItem>
+           </DropdownMenuContent>
+         </DropdownMenu>
 
         <Popover>
           <PopoverTrigger asChild>
@@ -65,23 +72,24 @@ describe("UI smoke", () => {
           <option value="a">A</option>
         </Select>
 
-        <Sheet open>
-          <SheetTrigger asChild>
-            <button type="button">S</button>
-          </SheetTrigger>
-          <SheetContent>SC</SheetContent>
-        </Sheet>
+         <Sheet>
+           <SheetTrigger asChild>
+             <button type="button">S</button>
+           </SheetTrigger>
+           <SheetContent>SC</SheetContent>
+         </Sheet>
 
-        <Dialog open>
-          <DialogTrigger asChild>
-            <button type="button">D</button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>DT</DialogTitle>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
+         <Dialog>
+           <DialogTrigger asChild>
+             <button type="button">D</button>
+           </DialogTrigger>
+           <DialogContent>
+             <DialogHeader>
+               <DialogTitle>DT</DialogTitle>
+               <DialogDescription>DD</DialogDescription>
+             </DialogHeader>
+           </DialogContent>
+         </Dialog>
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -110,12 +118,14 @@ describe("UI smoke", () => {
     );
 
     expect(screen.getByText("Badge")).toBeInTheDocument();
-    expect(screen.getByText("DT")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "P" }));
     expect(screen.getByText("PC")).toBeInTheDocument();
 
     await user.hover(screen.getByRole("button", { name: "T" }));
     expect(screen.getByRole("tooltip")).toHaveTextContent("TC");
+
+    await user.click(screen.getByRole("button", { name: "D" }));
+    expect(await screen.findByText("DT")).toBeInTheDocument();
   });
 });

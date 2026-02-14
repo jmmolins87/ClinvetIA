@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 function startOfDay(date: Date): Date {
@@ -128,7 +128,7 @@ export function Calendar({
           aria-label="Previous month"
           className="h-9 w-9"
         >
-          <ChevronLeft className="size-4" />
+          <Icon name="ChevronLeft" className="size-4" />
         </Button>
         <div className="min-w-0 flex-1 text-center text-sm font-semibold capitalize">{title}</div>
         <Button
@@ -139,7 +139,7 @@ export function Calendar({
           aria-label="Next month"
           className="h-9 w-9"
         >
-          <ChevronRight className="size-4" />
+          <Icon name="ChevronRight" className="size-4" />
         </Button>
       </div>
 

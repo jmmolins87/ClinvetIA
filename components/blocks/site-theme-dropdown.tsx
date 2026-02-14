@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import {
@@ -12,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 type ThemeValue = "light" | "dark" | "system";
@@ -34,16 +34,16 @@ export function SiteThemeDropdown({
 
   const icon = React.useMemo(() => {
     const iconSize = size === "large" ? "w-8 h-8" : "h-6 w-6";
-    if (current === "dark") return <Moon className={iconSize} />;
-    if (current === "light") return <Sun className={iconSize} />;
-    return <Monitor className={iconSize} />;
+    if (current === "dark") return <Icon name="Moon" className={iconSize} />;
+    if (current === "light") return <Icon name="Sun" className={iconSize} />;
+    return <Icon name="Monitor" className={iconSize} />;
   }, [current, size]);
 
   if (!mounted) {
     if (size === "large") {
       return (
         <div className="flex items-center justify-center p-2 rounded-lg bg-transparent opacity-50">
-          <Sun className="w-8 h-8" />
+          <Icon name="Sun" className="w-8 h-8" />
         </div>
       );
     }
@@ -55,7 +55,7 @@ export function SiteThemeDropdown({
         aria-label="Cambiar tema"
         disabled
       >
-        <Sun className="h-6 w-6" />
+        <Icon name="Sun" className="h-6 w-6" />
       </Button>
     );
   }
@@ -97,7 +97,7 @@ export function SiteThemeDropdown({
           onSelect={() => setTheme("light")}
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
-          <Sun className="h-7 w-7 mb-2" />
+          <Icon name="Sun" className="h-7 w-7 mb-2" />
           <span className="text-sm font-medium">Claro</span>
           {current === "light" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">
@@ -110,7 +110,7 @@ export function SiteThemeDropdown({
           onSelect={() => setTheme("dark")}
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
-          <Moon className="h-7 w-7 mb-2" />
+          <Icon name="Moon" className="h-7 w-7 mb-2" />
           <span className="text-sm font-medium">Oscuro</span>
           {current === "dark" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">
@@ -123,7 +123,7 @@ export function SiteThemeDropdown({
           onSelect={() => setTheme("system")}
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
-          <Monitor className="h-7 w-7 mb-2" />
+          <Icon name="Monitor" className="h-7 w-7 mb-2" />
           <span className="text-sm font-medium">Sistema</span>
           {current === "system" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">

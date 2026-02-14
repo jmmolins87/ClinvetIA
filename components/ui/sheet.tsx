@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
 
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { lockScroll } from "@/lib/scroll-lock";
 
@@ -111,7 +111,7 @@ function SheetContent({
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close className="cursor-pointer ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
+            <Icon name="X" className="size-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

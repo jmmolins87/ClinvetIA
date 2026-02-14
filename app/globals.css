@@ -258,6 +258,11 @@
 
 /* Neon glow utilities - use sparingly for CTAs and highlights */
 @layer utilities {
+  /* Subtle theme-colored header divider (blue in light, green in dark). */
+  .site-header-border {
+    border-bottom: 1px solid color-mix(in oklch, var(--primary) 10%, transparent);
+  }
+
   /* Ambient section shadows (subtle, slow, no hard gradients) */
   .ambient-section {
     position: relative;

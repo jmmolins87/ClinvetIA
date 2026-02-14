@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DemoButton } from "@/components/cta/demo-button";
 import { RoiButton } from "@/components/cta/roi-button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface SiteCtaProps {
@@ -13,6 +14,9 @@ export interface SiteCtaProps {
   demoHref?: string;
   roiLabel?: string;
   roiHref?: string;
+
+  contactLabel?: string;
+  contactHref?: string;
 }
 
 export function SiteCta({
@@ -23,6 +27,9 @@ export function SiteCta({
   demoHref = "/reservar",
   roiLabel = "ROI",
   roiHref = "/roi",
+
+  contactLabel = "Contacto",
+  contactHref = "/contacto",
 }: SiteCtaProps) {
   return (
     <section
@@ -45,6 +52,12 @@ export function SiteCta({
         <DemoButton asChild className="w-full sm:w-auto">
           <Link href={demoHref}>{demoLabel}</Link>
         </DemoButton>
+      </div>
+
+      <div className="mt-3 flex justify-center">
+        <Button variant="ghost" size="lg" asChild className="h-12 w-full sm:w-auto">
+          <Link href={contactHref}>{contactLabel}</Link>
+        </Button>
       </div>
     </section>
   );

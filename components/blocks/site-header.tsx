@@ -4,8 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { Menu, X } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 import { SiteLanguageSwitcher } from "@/components/blocks/site-language-switcher";
@@ -142,9 +141,9 @@ export function SiteHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
+        "sticky top-0 z-50 w-full transition-all duration-300 site-header-border",
         isScrolled || !isHomePage
-          ? "border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
           : "bg-transparent",
         className
       )}
@@ -240,7 +239,7 @@ export function SiteHeader({ className }: { className?: string }) {
                 className="md:hidden"
                 aria-label="Abrir menu"
               >
-                <Menu className="h-5 w-5" />
+                <Icon name="Menu" className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent
@@ -318,7 +317,7 @@ export function SiteHeader({ className }: { className?: string }) {
                   className="w-full cursor-pointer flex items-center justify-center gap-2 text-lg font-medium hover:bg-primary/10"
                   aria-label="Cerrar menu"
                 >
-                  <X className="h-6 w-6" />
+                  <Icon name="X" className="h-6 w-6" />
                   Cerrar
                 </Button>
               </SheetFooter>
