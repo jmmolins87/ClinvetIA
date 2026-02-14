@@ -1,14 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as LucideIcons from "lucide-react";
+import { icons } from "lucide-react";
 
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon, type IconName } from "../../components/ui/icon";
 
-const iconNames = Object.keys(LucideIcons).filter((key) => {
-  if (key === "createLucideIcon") return false;
-  if (key === "icons") return false;
-  const value = (LucideIcons as Record<string, unknown>)[key];
-  return typeof value === "function" && /^[A-Z]/.test(key);
-}) as IconName[];
+const iconNames = Object.keys(icons) as IconName[];
 
 const meta = {
   title: "UI/Icon",
@@ -39,7 +34,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const AllIcons: Story = {
+  args: {
+    size: 20
+  },
+
   parameters: { layout: "fullscreen" },
+
   render: () => (
     <div className="p-6">
       <div className="mb-4 text-sm text-muted-foreground">
@@ -54,5 +54,5 @@ export const AllIcons: Story = {
         ))}
       </div>
     </div>
-  ),
+  )
 };

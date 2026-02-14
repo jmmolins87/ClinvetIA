@@ -10,10 +10,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground transition-all duration-700 ease-in-out hover:from-gradient-to hover:to-gradient-from hover:shadow-lg dark:shadow-[0_0_25px_oklch(var(--gradient-from)/0.4),0_0_50px_oklch(var(--gradient-to)/0.3)] dark:hover:shadow-[0_0_35px_oklch(var(--gradient-to)/0.6),0_0_70px_oklch(var(--gradient-from)/0.5)]",
+        destructive:
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 transition-colors duration-300",
+        outline:
+          "relative border-2 border-transparent bg-background bg-clip-padding before:absolute before:inset-0 before:-z-10 before:m-[-2px] before:rounded-[inherit] before:bg-gradient-to-br before:from-gradient-from before:to-gradient-to before:transition-all before:duration-700 before:ease-in-out hover:before:from-gradient-to hover:before:to-gradient-from shadow-xs transition-all duration-700",
         secondary:
           "relative isolate bg-transparent text-foreground shadow-xs transition-all duration-700 before:pointer-events-none before:content-[''] before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-br before:from-gradient-from before:to-gradient-to before:transition-all before:duration-700 before:ease-in-out after:pointer-events-none after:content-[''] after:absolute after:inset-x-[0.5px] after:top-1/2 after:h-[95%] after:-translate-y-1/2 after:rounded-[inherit] after:bg-background before:-z-10 after:-z-10 hover:before:from-gradient-to hover:before:to-gradient-from focus-visible:border-transparent",
-        destructive:
-          "bg-destructive/14 text-destructive border border-destructive/20 hover:bg-destructive/20 hover:border-destructive/30 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/22 transition-colors duration-300",
+        ghost:
+          "hover:bg-gradient-to/10 hover:text-gradient-to dark:hover:bg-primary/10 dark:hover:text-primary transition-colors duration-300",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

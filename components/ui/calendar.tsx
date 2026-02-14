@@ -101,6 +101,7 @@ export function Calendar({
       <button
         key={label}
         type="button"
+        aria-label={label}
         disabled={isDisabled}
         onClick={() => onSelect?.(date)}
         className={cn(

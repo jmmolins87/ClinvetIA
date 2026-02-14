@@ -1,0 +1,331 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { Menu, X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+import { SiteLanguageSwitcher } from "@/components/blocks/site-language-switcher";
+import { SiteThemeDropdown } from "@/components/blocks/site-theme-dropdown";
+import { RoiButton } from "@/components/cta/roi-button";
+import { Logo } from "@/components/logo";
+
+const NAV_LINKS = [
+  { href: "/solucion", label: "Solucion" },
+  { href: "/escenarios", label: "Escenarios" },
+  { href: "/como-funciona", label: "Como funciona" },
+  { href: "/contacto", label: "Contacto" },
+] as const;
+
+export function SiteHeader({ className }: { className?: string }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const pathnameFromNext = usePathname();
+  const router = useRouter();
+  const pathname = pathnameFromNext;
+  const isHomePage = pathname === "/";
+
+  const [showHeaderLogo, setShowHeaderLogo] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  const handleMobileLogoClick = React.useCallback(() => {
+    setIsOpen(false);
+
+    if (pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    router.push("/");
+  }, [pathname, router]);
+
+  const navRef = React.useRef<HTMLElement | null>(null);
+  const linkRefs = React.useRef<Record<string, HTMLAnchorElement | null>>({});
+  const [indicator, setIndicator] = React.useState<{
+    left: number;
+    width: number;
+    opacity: number;
+  }>({ left: 0, width: 0, opacity: 0 });
+
+  const activeHref = React.useMemo(() => {
+    const activeLink = NAV_LINKS.find((l) => l.href === pathname);
+    return activeLink?.href ?? null;
+  }, [pathname]);
+
+  const setIndicatorToHref = React.useCallback((href: string) => {
+    const navEl = navRef.current;
+    const linkEl = linkRefs.current[href];
+
+    if (!navEl || !linkEl) {
+      setIndicator((prev) => ({ ...prev, opacity: 0 }));
+      return;
+    }
+
+    const navRect = navEl.getBoundingClientRect();
+    const linkRect = linkEl.getBoundingClientRect();
+    const left = linkRect.left - navRect.left;
+    const width = linkRect.width;
+    setIndicator({ left, width, opacity: 1 });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!activeHref) {
+      setIndicator((prev) => ({ ...prev, opacity: 0 }));
+      return;
+    }
+
+    setIndicatorToHref(activeHref);
+  }, [activeHref, setIndicatorToHref]);
+
+  React.useEffect(() => {
+    if (!activeHref) return;
+
+    const handleResize = () => setIndicatorToHref(activeHref);
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, [activeHref, setIndicatorToHref]);
+
+  const handleNavMouseLeave = () => {
+    if (!activeHref) {
+      setIndicator((prev) => ({ ...prev, opacity: 0 }));
+      return;
+    }
+
+    setIndicatorToHref(activeHref);
+  };
+
+  const handleNavBlurCapture = (event: React.FocusEvent<HTMLElement>) => {
+    if (!activeHref) {
+      setIndicator((prev) => ({ ...prev, opacity: 0 }));
+      return;
+    }
+
+    const next = event.relatedTarget as Node | null;
+    if (next && navRef.current?.contains(next)) return;
+    setIndicatorToHref(activeHref);
+  };
+
+  const indicatorStyle: React.CSSProperties = {
+    left: 0,
+    width: indicator.width,
+    opacity: indicator.opacity,
+    transform: `translateX(${indicator.left}px)`,
+  };
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const scrollThreshold = 300;
+
+      setIsScrolled(scrollY > 50);
+      if (isHomePage) setShowHeaderLogo(scrollY > scrollThreshold);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
+
+  return (
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        isScrolled || !isHomePage
+          ? "border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          : "bg-transparent",
+        className
+      )}
+    >
+      <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4">
+        {isHomePage ? (
+          <>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex items-center cursor-pointer md:hidden rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              aria-label="Ir arriba"
+            >
+              <Logo priority className="h-12" />
+            </button>
+            {showHeaderLogo && (
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="hidden md:flex items-center cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                aria-label="Ir arriba"
+              >
+                <Logo width={220} height={55} className="h-14" />
+              </button>
+            )}
+          </>
+        ) : (
+          <Link
+            href="/"
+            className="flex items-center cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+            aria-label="Clinvetia"
+          >
+            <Logo priority className="h-12 md:h-14" />
+          </Link>
+        )}
+
+        <div className="flex items-center gap-6 ml-auto">
+          <nav
+            ref={navRef}
+            className="hidden relative items-center gap-6 md:flex"
+            aria-label="Principal"
+            onMouseLeave={handleNavMouseLeave}
+            onBlurCapture={handleNavBlurCapture}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-1 h-0.5 rounded-full bg-linear-to-r from-gradient-from to-gradient-to transition-[transform,width,opacity] duration-300 ease-out motion-reduce:transition-none"
+              style={indicatorStyle}
+            />
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  ref={(el) => {
+                    linkRefs.current[link.href] = el;
+                  }}
+                  onMouseEnter={() => setIndicatorToHref(link.href)}
+                  onFocus={() => setIndicatorToHref(link.href)}
+                  className={cn(
+                    "relative z-10 py-1 text-sm font-medium transition-colors hover:text-gradient-to focus-visible:outline-none",
+                    isActive ? "text-gradient-to" : "text-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="hidden items-center gap-2 md:flex">
+            <SiteLanguageSwitcher />
+            <SiteThemeDropdown />
+            <RoiButton asChild>
+              <Link href="/roi">ROI</Link>
+            </RoiButton>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="h-12"
+              asChild
+            >
+              <Link href="/reservar">Reservar demo</Link>
+            </Button>
+          </div>
+
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="top"
+              showCloseButton={false}
+              overlayClassName="bg-black/20 backdrop-blur-sm"
+              className="w-full h-screen p-0 flex flex-col bg-background/95 backdrop-blur-md overflow-hidden"
+            >
+              <div className="flex-1 flex flex-col justify-center p-6">
+                <SheetHeader className="mb-6 flex items-center justify-center">
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Navegacion principal y acciones
+                  </SheetDescription>
+                  <button
+                    type="button"
+                    onClick={handleMobileLogoClick}
+                    className="inline-flex cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                    aria-label="Ir arriba"
+                  >
+                    <Logo width={220} height={55} className="h-14" priority />
+                  </button>
+                </SheetHeader>
+
+                <nav className="flex flex-col items-center gap-5">
+                  {NAV_LINKS.map((link) => {
+                    const isActive = pathname === link.href;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "text-xl font-medium transition-colors text-center",
+                          isActive
+                            ? "text-gradient-to"
+                            : "text-foreground hover:text-gradient-to"
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+
+                  <div className="mx-auto mt-4 relative left-1/2 -translate-x-1/2 w-screen flex flex-col items-center justify-center gap-3">
+                    <SiteLanguageSwitcher />
+                    <SiteThemeDropdown size="large" />
+                  </div>
+
+                  <div className="mt-3 flex flex-col gap-3 w-full max-w-sm">
+                    <RoiButton asChild>
+                      <Link href="/roi" onClick={() => setIsOpen(false)}>
+                        ROI
+                      </Link>
+                    </RoiButton>
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="h-12"
+                      asChild
+                    >
+                      <Link href="/reservar" onClick={() => setIsOpen(false)}>
+                        Reservar demo
+                      </Link>
+                    </Button>
+                  </div>
+                </nav>
+              </div>
+
+              <SheetFooter className="p-6 border-t border-border/50 backdrop-blur-sm">
+                <Button
+                  variant="ghost"
+                  size="default"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full cursor-pointer flex items-center justify-center gap-2 text-lg font-medium hover:bg-primary/10"
+                  aria-label="Cerrar menu"
+                >
+                  <X className="h-6 w-6" />
+                  Cerrar
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+    </header>
+  );
+}
