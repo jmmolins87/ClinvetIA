@@ -78,84 +78,111 @@
   /* Border radius */
   --radius: 0.625rem;
 
-  /* Palette (LIGHT) - raw colors */
-  --palette-bg: oklch(0.99 0.003 240);              /* Almost white with slight cool tint */
-  --palette-fg: oklch(0.20 0.03 250);               /* Deep navy-blue, high contrast */
-  --palette-surface: oklch(1 0 0);                  /* Pure white surfaces */
-  --palette-surface-fg: oklch(0.20 0.03 250);
-  --palette-muted: oklch(0.94 0.01 240);            /* Light gray-blue */
-  --palette-muted-fg: oklch(0.50 0.04 250);         /* Medium gray with blue hint */
-  --palette-border: oklch(0.88 0.01 240);           /* Light border with blue hint */
-  --palette-input: oklch(0.90 0.01 240);            /* Slightly darker input border */
-  --palette-destructive: oklch(0.60 0.24 25);        /* Vibrant red */
-  --palette-destructive-fg: oklch(0.98 0.01 25);     /* Light text on red */
+  /* Palette (RAW)
+     Defined once so docs can show light+dark side-by-side,
+     regardless of current theme (html/body .dark state). */
 
-  /* Palette accents (LIGHT) - legacy neon direction */
-  --palette-primary: oklch(0.58 0.40 255);           /* Ultra neon electric blue */
-  --palette-primary-fg: oklch(0.99 0.01 260);        /* White text on blue */
-  --palette-secondary: oklch(0.78 0.28 205);         /* Ultra neon cyan accent */
-  --palette-secondary-fg: oklch(0.14 0.03 250);      /* Dark text for contrast */
-  --palette-accent: oklch(0.76 0.34 232);            /* Ultra neon azure */
-  --palette-accent-fg: oklch(0.12 0.03 250);
+  /* Light palette */
+  --palette-light-bg: oklch(0.99 0.003 240);              /* Almost white with slight cool tint */
+  --palette-light-fg: oklch(0.20 0.03 250);               /* Deep navy-blue, high contrast */
+  --palette-light-surface: oklch(1 0 0);                  /* Pure white surfaces */
+  --palette-light-surface-fg: oklch(0.20 0.03 250);
+  --palette-light-muted: oklch(0.94 0.01 240);            /* Light gray-blue */
+  --palette-light-muted-fg: oklch(0.50 0.04 250);         /* Medium gray with blue hint */
+  --palette-light-border: oklch(0.88 0.01 240);           /* Light border with blue hint */
+  --palette-light-input: oklch(0.90 0.01 240);            /* Slightly darker input border */
+  --palette-light-destructive: oklch(0.60 0.24 25);        /* Vibrant red */
+  --palette-light-destructive-fg: oklch(0.98 0.01 25);     /* Light text on red */
 
-  /* Palette gradients (LIGHT) */
-  --palette-gradient-from: oklch(0.58 0.40 255);     /* Ultra neon blue start */
-  --palette-gradient-to: oklch(0.72 0.32 225);       /* Ultra neon azure end */
-  --palette-gradient-purple: oklch(0.76 0.34 232);   /* Kept name; now ultra neon azure */
+  --palette-light-primary: oklch(0.58 0.40 255);           /* Ultra neon electric blue */
+  --palette-light-primary-fg: oklch(0.99 0.01 260);        /* White text on blue */
+  --palette-light-secondary: oklch(0.78 0.28 205);         /* Ultra neon cyan accent */
+  --palette-light-secondary-fg: oklch(0.14 0.03 250);      /* Dark text for contrast */
+  --palette-light-accent: oklch(0.76 0.34 232);            /* Ultra neon azure */
+  --palette-light-accent-fg: oklch(0.12 0.03 250);
 
-  /* Semantic tokens (LIGHT) - map to palette */
-  --background: var(--palette-bg);
-  --foreground: var(--palette-fg);
+  --palette-light-gradient-from: oklch(0.58 0.40 255);     /* Ultra neon blue start */
+  --palette-light-gradient-to: oklch(0.72 0.32 225);       /* Ultra neon azure end */
+  --palette-light-gradient-purple: oklch(0.76 0.34 232);   /* Kept name; now ultra neon azure */
 
-  --card: var(--palette-surface);
-  --card-foreground: var(--palette-surface-fg);
+  /* Dark palette */
+  --palette-dark-bg: oklch(0.12 0.015 250);                /* Deep navy-blue, almost black */
+  --palette-dark-fg: oklch(0.95 0.01 180);                 /* Off-white with cyan hint */
+  --palette-dark-surface: oklch(0.16 0.02 250);            /* Slightly lighter navy */
+  --palette-dark-surface-fg: oklch(0.95 0.01 180);
+  --palette-dark-popover: oklch(0.14 0.018 250);
+  --palette-dark-popover-fg: oklch(0.95 0.01 180);
+  --palette-dark-muted: oklch(0.20 0.02 250);
+  --palette-dark-muted-fg: oklch(0.58 0.08 200);
+  --palette-dark-border: oklch(0.30 0.04 200);
+  --palette-dark-input: oklch(0.32 0.05 200);
+  --palette-dark-destructive: oklch(0.65 0.26 25);
+  --palette-dark-destructive-fg: oklch(0.95 0.01 25);
 
-  --popover: var(--palette-surface);
-  --popover-foreground: var(--palette-surface-fg);
+  --palette-dark-primary: oklch(0.92 0.35 166);             /* Maximum neon green */
+  --palette-dark-primary-fg: oklch(0.06 0.02 250);
+  --palette-dark-secondary: oklch(0.28 0.15 200);           /* Neon teal surface */
+  --palette-dark-secondary-fg: oklch(0.88 0.18 180);
+  --palette-dark-accent: oklch(1.0 0.42 115);               /* Maximum neon yellow */
+  --palette-dark-accent-fg: oklch(0.02 0.01 250);
 
-  --primary: var(--palette-primary);
-  --primary-foreground: var(--palette-primary-fg);
+  --palette-dark-gradient-from: oklch(0.92 0.35 166);
+  --palette-dark-gradient-to: oklch(0.85 0.35 320);
+  --palette-dark-gradient-purple: oklch(0.75 0.32 290);
 
-  --secondary: var(--palette-secondary);
-  --secondary-foreground: var(--palette-secondary-fg);
+  /* Semantic tokens (LIGHT) - map to light palette */
+  --background: var(--palette-light-bg);
+  --foreground: var(--palette-light-fg);
 
-  --muted: var(--palette-muted);
-  --muted-foreground: var(--palette-muted-fg);
+  --card: var(--palette-light-surface);
+  --card-foreground: var(--palette-light-surface-fg);
 
-  --accent: var(--palette-accent);
-  --accent-foreground: var(--palette-accent-fg);
+  --popover: var(--palette-light-surface);
+  --popover-foreground: var(--palette-light-surface-fg);
 
-  --destructive: var(--palette-destructive);
-  --destructive-foreground: var(--palette-destructive-fg);
+  --primary: var(--palette-light-primary);
+  --primary-foreground: var(--palette-light-primary-fg);
 
-  --border: var(--palette-border);
-  --input: var(--palette-input);
-  --ring: var(--palette-primary);
+  --secondary: var(--palette-light-secondary);
+  --secondary-foreground: var(--palette-light-secondary-fg);
+
+  --muted: var(--palette-light-muted);
+  --muted-foreground: var(--palette-light-muted-fg);
+
+  --accent: var(--palette-light-accent);
+  --accent-foreground: var(--palette-light-accent-fg);
+
+  --destructive: var(--palette-light-destructive);
+  --destructive-foreground: var(--palette-light-destructive-fg);
+
+  --border: var(--palette-light-border);
+  --input: var(--palette-light-input);
+  --ring: var(--palette-light-primary);
 
   /* Extra tokens (LIGHT) */
-  --glow: var(--palette-primary);
+  --glow: var(--palette-light-primary);
   --section-alt: oklch(0.97 0.01 240);
 
-  --gradient-from: var(--palette-gradient-from);
-  --gradient-to: var(--palette-gradient-to);
-  --gradient-purple: var(--palette-gradient-purple);
+  --gradient-from: var(--palette-light-gradient-from);
+  --gradient-to: var(--palette-light-gradient-to);
+  --gradient-purple: var(--palette-light-gradient-purple);
 
   /* Chart colors (LIGHT) */
-  --chart-1: var(--palette-primary);
-  --chart-2: var(--palette-gradient-to);
-  --chart-3: var(--palette-secondary);
+  --chart-1: var(--palette-light-primary);
+  --chart-2: var(--palette-light-gradient-to);
+  --chart-3: var(--palette-light-secondary);
   --chart-4: oklch(0.54 0.34 275);                  /* Deep neon indigo */
   --chart-5: oklch(0.76 0.22 195);                  /* Bright aqua */
 
   /* Sidebar colors (LIGHT) */
   --sidebar: oklch(0.98 0.005 240);
-  --sidebar-foreground: var(--palette-fg);
-  --sidebar-primary: var(--palette-primary);
-  --sidebar-primary-foreground: var(--palette-primary-fg);
+  --sidebar-foreground: var(--palette-light-fg);
+  --sidebar-primary: var(--palette-light-primary);
+  --sidebar-primary-foreground: var(--palette-light-primary-fg);
   --sidebar-accent: oklch(0.92 0.03 230);
   --sidebar-accent-foreground: oklch(0.22 0.06 250);
-  --sidebar-border: var(--palette-border);
-  --sidebar-ring: var(--palette-primary);
+  --sidebar-border: var(--palette-light-border);
+  --sidebar-ring: var(--palette-light-primary);
 }
 
 .dark {
@@ -164,85 +191,58 @@
      Deep dark background, neon accents with subtle glow
      ═══════════════════════════════════════════════════════════ */
 
-  /* Palette (DARK) - raw colors */
-  --palette-bg: oklch(0.12 0.015 250);              /* Deep navy-blue, almost black */
-  --palette-fg: oklch(0.95 0.01 180);               /* Off-white with cyan hint */
-  --palette-surface: oklch(0.16 0.02 250);          /* Slightly lighter navy */
-  --palette-surface-fg: oklch(0.95 0.01 180);
-  --palette-popover: oklch(0.14 0.018 250);
-  --palette-popover-fg: oklch(0.95 0.01 180);
-  --palette-muted: oklch(0.20 0.02 250);
-  --palette-muted-fg: oklch(0.58 0.08 200);
-  --palette-border: oklch(0.30 0.04 200);
-  --palette-input: oklch(0.32 0.05 200);
-  --palette-destructive: oklch(0.65 0.26 25);
-  --palette-destructive-fg: oklch(0.95 0.01 25);
+  /* Semantic tokens (DARK) - map to dark palette */
+  --background: var(--palette-dark-bg);
+  --foreground: var(--palette-dark-fg);
 
-  /* Palette accents (DARK) - legacy cyber clinic direction */
-  --palette-primary: oklch(0.92 0.35 166);           /* Maximum neon green */
-  --palette-primary-fg: oklch(0.06 0.02 250);
-  --palette-secondary: oklch(0.28 0.15 200);         /* Neon teal surface */
-  --palette-secondary-fg: oklch(0.88 0.18 180);
-  --palette-accent: oklch(1.0 0.42 115);             /* Maximum neon yellow */
-  --palette-accent-fg: oklch(0.02 0.01 250);
+  --card: var(--palette-dark-surface);
+  --card-foreground: var(--palette-dark-surface-fg);
 
-  /* Palette gradients (DARK) */
-  --palette-gradient-from: oklch(0.92 0.35 166);
-  --palette-gradient-to: oklch(0.85 0.35 320);
-  --palette-gradient-purple: oklch(0.75 0.32 290);
+  --popover: var(--palette-dark-popover);
+  --popover-foreground: var(--palette-dark-popover-fg);
 
-  /* Semantic tokens (DARK) - map to palette */
-  --background: var(--palette-bg);
-  --foreground: var(--palette-fg);
+  --primary: var(--palette-dark-primary);
+  --primary-foreground: var(--palette-dark-primary-fg);
 
-  --card: var(--palette-surface);
-  --card-foreground: var(--palette-surface-fg);
+  --secondary: var(--palette-dark-secondary);
+  --secondary-foreground: var(--palette-dark-secondary-fg);
 
-  --popover: var(--palette-popover);
-  --popover-foreground: var(--palette-popover-fg);
+  --muted: var(--palette-dark-muted);
+  --muted-foreground: var(--palette-dark-muted-fg);
 
-  --primary: var(--palette-primary);
-  --primary-foreground: var(--palette-primary-fg);
+  --accent: var(--palette-dark-accent);
+  --accent-foreground: var(--palette-dark-accent-fg);
 
-  --secondary: var(--palette-secondary);
-  --secondary-foreground: var(--palette-secondary-fg);
+  --destructive: var(--palette-dark-destructive);
+  --destructive-foreground: var(--palette-dark-destructive-fg);
 
-  --muted: var(--palette-muted);
-  --muted-foreground: var(--palette-muted-fg);
-
-  --accent: var(--palette-accent);
-  --accent-foreground: var(--palette-accent-fg);
-
-  --destructive: var(--palette-destructive);
-  --destructive-foreground: var(--palette-destructive-fg);
-
-  --border: var(--palette-border);
-  --input: var(--palette-input);
+  --border: var(--palette-dark-border);
+  --input: var(--palette-dark-input);
   --ring: oklch(0.85 0.25 166);
 
   /* Extra neon tokens (DARK) */
-  --glow: var(--palette-primary);
+  --glow: var(--palette-dark-primary);
   --section-alt: oklch(0.14 0.018 240);
 
-  --gradient-from: var(--palette-gradient-from);
-  --gradient-to: var(--palette-gradient-to);
-  --gradient-purple: var(--palette-gradient-purple);
+  --gradient-from: var(--palette-dark-gradient-from);
+  --gradient-to: var(--palette-dark-gradient-to);
+  --gradient-purple: var(--palette-dark-gradient-purple);
 
   /* Chart colors (DARK) */
-  --chart-1: var(--palette-primary);
-  --chart-2: var(--palette-gradient-to);
-  --chart-3: var(--palette-accent);
+  --chart-1: var(--palette-dark-primary);
+  --chart-2: var(--palette-dark-gradient-to);
+  --chart-3: var(--palette-dark-accent);
   --chart-4: oklch(0.82 0.28 320);
   --chart-5: oklch(0.85 0.28 40);
 
   /* Sidebar colors (DARK) */
-  --sidebar: var(--palette-popover);
-  --sidebar-foreground: var(--palette-fg);
+  --sidebar: var(--palette-dark-popover);
+  --sidebar-foreground: var(--palette-dark-fg);
   --sidebar-primary: oklch(0.85 0.25 166);
   --sidebar-primary-foreground: oklch(0.10 0.02 250);
   --sidebar-accent: oklch(0.22 0.05 200);
   --sidebar-accent-foreground: oklch(0.85 0.12 180);
-  --sidebar-border: var(--palette-border);
+  --sidebar-border: var(--palette-dark-border);
   --sidebar-ring: oklch(0.85 0.25 166);
 }
 

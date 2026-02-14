@@ -1,14 +1,14 @@
-# Agent Instructions for Clinteia App
+# Agent Instructions for Clinvetia App
 
-This is a Next.js 16 application with TypeScript and Tailwind CSS v4.
+This repository is a Next.js (App Router) app using React 19, TypeScript (strict), Tailwind CSS v4, and Storybook.
 
-## Build Commands
+## Commands (Build / Lint / Typecheck / Storybook)
 
 ```bash
-# Install dependencies
+# Install deps
 pnpm install
 
-# Development server
+# Dev server (http://localhost:3000)
 pnpm dev
 
 # Production build
@@ -17,123 +17,138 @@ pnpm build
 # Start production server
 pnpm start
 
-# Linting
-pnpm lint              # Run ESLint
-pnpm lint --fix        # Run ESLint with auto-fix
+# Lint entire repo (ESLint 9 + eslint-config-next)
+pnpm lint
 
-# Storybook
-pnpm storybook         # Run Storybook dev server (port 6006)
-pnpm build-storybook   # Build Storybook for production
+# Lint with auto-fix (pnpm requires "--" to pass args)
+pnpm lint -- --fix
+
+# Lint a single file
+pnpm lint -- app/page.tsx
+
+# Typecheck (no emit)
+pnpm exec tsc --noEmit
+
+# Storybook (port 6006)
+pnpm storybook
+
+# Build Storybook
+pnpm build-storybook
 ```
 
-## Test Commands
+## Tests
 
-**Note: No test framework is currently configured.** To run tests, you would need to install a testing library like Jest or Vitest. When tests are added:
+No unit/e2e test runner is configured in `package.json` (no `pnpm test` script, no `vitest/jest/playwright/cypress` config).
+
+- Closest “CI-like” smoke check today: `pnpm lint && pnpm exec tsc --noEmit && pnpm build`.
+- If a test runner is added later, keep a `single test` command documented in `package.json` (examples):
 
 ```bash
-# Run all tests (once configured)
-pnpm test
+# Vitest (example; only works once added)
+pnpm exec vitest run path/to/test.spec.ts
 
-# Run single test file (once configured)
-pnpm test -- path/to/test.tsx
+# Jest (example; only works once added)
+pnpm exec jest path/to/test.spec.ts
 
-# Run tests in watch mode (once configured)
-pnpm test -- --watch
+# Playwright (example; only works once added)
+pnpm exec playwright test path/to/test.spec.ts
+```
+
+## Repo-Specific Notes
+
+- Package manager: use `pnpm` (lockfile is `pnpm-lock.yaml`).
+- Module alias: `@/*` maps to the repo root via `tsconfig.json`.
+- Tailwind v4 is configured via CSS (`app/globals.css` uses `@import "tailwindcss"`).
+- Storybook uses Vite and provides Next.js module mocks/aliases in `.storybook/main.js`.
+- `.gitignore` currently ignores `.storybook/`. If you need to commit Storybook config changes, fix the ignore first.
+
+## Project Structure (High Level)
+
+```
+app/                 # Next.js App Router (server components by default)
+  layout.tsx         # Root layout + fonts + globals
+  page.tsx           # Home page
+  globals.css        # Tailwind v4 + theme tokens + utilities
+components/
+  providers/         # Client providers (theme, loaders)
+  ui/                # Reusable UI primitives (Radix/shadcn-style)
+lib/
+  api/               # Client-side API wrappers with typed results
+  admin/             # Demo/admin helpers
+  utils.ts           # `cn()` helper for Tailwind class merging
+stories/             # Storybook stories + MSW handlers
+styles/              # Storybook-specific CSS
+public/              # Static assets
+scripts/             # Utility scripts
 ```
 
 ## Code Style Guidelines
 
 ### TypeScript
 
-- **Target**: ES2017 with strict mode enabled
-- **Module**: ESNext with bundler resolution
-- **JSX**: Use `react-jsx` transform
-- Always define explicit types for function parameters and returns
-- Use `type` over `interface` for type definitions
-- Enable strict null checks and no implicit any
+- `tsconfig.json` is `strict: true`; avoid `any` and prefer narrow, explicit types at module boundaries.
+- Use `type` for unions/utility types and `interface` for object shapes that benefit from declaration merging/extension.
+- Prefer typed result objects over throwing for expected failures (see `lib/api/bookings.ts`).
+- Keep client-only code behind `"use client"`; default to Server Components in `app/` when possible.
 
 ### Imports
 
-- Use absolute imports with `@/*` alias for project root
-- Import order: React/Next → third-party → local modules
-- Use named imports where possible
-- Place type imports first: `import type { Metadata } from "next"`
+- Prefer absolute imports from `@/` over deep relative paths.
+- Group imports with blank lines: (1) type-only, (2) React/Next, (3) third-party, (4) `@/` local.
+- Use type-only imports where helpful: `import type { Metadata } from "next"`.
+- In mixed imports, inline type modifiers are fine: `import { clsx, type ClassValue } from "clsx"`.
 
 ### Formatting
 
-- No explicit formatter configured (consider adding Prettier)
-- Follow existing code patterns
-- Use semicolons
-- Use double quotes for strings
-- 2-space indentation
+- No Prettier/EditorConfig is configured; match existing style.
+- 2-space indentation, semicolons, double quotes.
+- Prefer readable multiline props/objects over dense one-liners when it improves clarity.
 
-### Naming Conventions
+### Naming
 
-- **Components**: PascalCase (e.g., `MyComponent.tsx`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useAuth.ts`)
-- **Utils/Libs**: camelCase (e.g., `helpers.ts`)
-- **Types/Interfaces**: PascalCase (e.g., `UserData`)
-- **Constants**: UPPER_SNAKE_CASE for true constants
+- Components: `PascalCase` (files and exports).
+- Hooks: `camelCase` with `use` prefix.
+- Types: `PascalCase`; enums are used in `lib/` where appropriate.
+- Constants: `UPPER_SNAKE_CASE` for true constants.
+- Tailwind utility helpers: use `cn()` from `lib/utils.ts` for conditional class merging.
 
-### Component Patterns
+### React / Next.js Patterns
 
-- Use default exports for page components
-- Use functional components with explicit return types
-- Props interface: `ComponentNameProps`
-- Prefer destructured props in component parameters
+- `app/` pages/layouts: default-export the component; keep `export const metadata` typed as `Metadata` when used.
+- Only add `"use client"` when the file uses hooks, browser-only APIs, or client-side providers.
+- Prefer Radix primitives (in `components/ui/`) for accessibility; add `aria-label` for icon-only controls.
 
-### Styling
+### Styling (Tailwind v4)
 
-- Use Tailwind CSS v4 with `@import "tailwindcss"` syntax
-- Use CSS variables for theming (light/dark mode support)
-- Prefer Tailwind utility classes over custom CSS
-- Follow mobile-first responsive design
+- Prefer Tailwind utilities over new custom CSS.
+- Use design tokens / CSS variables defined in `app/globals.css` (background/foreground, gradients, radius).
+- Avoid inline styles unless there is no reasonable Tailwind/CSS-variable alternative.
 
 ### Error Handling
 
-- Use try/catch for async operations
-- Handle errors at component boundaries
-- Use Next.js error boundaries for fatal errors
-- Log errors appropriately for debugging
+- For network/API calls in `lib/api/*`, prefer typed return unions (e.g., `ApiResult<T>`) and normalize parse errors.
+- Use `try/catch` around JSON parsing and any code that can throw; return a stable error shape.
+- For UI errors, use Next.js `error.tsx` boundaries when/if introduced; avoid swallowing exceptions silently.
 
-### Environment
+### Environment & Secrets
 
-- Never commit `.env*` files
-- Use `process.env` with NEXT_PUBLIC_ prefix for client-side env vars
-- Validate environment variables at startup
+- Never commit `.env*` files (ignored by `.gitignore`).
+- Only expose client-safe values via `NEXT_PUBLIC_*` env vars; treat all others as server-only.
+- Validate env vars at startup in a single place if/when env usage grows.
 
-### Git
+### Git / Workspace Hygiene
 
-- Do not commit secrets or API keys
-- Follow conventional commit messages
-- Run `pnpm lint` before committing
+- Don’t commit secrets, API keys, credentials, or large build outputs (`.next/`, `out/`, `build/`).
+- Prefer small, focused changes; avoid drive-by formatting across unrelated files.
+- If you touch `.storybook/`, remember it’s currently ignored and may not be included in commits.
 
-## Project Structure
+### Storybook
 
-```
-app/           # Next.js App Router pages
-  layout.tsx   # Root layout with fonts
-  page.tsx     # Home page
-  globals.css  # Global styles + Tailwind
-components/    # React components
-  ui/          # shadcn/ui components
-  providers/   # Context providers (theme, etc.)
-lib/           # Utility functions and helpers
-  api/         # API functions
-  admin/       # Admin-related code
-stories/       # Storybook stories
-  ui/          # Component stories
-  mocks/       # MSW handlers for stories
-public/        # Static assets
-scripts/       # Build/utility scripts
-.storybook/    # Storybook configuration
-```
+- Stories live under `stories/` and should use CSF3 (`satisfies Meta<typeof Component>`).
+- Prefer real variants used by the app (sizes, states, disabled, loading).
+- MSW handlers are defined in `stories/mocks/handlers.ts` and wired in `.storybook/preview.tsx`.
 
-## Dependencies
+## Cursor / Copilot Rules
 
-- **Framework**: Next.js 16.1.6 with React 19.2.3
-- **Styling**: Tailwind CSS v4 with PostCSS
-- **Language**: TypeScript 5.x
-- **Linting**: ESLint 9.x with Next.js config
-- **Testing**: Storybook 8.x with MSW
-- **Package Manager**: pnpm
+No Cursor rules found (`.cursor/rules/`, `.cursorrules`).
+No GitHub Copilot instructions found (`.github/copilot-instructions.md`).

@@ -71,36 +71,72 @@ function ThemePanel({
 }
 
 export function BrandPalette(): JSX.Element {
-  const baseTokens: ColorToken[] = [
-    { label: "--background", value: "var(--background)" },
-    { label: "--foreground", value: "var(--foreground)" },
-    { label: "--card", value: "var(--card)" },
-    { label: "--card-foreground", value: "var(--card-foreground)" },
-    { label: "--popover", value: "var(--popover)" },
-    { label: "--popover-foreground", value: "var(--popover-foreground)" },
-    { label: "--muted", value: "var(--muted)" },
-    { label: "--muted-foreground", value: "var(--muted-foreground)" },
-    { label: "--border", value: "var(--border)" },
-    { label: "--input", value: "var(--input)" },
-    { label: "--ring", value: "var(--ring)" },
+  const baseTokensLight: ColorToken[] = [
+    { label: "--background", value: "var(--palette-light-bg)" },
+    { label: "--foreground", value: "var(--palette-light-fg)" },
+    { label: "--card", value: "var(--palette-light-surface)" },
+    { label: "--card-foreground", value: "var(--palette-light-surface-fg)" },
+    { label: "--popover", value: "var(--palette-light-surface)" },
+    { label: "--popover-foreground", value: "var(--palette-light-surface-fg)" },
+    { label: "--muted", value: "var(--palette-light-muted)" },
+    { label: "--muted-foreground", value: "var(--palette-light-muted-fg)" },
+    { label: "--border", value: "var(--palette-light-border)" },
+    { label: "--input", value: "var(--palette-light-input)" },
+    { label: "--ring", value: "var(--palette-light-primary)" },
   ];
 
-  const accentTokens: ColorToken[] = [
-    { label: "--primary", value: "var(--primary)" },
-    { label: "--primary-foreground", value: "var(--primary-foreground)" },
-    { label: "--secondary", value: "var(--secondary)" },
-    { label: "--secondary-foreground", value: "var(--secondary-foreground)" },
-    { label: "--accent", value: "var(--accent)" },
-    { label: "--accent-foreground", value: "var(--accent-foreground)" },
-    { label: "--destructive", value: "var(--destructive)" },
-    { label: "--destructive-foreground", value: "var(--destructive-foreground)" },
+  const accentTokensLight: ColorToken[] = [
+    { label: "--primary", value: "var(--palette-light-primary)" },
+    { label: "--primary-foreground", value: "var(--palette-light-primary-fg)" },
+    { label: "--secondary", value: "var(--palette-light-secondary)" },
+    { label: "--secondary-foreground", value: "var(--palette-light-secondary-fg)" },
+    { label: "--accent", value: "var(--palette-light-accent)" },
+    { label: "--accent-foreground", value: "var(--palette-light-accent-fg)" },
+    { label: "--destructive", value: "var(--palette-light-destructive)" },
+    { label: "--destructive-foreground", value: "var(--palette-light-destructive-fg)" },
   ];
 
-  const fxTokens: ColorToken[] = [
-    { label: "--glow", value: "var(--glow)" },
+  const fxTokensLight: ColorToken[] = [
+    { label: "--glow", value: "var(--palette-light-primary)" },
     {
       label: "gradient (from/to)",
-      value: "linear-gradient(135deg, var(--gradient-from), var(--gradient-to))",
+      value:
+        "linear-gradient(135deg, var(--palette-light-gradient-from), var(--palette-light-gradient-to))",
+      type: "gradient",
+    },
+  ];
+
+  const baseTokensDark: ColorToken[] = [
+    { label: "--background", value: "var(--palette-dark-bg)" },
+    { label: "--foreground", value: "var(--palette-dark-fg)" },
+    { label: "--card", value: "var(--palette-dark-surface)" },
+    { label: "--card-foreground", value: "var(--palette-dark-surface-fg)" },
+    { label: "--popover", value: "var(--palette-dark-popover)" },
+    { label: "--popover-foreground", value: "var(--palette-dark-popover-fg)" },
+    { label: "--muted", value: "var(--palette-dark-muted)" },
+    { label: "--muted-foreground", value: "var(--palette-dark-muted-fg)" },
+    { label: "--border", value: "var(--palette-dark-border)" },
+    { label: "--input", value: "var(--palette-dark-input)" },
+    { label: "--ring", value: "var(--palette-dark-primary)" },
+  ];
+
+  const accentTokensDark: ColorToken[] = [
+    { label: "--primary", value: "var(--palette-dark-primary)" },
+    { label: "--primary-foreground", value: "var(--palette-dark-primary-fg)" },
+    { label: "--secondary", value: "var(--palette-dark-secondary)" },
+    { label: "--secondary-foreground", value: "var(--palette-dark-secondary-fg)" },
+    { label: "--accent", value: "var(--palette-dark-accent)" },
+    { label: "--accent-foreground", value: "var(--palette-dark-accent-fg)" },
+    { label: "--destructive", value: "var(--palette-dark-destructive)" },
+    { label: "--destructive-foreground", value: "var(--palette-dark-destructive-fg)" },
+  ];
+
+  const fxTokensDark: ColorToken[] = [
+    { label: "--glow", value: "var(--palette-dark-primary)" },
+    {
+      label: "gradient (from/to)",
+      value:
+        "linear-gradient(135deg, var(--palette-dark-gradient-from), var(--palette-dark-gradient-to))",
       type: "gradient",
     },
   ];
@@ -112,15 +148,15 @@ export function BrandPalette(): JSX.Element {
           <div className="grid gap-5">
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">Base</div>
-              <TokenGrid tokens={baseTokens} />
+              <TokenGrid tokens={baseTokensLight} />
             </div>
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">Accents</div>
-              <TokenGrid tokens={accentTokens} />
+              <TokenGrid tokens={accentTokensLight} />
             </div>
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">FX</div>
-              <TokenGrid tokens={fxTokens} />
+              <TokenGrid tokens={fxTokensLight} />
             </div>
           </div>
         </ThemePanel>
@@ -129,15 +165,15 @@ export function BrandPalette(): JSX.Element {
           <div className="grid gap-5">
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">Base</div>
-              <TokenGrid tokens={baseTokens} />
+              <TokenGrid tokens={baseTokensDark} />
             </div>
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">Accents</div>
-              <TokenGrid tokens={accentTokens} />
+              <TokenGrid tokens={accentTokensDark} />
             </div>
             <div>
               <div className="mb-2 text-xs font-medium text-muted-foreground">FX</div>
-              <TokenGrid tokens={fxTokens} />
+              <TokenGrid tokens={fxTokensDark} />
             </div>
           </div>
         </ThemePanel>
@@ -152,7 +188,7 @@ export function BrandTypography(): JSX.Element {
       <div className="rounded-xl border bg-card p-6">
         <div className="text-xs font-medium text-muted-foreground">Font Sans</div>
         <div className="mt-4 grid gap-4 font-sans">
-          <div className="text-3xl font-semibold tracking-tight">Clinteia Typography</div>
+          <div className="text-3xl font-semibold tracking-tight">Clinvetia Typography</div>
           <div className="text-lg text-muted-foreground">
             Body text uses Geist Sans via the CSS variable --font-geist-sans and the Tailwind token font-sans.
           </div>
