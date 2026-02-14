@@ -1,0 +1,47 @@
+.sb-show-main,
+#storybook-root {
+  height: 100%;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.sbdocs-wrapper {
+  padding: 2.5rem 1.5rem;
+}
+
+.sbdocs-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sbdocs-title {
+  margin-top: 0;
+}
+
+.sbdocs .docs-story,
+.sbdocs .docs-story > div {
+  max-width: 100%;
+}
+
+.sbdocs-canvas {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sbdocs .docs-story {
+  padding: 1.25rem;
+}
+
+.sbdocs .docs-story > div {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+/* Allow fixed/portal-like components (e.g., Loader) to render fully in docs */
+.sbdocs .docs-story {
+  overflow: visible;
+}
