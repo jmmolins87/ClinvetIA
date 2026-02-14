@@ -1,0 +1,202 @@
+{
+  "nav": {
+    "solution": "Solution",
+    "scenarios": "Scenarios",
+    "howItWorks": "How it works",
+    "contact": "Contact"
+  },
+  "common": {
+    "roi": "ROI",
+    "bookDemo": "Book a demo",
+    "discoverMore": "Discover more",
+    "menu": "Menu",
+    "close": "Close",
+    "primaryNav": "Primary",
+    "scrollTop": "Back to top",
+    "brand": "Clinvetia"
+  },
+  "theme": {
+    "toggle": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "toggle": "Change language"
+  },
+  "home": {
+    "hero": {
+      "title": "Intelligence applied to veterinary.",
+      "subtitle": "Every unanswered question is a client going to another clinic.",
+      "ctaPrimary": "Book a demo",
+      "ctaSecondary": "View ROI"
+    },
+    "problem": {
+      "eyebrow": "Does this feel familiar?",
+      "headline": "Every day you lose clients to problems that have a solution",
+      "lead": "Your team does their best, but the phone never stops and WhatsApp overflows with questions.",
+      "cards": {
+        "late": {
+          "title": "Missed late-night emergencies",
+          "text": "A pet owner writes late. You reply in the morning. They already went elsewhere."
+        },
+        "overload": {
+          "title": "Front desk overload",
+          "text": "Between scheduling, payments, and questions, something always gets delayed."
+        },
+        "missed": {
+          "title": "Appointments that slip away",
+          "text": "They ask for an appointment. You answer late. Lost client."
+        },
+        "manual": {
+          "title": "Manual reminders",
+          "text": "Vaccines and checkups require one-by-one calls or messages."
+        }
+      }
+    },
+    "features": {
+      "title": "Intelligent Care System",
+      "lead": "Not a chatbot. A system that understands questions, triages urgency, checks availability, and books appointments.",
+      "stat": "40% of inquiries arrive after hours",
+      "statNote": "If you are not there when the question happens, you do not get a second chance.",
+      "cards": {
+        "understand": {
+          "title": "Understands veterinary questions",
+          "text": "Interprets symptoms and separates urgent from routine visits."
+        },
+        "availability": {
+          "title": "Checks availability in real time",
+          "text": "Finds slots for emergencies, vaccines, or checkups instantly."
+        },
+        "booking": {
+          "title": "Books automatically",
+          "text": "Reserves and confirms appointments without back-and-forth."
+        },
+        "followup": {
+          "title": "Automatic reminders",
+          "text": "Vaccines, checkups, and treatment follow-ups handled proactively."
+        }
+      }
+    },
+    "flow": {
+      "title": "Frictionless flow",
+      "lead": "From question to confirmed appointment, with no manual intervention.",
+      "steps": {
+        "1": {
+          "title": "Owner messages on WhatsApp",
+          "text": "Available 24/7 for symptoms, vaccines, and emergencies."
+        },
+        "2": {
+          "title": "Triage and verify",
+          "text": "Separates urgent vs routine and checks real-time availability."
+        },
+        "3": {
+          "title": "Suggests options",
+          "text": "Offers slots based on visit type and owner preferences."
+        },
+        "4": {
+          "title": "Confirm and remind",
+          "text": "Books, confirms, and sends reminders with instructions."
+        }
+      }
+    },
+    "benefits": {
+      "title": "Operational benefits",
+      "lead": "Less admin load, 24/7 capture, and a healthier schedule.",
+      "cards": {
+        "urgent": {
+          "title": "24/7 emergencies",
+          "text": "Capture and triage late-night and weekend urgent cases."
+        },
+        "lessCalls": {
+          "title": "Fewer repetitive calls",
+          "text": "Free your team to focus on the patients."
+        },
+        "calm": {
+          "title": "Calmer owners",
+          "text": "Immediate answers about vaccines, symptoms, and booking."
+        },
+        "reminders": {
+          "title": "Automatic reminders",
+          "text": "Vaccines, checkups, and follow-ups stay on track."
+        }
+      }
+    },
+    "scenarios": {
+      "title": "Real veterinary scenarios",
+      "lead": "Everyday situations in your clinic, resolved with intelligent care.",
+      "cta": "See scenarios",
+      "cards": {
+        "emergency": {
+          "title": "After-hours emergencies",
+          "text": "Severe symptoms, accidents, questions outside business hours."
+        },
+        "preventive": {
+          "title": "Preventive care",
+          "text": "Vaccines, deworming, annual checkups."
+        },
+        "chronic": {
+          "title": "Chronic care",
+          "text": "Follow-ups for diabetes, renal, cardiac cases."
+        },
+        "multi": {
+          "title": "Multiple services",
+          "text": "Consults, grooming, labs, surgeries."
+        }
+      }
+    },
+    "kpi": {
+      "title": "How many clients do you lose each month?",
+      "lead": "Every unanswered question is an owner going elsewhere. The impact is real.",
+      "cta": "Calculate my ROI",
+      "stats": {
+        "response": {
+          "value": "80%",
+          "label": "of owners expect an immediate response"
+        },
+        "lost": {
+          "value": "67%",
+          "label": "leave after 24h without a reply"
+        },
+        "growth": {
+          "value": "+35%",
+          "label": "increase in captured appointments"
+        }
+      },
+      "impact": {
+        "money": {
+          "title": "More visits, fewer empty slots",
+          "text": "Capture urgent cases, reminders, and follow-up appointments you used to miss."
+        },
+        "time": {
+          "title": "Your team focuses on patients",
+          "text": "Less time answering repeats, more time providing care."
+        }
+      }
+    },
+    "final": {
+      "title": "Start capturing every inquiry",
+      "lead": "Book a demo and see how intelligent care transforms your clinic.",
+      "ctaPrimary": "Book a demo",
+      "ctaSecondary": "Calculate ROI"
+    }
+  },
+  "footer": {
+    "about": "Professional neon-grade automation for veterinary clinics.",
+    "product": "Product",
+    "company": "Company",
+    "start": "Get started",
+    "startLead": "Calculate the impact or book a demo.",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "links": {
+      "solution": "Solution",
+      "useCases": "Use cases",
+      "roiCalc": "ROI calculator",
+      "howItWorks": "How it works",
+      "faqs": "FAQs",
+      "contact": "Contact"
+    }
+  }
+}

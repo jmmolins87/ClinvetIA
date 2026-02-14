@@ -19,6 +19,9 @@ describe("Button", () => {
     rerender(<Button variant="secondary">B</Button>);
     expect(screen.getByRole("button", { name: "B" })).toHaveAttribute("data-variant", "secondary");
 
+    rerender(<Button variant="tertiary">BT</Button>);
+    expect(screen.getByRole("button", { name: "BT" })).toHaveAttribute("data-variant", "tertiary");
+
     rerender(<Button variant="outline">C</Button>);
     expect(screen.getByRole("button", { name: "C" })).toHaveAttribute("data-variant", "outline");
 

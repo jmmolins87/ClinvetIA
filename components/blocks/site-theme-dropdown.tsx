@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTheme } from "next-themes";
 
+import { useTranslation } from "@/components/providers/i18n-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,7 @@ export function SiteThemeDropdown({
   className?: string;
   size?: "default" | "large";
 }) {
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const current = (theme ?? "system") as ThemeValue;
   const [mounted, setMounted] = React.useState(false);
@@ -42,7 +44,7 @@ export function SiteThemeDropdown({
   if (!mounted) {
     if (size === "large") {
       return (
-        <div className="flex items-center justify-center p-2 rounded-lg bg-transparent opacity-50">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-transparent opacity-50">
           <Icon name="Sun" className="w-8 h-8" />
         </div>
       );
@@ -52,7 +54,7 @@ export function SiteThemeDropdown({
       <Button
         variant="ghost"
         className={cn("h-12 w-12 flex items-center justify-center", className)}
-        aria-label="Cambiar tema"
+        aria-label={t("theme.toggle")}
         disabled
       >
         <Icon name="Sun" className="h-6 w-6" />
@@ -67,11 +69,11 @@ export function SiteThemeDropdown({
           <button
             type="button"
             className={cn(
-              "flex items-center justify-center p-4 rounded-lg cursor-pointer transition-colors hover:bg-gradient-to/10 hover:text-gradient-to dark:hover:bg-primary/10 dark:hover:text-primary",
+              "flex h-12 w-12 items-center justify-center rounded-lg cursor-pointer transition-colors hover:bg-gradient-to/10 hover:text-gradient-to dark:hover:bg-primary/10 dark:hover:text-primary",
               isOpen ? "bg-primary/10 text-primary" : "",
               className
             )}
-            aria-label="Cambiar tema"
+            aria-label={t("theme.toggle")}
           >
             {icon}
           </button>
@@ -82,7 +84,7 @@ export function SiteThemeDropdown({
               "h-12 w-12 flex items-center justify-center cursor-pointer transition-colors",
               className
             )}
-            aria-label="Cambiar tema"
+            aria-label={t("theme.toggle")}
           >
             {icon}
           </Button>
@@ -98,7 +100,7 @@ export function SiteThemeDropdown({
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
           <Icon name="Sun" className="h-7 w-7 mb-2" />
-          <span className="text-sm font-medium">Claro</span>
+          <span className="text-sm font-medium">{t("theme.light")}</span>
           {current === "light" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">
               ✓
@@ -111,7 +113,7 @@ export function SiteThemeDropdown({
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
           <Icon name="Moon" className="h-7 w-7 mb-2" />
-          <span className="text-sm font-medium">Oscuro</span>
+          <span className="text-sm font-medium">{t("theme.dark")}</span>
           {current === "dark" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">
               ✓
@@ -124,7 +126,7 @@ export function SiteThemeDropdown({
           className="cursor-pointer flex flex-col items-center justify-center py-4 relative"
         >
           <Icon name="Monitor" className="h-7 w-7 mb-2" />
-          <span className="text-sm font-medium">Sistema</span>
+          <span className="text-sm font-medium">{t("theme.system")}</span>
           {current === "system" && (
             <span className="absolute top-2 right-2 text-gradient-to dark:text-primary text-sm">
               ✓

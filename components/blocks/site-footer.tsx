@@ -3,49 +3,62 @@
 import * as React from "react";
 import Link from "next/link";
 
-import { RoiButton } from "@/components/cta/roi-button";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { useTranslation } from "@/components/providers/i18n-provider";
 
 const FOOTER_LINKS = {
   product: [
-    { href: "/solucion", label: "Solucion" },
-    { href: "/escenarios", label: "Casos de uso" },
-    { href: "/roi", label: "Calculadora ROI" },
-    { href: "/como-funciona", label: "Como funciona" },
+    { href: "/solucion", labelKey: "footer.links.solution" },
+    { href: "/escenarios", labelKey: "footer.links.useCases" },
+    { href: "/roi", labelKey: "footer.links.roiCalc" },
+    { href: "/como-funciona", labelKey: "footer.links.howItWorks" },
   ],
   company: [
-    { href: "/faqs", label: "FAQs" },
-    { href: "/contacto", label: "Contacto" },
+    { href: "/faqs", labelKey: "footer.links.faqs" },
+    { href: "/contacto", labelKey: "footer.links.contact" },
   ],
 } as const;
 
-export function SiteFooter({ className }: { className?: string }) {
+export function SiteFooter({
+  className,
+  density = "default",
+}: {
+  className?: string;
+  density?: "default" | "compact";
+}) {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
+  const isCompact = density === "compact";
 
   return (
     <footer className={cn("border-t border-border/40 bg-background", className)}>
-      <div className="container mx-auto max-w-screen-2xl px-4 py-12">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={cn(
+          "container mx-auto max-w-screen-2xl px-4",
+          isCompact ? "py-8" : "py-12"
+        )}
+      >
+        <div className={cn("grid md:grid-cols-2 lg:grid-cols-4", isCompact ? "gap-6" : "gap-8")}>
           <div className="space-y-4">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="inline-block cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              aria-label="Ir arriba"
+              aria-label={t("common.scrollTop")}
             >
               <Logo className="h-14" />
             </button>
             <p className="text-sm text-muted-foreground">
-              Automatizacion inteligente con IA para clinicas veterinarias.
+              {t("footer.about")}
             </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Producto</h3>
+            <h3 className="text-sm font-semibold">{t("footer.product")}</h3>
             <ul className="space-y-3">
               {FOOTER_LINKS.product.map((link) => (
                 <li key={link.href}>
@@ -53,7 +66,7 @@ export function SiteFooter({ className }: { className?: string }) {
                     href={link.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -61,7 +74,7 @@ export function SiteFooter({ className }: { className?: string }) {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Empresa</h3>
+            <h3 className="text-sm font-semibold">{t("footer.company")}</h3>
             <ul className="space-y-3">
               {FOOTER_LINKS.company.map((link) => (
                 <li key={link.href}>
@@ -69,7 +82,7 @@ export function SiteFooter({ className }: { className?: string }) {
                     href={link.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -77,24 +90,29 @@ export function SiteFooter({ className }: { className?: string }) {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Empieza hoy</h3>
+            <h3 className="text-sm font-semibold">{t("footer.start")}</h3>
             <p className="text-sm text-muted-foreground">
-              Calcula el impacto o reserva una demo.
+              {t("footer.startLead")}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <RoiButton asChild>
+              <Button
+                variant="default"
+                size="lg"
+                className="h-12 dark:glow-primary"
+                asChild
+              >
                 <Link href="/roi">
                   <span className="flex items-center gap-2">
                     <Icon name="Calculator" className="h-4 w-4" />
-                    ROI
+                    {t("common.roi")}
                   </span>
                 </Link>
-              </RoiButton>
+              </Button>
               <Button variant="secondary" size="lg" className="h-12" asChild>
                 <Link href="/reservar">
                   <span className="flex items-center gap-2">
                     <Icon name="Calendar" className="h-4 w-4" />
-                    Reservar demo
+                    {t("common.bookDemo")}
                   </span>
                 </Link>
               </Button>
@@ -102,24 +120,24 @@ export function SiteFooter({ className }: { className?: string }) {
           </div>
         </div>
 
-        <Separator className="my-8" />
+        <Separator className={cn(isCompact ? "my-6" : "my-8")} />
 
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {year} Clinvetia. Todos los derechos reservados.
+            © {year} Clinvetia. {t("footer.rights")}
           </p>
           <div className="flex gap-6">
             <Link
               href="/privacidad"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Privacidad
+              {t("footer.privacy")}
             </Link>
             <Link
               href="/terminos"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Terminos
+              {t("footer.terms")}
             </Link>
           </div>
         </div>

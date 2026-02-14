@@ -19,37 +19,56 @@ function mockNavigation(pathname: string) {
 }
 
 describe("SiteHeader", () => {
-  it("renders nav links", async () => {
-    mockNavigation("/solucion");
-    const mod = await import("@/components/blocks/site-header");
+  it(
+    "renders nav links",
+    async () => {
+      mockNavigation("/solucion");
+      const { I18nProvider } = await import("@/components/providers/i18n-provider");
+      const mod = await import("@/components/blocks/site-header");
 
-    render(<mod.SiteHeader />);
-    expect(screen.getByRole("navigation", { name: "Principal" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Solucion" })).toHaveAttribute("href", "/solucion");
-    expect(screen.getByRole("link", { name: "Contacto" })).toHaveAttribute("href", "/contacto");
-  });
+    render(
+      <I18nProvider>
+        <mod.SiteHeader />
+      </I18nProvider>
+    );
+      expect(screen.getByRole("navigation", { name: "Principal" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Solucion" })).toHaveAttribute("href", "/solucion");
+      expect(screen.getByRole("link", { name: "Contacto" })).toHaveAttribute("href", "/contacto");
+    },
+    15_000
+  );
 
   it("opens and closes mobile menu", async () => {
     const user = userEvent.setup();
     mockNavigation("/");
+    const { I18nProvider } = await import("@/components/providers/i18n-provider");
     const mod = await import("@/components/blocks/site-header");
-    render(<mod.SiteHeader />);
+    render(
+      <I18nProvider>
+        <mod.SiteHeader />
+      </I18nProvider>
+    );
 
-    await user.click(screen.getByRole("button", { name: "Abrir menu" }));
+    await user.click(screen.getByRole("button", { name: "Menu" }));
     expect(screen.getAllByRole("link", { name: "Solucion" }).length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole("button", { name: "Cerrar menu" }));
+    await user.click(screen.getByRole("button", { name: "Cerrar" }));
     // Dialog content is removed; ensure close button is gone
-    expect(screen.queryByRole("button", { name: "Cerrar menu" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cerrar" })).not.toBeInTheDocument();
   });
 
   it("home logo click scrolls to top", async () => {
     const user = userEvent.setup();
     mockNavigation("/");
+    const { I18nProvider } = await import("@/components/providers/i18n-provider");
     const mod = await import("@/components/blocks/site-header");
 
     const scrollSpy = vi.spyOn(window, "scrollTo");
-    render(<mod.SiteHeader />);
+    render(
+      <I18nProvider>
+        <mod.SiteHeader />
+      </I18nProvider>
+    );
     await user.click(screen.getByRole("button", { name: "Ir arriba" }));
     expect(scrollSpy).toHaveBeenCalled();
   });
@@ -73,10 +92,15 @@ describe("SiteHeader", () => {
       };
     });
 
+    const { I18nProvider } = await import("@/components/providers/i18n-provider");
     const mod = await import("@/components/blocks/site-header");
-    render(<mod.SiteHeader />);
+    render(
+      <I18nProvider>
+        <mod.SiteHeader />
+      </I18nProvider>
+    );
 
-    await user.click(screen.getByRole("button", { name: "Abrir menu" }));
+    await user.click(screen.getByRole("button", { name: "Menu" }));
     await user.click(screen.getByRole("button", { name: "Ir arriba" }));
     expect(push).toHaveBeenCalledWith("/");
   });

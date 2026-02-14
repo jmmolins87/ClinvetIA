@@ -1,0 +1,202 @@
+{
+  "nav": {
+    "solution": "Solucion",
+    "scenarios": "Escenarios",
+    "howItWorks": "Como funciona",
+    "contact": "Contacto"
+  },
+  "common": {
+    "roi": "ROI",
+    "bookDemo": "Reservar demo",
+    "discoverMore": "Descubre mas",
+    "menu": "Menu",
+    "close": "Cerrar",
+    "primaryNav": "Principal",
+    "scrollTop": "Ir arriba",
+    "brand": "Clinvetia"
+  },
+  "theme": {
+    "toggle": "Cambiar tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "language": {
+    "toggle": "Cambiar idioma"
+  },
+  "home": {
+    "hero": {
+      "title": "Inteligencia aplicada a la veterinaria.",
+      "subtitle": "Cada consulta sin responder es un cliente que se va a otra clinica.",
+      "ctaPrimary": "Reservar demo",
+      "ctaSecondary": "Ver ROI"
+    },
+    "problem": {
+      "eyebrow": "Te resulta familiar?",
+      "headline": "Cada dia pierdes clientes por problemas que tienen solucion",
+      "lead": "Tu equipo hace lo que puede, pero el telefono no para y WhatsApp se desborda con consultas.",
+      "cards": {
+        "late": {
+          "title": "Urgencias nocturnas perdidas",
+          "text": "Un dueno escribe tarde. Respondes por la manana. Ya fue a otra clinica."
+        },
+        "overload": {
+          "title": "Recepcion desbordada",
+          "text": "Entre agenda, cobros y consultas, siempre queda algo pendiente."
+        },
+        "missed": {
+          "title": "Citas que se escapan",
+          "text": "Preguntan por cita. Tardas en responder. Cliente perdido."
+        },
+        "manual": {
+          "title": "Recordatorios manuales",
+          "text": "Vacunas y revisiones requieren llamadas o mensajes uno a uno."
+        }
+      }
+    },
+    "features": {
+      "title": "Sistema de Atencion Inteligente",
+      "lead": "No es un chatbot. Es un sistema que entiende consultas, clasifica urgencias, verifica disponibilidad y agenda citas.",
+      "stat": "40% de consultas llegan fuera de horario",
+      "statNote": "Si no respondes cuando ocurre la consulta, no existe una segunda oportunidad.",
+      "cards": {
+        "understand": {
+          "title": "Comprende consultas veterinarias",
+          "text": "Interpreta sintomas y distingue urgencias de consultas rutinarias."
+        },
+        "availability": {
+          "title": "Verifica agenda en tiempo real",
+          "text": "Consulta huecos para urgencias, vacunas o revisiones al instante."
+        },
+        "booking": {
+          "title": "Agenda automaticamente",
+          "text": "Reserva y confirma la cita con el dueno, sin ida y vuelta."
+        },
+        "followup": {
+          "title": "Recordatorios automaticos",
+          "text": "Avisos de vacunas, revisiones y seguimientos de tratamientos."
+        }
+      }
+    },
+    "flow": {
+      "title": "Flujo sin fricciones",
+      "lead": "Desde la consulta del dueno hasta la cita confirmada, sin intervencion manual.",
+      "steps": {
+        "1": {
+          "title": "Dueno consulta por WhatsApp",
+          "text": "Disponible 24/7 para responder sintomas, vacunas y urgencias."
+        },
+        "2": {
+          "title": "Clasifica y verifica",
+          "text": "Distingue urgencia vs rutina y comprueba disponibilidad."
+        },
+        "3": {
+          "title": "Propone opciones",
+          "text": "Ofrece huecos segun el tipo de consulta y preferencia."
+        },
+        "4": {
+          "title": "Confirma y recuerda",
+          "text": "Reserva, confirma y envia recordatorios con instrucciones."
+        }
+      }
+    },
+    "benefits": {
+      "title": "Beneficios operativos",
+      "lead": "Menos carga administrativa, urgencias 24/7 y agenda mas optimizada.",
+      "cards": {
+        "urgent": {
+          "title": "Urgencias 24/7",
+          "text": "Captura y clasifica urgencias nocturnas y fines de semana."
+        },
+        "lessCalls": {
+          "title": "Menos llamadas repetitivas",
+          "text": "Libera tiempo del equipo para atender a las mascotas."
+        },
+        "calm": {
+          "title": "Duenos tranquilos",
+          "text": "Respuestas inmediatas sobre vacunas, sintomas y citas."
+        },
+        "reminders": {
+          "title": "Recordatorios automaticos",
+          "text": "Vacunas, revisiones y seguimientos siempre al dia."
+        }
+      }
+    },
+    "scenarios": {
+      "title": "Casos veterinarios reales",
+      "lead": "Situaciones del dia a dia en tu clinica, resueltas con atencion inteligente.",
+      "cta": "Ver escenarios",
+      "cards": {
+        "emergency": {
+          "title": "Urgencias nocturnas",
+          "text": "Sintomas graves, accidentes, consultas fuera de horario."
+        },
+        "preventive": {
+          "title": "Medicina preventiva",
+          "text": "Vacunas, desparasitaciones, revisiones anuales."
+        },
+        "chronic": {
+          "title": "Tratamientos cronicos",
+          "text": "Seguimiento de diabeticos, renales, cardiacos."
+        },
+        "multi": {
+          "title": "Multiples servicios",
+          "text": "Consulta, peluqueria, analisis, cirugias."
+        }
+      }
+    },
+    "kpi": {
+      "title": "Cuantos clientes pierdes cada mes?",
+      "lead": "Cada consulta sin responder es un dueno que se va a otra clinica. El impacto es real.",
+      "cta": "Calcular mi ROI",
+      "stats": {
+        "response": {
+          "value": "80%",
+          "label": "de duenos esperan respuesta inmediata"
+        },
+        "lost": {
+          "value": "67%",
+          "label": "se van tras 24h sin respuesta"
+        },
+        "growth": {
+          "value": "+35%",
+          "label": "aumento en consultas capturadas"
+        }
+      },
+      "impact": {
+        "money": {
+          "title": "Mas consultas, menos huecos vacios",
+          "text": "Captura urgencias, recordatorios y citas de seguimiento que antes se perdian."
+        },
+        "time": {
+          "title": "Tu equipo se enfoca en las mascotas",
+          "text": "Menos tiempo respondiendo dudas repetitivas y mas tiempo atendiendo."
+        }
+      }
+    },
+    "final": {
+      "title": "Empieza a capturar cada consulta",
+      "lead": "Agenda una demo y descubre como el Sistema de Atencion Inteligente transforma tu clinica veterinaria.",
+      "ctaPrimary": "Reservar demo",
+      "ctaSecondary": "Calcular ROI"
+    }
+  },
+  "footer": {
+    "about": "Automatizacion inteligente con IA para clinicas veterinarias.",
+    "product": "Producto",
+    "company": "Empresa",
+    "start": "Empieza hoy",
+    "startLead": "Calcula el impacto o reserva una demo.",
+    "rights": "Todos los derechos reservados.",
+    "privacy": "Privacidad",
+    "terms": "Terminos",
+    "links": {
+      "solution": "Solucion",
+      "useCases": "Casos de uso",
+      "roiCalc": "Calculadora ROI",
+      "howItWorks": "Como funciona",
+      "faqs": "FAQs",
+      "contact": "Contacto"
+    }
+  }
+}

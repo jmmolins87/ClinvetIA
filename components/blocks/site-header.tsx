@@ -19,17 +19,18 @@ import { cn } from "@/lib/utils";
 
 import { SiteLanguageSwitcher } from "@/components/blocks/site-language-switcher";
 import { SiteThemeDropdown } from "@/components/blocks/site-theme-dropdown";
-import { RoiButton } from "@/components/cta/roi-button";
 import { Logo } from "@/components/logo";
+import { useTranslation } from "@/components/providers/i18n-provider";
 
 const NAV_LINKS = [
-  { href: "/solucion", label: "Solucion" },
-  { href: "/escenarios", label: "Escenarios" },
-  { href: "/como-funciona", label: "Como funciona" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/solucion", labelKey: "nav.solution" },
+  { href: "/escenarios", labelKey: "nav.scenarios" },
+  { href: "/como-funciona", labelKey: "nav.howItWorks" },
+  { href: "/contacto", labelKey: "nav.contact" },
 ] as const;
 
 export function SiteHeader({ className }: { className?: string }) {
+  const { t, lang, setLang } = useTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const pathnameFromNext = usePathname();
   const router = useRouter();
@@ -155,26 +156,26 @@ export function SiteHeader({ className }: { className?: string }) {
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center cursor-pointer md:hidden rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              aria-label="Ir arriba"
+              aria-label={t("common.scrollTop")}
             >
               <Logo priority className="h-12" />
             </button>
             {showHeaderLogo && (
               <button
                 type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="hidden md:flex items-center cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                aria-label="Ir arriba"
-              >
-                <Logo width={220} height={55} className="h-14" />
-              </button>
+                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                 className="hidden md:flex items-center cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                 aria-label={t("common.scrollTop")}
+               >
+                 <Logo width={220} height={55} className="h-14" />
+               </button>
             )}
           </>
         ) : (
           <Link
             href="/"
             className="flex items-center cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            aria-label="Clinvetia"
+            aria-label={t("common.brand")}
           >
             <Logo priority className="h-12 md:h-14" />
           </Link>
@@ -184,7 +185,7 @@ export function SiteHeader({ className }: { className?: string }) {
           <nav
             ref={navRef}
             className="hidden relative items-center gap-6 md:flex"
-            aria-label="Principal"
+            aria-label={t("common.primaryNav")}
             onMouseLeave={handleNavMouseLeave}
             onBlurCapture={handleNavBlurCapture}
           >
@@ -209,25 +210,34 @@ export function SiteHeader({ className }: { className?: string }) {
                     isActive ? "text-gradient-to" : "text-foreground"
                   )}
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               );
             })}
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
-            <SiteLanguageSwitcher />
+            <SiteLanguageSwitcher
+              defaultLanguage={lang}
+              onChange={setLang}
+              className="h-12 rounded-md border border-border/40 bg-transparent px-3 hover:bg-gradient-to/10 dark:hover:bg-primary/10"
+            />
             <SiteThemeDropdown />
-            <RoiButton asChild>
-              <Link href="/roi">ROI</Link>
-            </RoiButton>
+            <Button
+              variant="default"
+              size="lg"
+              className="h-12 dark:glow-primary"
+              asChild
+            >
+              <Link href="/roi">{t("common.roi")}</Link>
+            </Button>
             <Button
               variant="secondary"
               size="lg"
               className="h-12"
               asChild
             >
-              <Link href="/reservar">Reservar demo</Link>
+              <Link href="/reservar">{t("common.bookDemo")}</Link>
             </Button>
           </div>
 
@@ -236,8 +246,8 @@ export function SiteHeader({ className }: { className?: string }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
-                aria-label="Abrir menu"
+                className="md:hidden h-12 w-12"
+                aria-label={t("common.menu")}
               >
                 <Icon name="Menu" className="h-5 w-5" />
               </Button>
@@ -245,20 +255,19 @@ export function SiteHeader({ className }: { className?: string }) {
             <SheetContent
               side="top"
               showCloseButton={false}
-              overlayClassName="bg-black/20 backdrop-blur-sm"
               className="w-full h-screen p-0 flex flex-col bg-background/95 backdrop-blur-md overflow-hidden"
             >
               <div className="flex-1 flex flex-col justify-center p-6">
                 <SheetHeader className="mb-6 flex items-center justify-center">
-                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                  <SheetTitle className="sr-only">{t("common.menu")}</SheetTitle>
                   <SheetDescription className="sr-only">
-                    Navegacion principal y acciones
+                    {t("common.primaryNav")}
                   </SheetDescription>
                   <button
                     type="button"
                     onClick={handleMobileLogoClick}
                     className="inline-flex cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                    aria-label="Ir arriba"
+                    aria-label={t("common.scrollTop")}
                   >
                     <Logo width={220} height={55} className="h-14" priority />
                   </button>
@@ -279,22 +288,31 @@ export function SiteHeader({ className }: { className?: string }) {
                             : "text-foreground hover:text-gradient-to"
                         )}
                       >
-                        {link.label}
+                        {t(link.labelKey)}
                       </Link>
                     );
                   })}
 
                   <div className="mx-auto mt-4 relative left-1/2 -translate-x-1/2 w-screen flex flex-col items-center justify-center gap-3">
-                    <SiteLanguageSwitcher />
+                    <SiteLanguageSwitcher
+                      defaultLanguage={lang}
+                      onChange={setLang}
+                      className="h-12 rounded-lg border border-border/40 bg-transparent px-4"
+                    />
                     <SiteThemeDropdown size="large" />
                   </div>
 
                   <div className="mt-3 flex flex-col gap-3 w-full max-w-sm">
-                    <RoiButton asChild>
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="h-12 dark:glow-primary"
+                      asChild
+                    >
                       <Link href="/roi" onClick={() => setIsOpen(false)}>
-                        ROI
+                        {t("common.roi")}
                       </Link>
-                    </RoiButton>
+                    </Button>
                     <Button
                       variant="secondary"
                       size="lg"
@@ -302,7 +320,7 @@ export function SiteHeader({ className }: { className?: string }) {
                       asChild
                     >
                       <Link href="/reservar" onClick={() => setIsOpen(false)}>
-                        Reservar demo
+                        {t("common.bookDemo")}
                       </Link>
                     </Button>
                   </div>
@@ -315,10 +333,10 @@ export function SiteHeader({ className }: { className?: string }) {
                   size="default"
                   onClick={() => setIsOpen(false)}
                   className="w-full cursor-pointer flex items-center justify-center gap-2 text-lg font-medium hover:bg-primary/10"
-                  aria-label="Cerrar menu"
+                  aria-label={t("common.close")}
                 >
                   <Icon name="X" className="h-6 w-6" />
-                  Cerrar
+                  {t("common.close")}
                 </Button>
               </SheetFooter>
             </SheetContent>

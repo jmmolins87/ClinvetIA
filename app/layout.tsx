@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 
+import { I18nProvider } from "@/components/providers/i18n-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { SiteFooter } from "@/components/blocks/site-footer";
-import { SiteHeader } from "@/components/blocks/site-header";
+import { AppShell } from "@/components/blocks/app-shell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,20 +27,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body
         className={
           `${geistSans.variable} ${geistMono.variable} min-h-dvh bg-background text-foreground font-sans antialiased`
         }
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <div className="min-h-dvh flex flex-col">
-            <SiteHeader />
-            <main className="w-full flex-1">
-              {children}
-            </main>
-            <SiteFooter />
-          </div>
+          <I18nProvider>
+            <AppShell>{children}</AppShell>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

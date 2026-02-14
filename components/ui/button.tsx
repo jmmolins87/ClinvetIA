@@ -15,7 +15,9 @@ const buttonVariants = cva(
         outline:
           "relative border-2 border-transparent bg-background bg-clip-padding before:absolute before:inset-0 before:-z-10 before:m-[-2px] before:rounded-[inherit] before:bg-gradient-to-br before:from-gradient-from before:to-gradient-to before:transition-all before:duration-700 before:ease-in-out hover:before:from-gradient-to hover:before:to-gradient-from shadow-xs transition-all duration-700",
         secondary:
-          "relative isolate bg-transparent text-foreground shadow-xs transition-all duration-700 before:pointer-events-none before:content-[''] before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-br before:from-gradient-from before:to-gradient-to before:transition-all before:duration-700 before:ease-in-out after:pointer-events-none after:content-[''] after:absolute after:inset-x-[0.5px] after:top-1/2 after:h-[95%] after:-translate-y-1/2 after:rounded-[inherit] after:bg-background before:-z-10 after:-z-10 hover:before:from-gradient-to hover:before:to-gradient-from focus-visible:border-transparent",
+          "relative isolate bg-transparent text-foreground shadow-xs transition-all duration-700 before:pointer-events-none before:content-[''] before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-br before:from-gradient-from before:to-gradient-to before:transition-all before:duration-700 before:ease-in-out after:pointer-events-none after:content-[''] after:absolute after:inset-[2px] after:rounded-[inherit] after:bg-background before:-z-10 after:-z-10 hover:before:from-gradient-to hover:before:to-gradient-from focus-visible:border-transparent",
+        tertiary:
+          "bg-sky-100 text-sky-900 border border-current/20 hover:bg-sky-200 hover:border-current/30 dark:bg-emerald-300/15 dark:text-emerald-300 dark:border-current/25 dark:hover:bg-emerald-300/20 dark:hover:border-current/35 transition-colors duration-300",
         ghost:
           "hover:bg-gradient-to/10 hover:text-gradient-to dark:hover:bg-primary/10 dark:hover:text-primary transition-colors duration-300",
       },

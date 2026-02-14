@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { DemoButton } from "@/components/cta/demo-button";
-import { RoiButton } from "@/components/cta/roi-button";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,16 +44,26 @@ export function SiteCta({
         {description}
       </p>
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-        <RoiButton asChild className="w-full sm:w-auto">
+        <Button
+          variant="default"
+          size="lg"
+          asChild
+          className="h-12 w-full sm:w-auto dark:glow-primary"
+        >
           <Link href={roiHref}>{roiLabel}</Link>
-        </RoiButton>
-        <DemoButton asChild className="w-full sm:w-auto">
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
+          asChild
+          className="h-12 w-full sm:w-auto"
+        >
           <Link href={demoHref}>{demoLabel}</Link>
-        </DemoButton>
+        </Button>
       </div>
 
       <div className="mt-3 flex justify-center">
-        <Button variant="ghost" size="lg" asChild className="h-12 w-full sm:w-auto">
+        <Button variant="tertiary" size="lg" asChild className="h-12 w-full sm:w-auto">
           <Link href={contactHref}>{contactLabel}</Link>
         </Button>
       </div>

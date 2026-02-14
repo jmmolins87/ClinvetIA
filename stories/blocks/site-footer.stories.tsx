@@ -43,3 +43,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   );
 }`,
 };
+
+export const Compact: Story = {
+  render: () => (
+    <div className="min-h-[50vh] bg-background">
+      <div className="mx-auto max-w-screen-2xl px-4 py-10 text-sm text-muted-foreground">
+        Contenido de ejemplo.
+      </div>
+      <SiteFooter density="compact" />
+    </div>
+  ),
+};

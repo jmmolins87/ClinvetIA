@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "@/components/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 type Language = "es" | "en";
@@ -16,6 +17,7 @@ export function SiteLanguageSwitcher({
   defaultLanguage?: Language;
   onChange?: (lang: Language) => void;
 }) {
+  const { t } = useTranslation();
   const [lang, setLang] = React.useState<Language>(defaultLanguage);
 
   React.useEffect(() => {
@@ -57,7 +59,7 @@ export function SiteLanguageSwitcher({
       <Switch
         checked={checked}
         onCheckedChange={(next) => update(next ? "en" : "es")}
-        aria-label="Cambiar idioma"
+        aria-label={t("language.toggle")}
         className="cursor-pointer"
       />
       <span
