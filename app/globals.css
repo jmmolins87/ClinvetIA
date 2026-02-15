@@ -321,7 +321,7 @@
   }
 
   /* Final section with footer needs special handling */
-  #final-cta-section .home-section-content {
+  .final-cta-section .home-section-content {
     height: auto;
     min-height: auto;
     max-height: none;
@@ -1760,6 +1760,367 @@
         transparent 78%
       );
   }
+
+  .solution-surface-cta {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        60rem 46rem at 50% 18%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        48rem 36rem at 20% 82%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 72%
+      );
+  }
+
+  .solution-shadow-cta {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--foreground) 7%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--primary) 6%, transparent);
+  }
+
+  /* Scenarios page: home-style subtle surfaces with radial gradients (no hard borders) */
+  .scenarios-surface-hero {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        60rem 45rem at 20% 20%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        48rem 36rem at 85% 80%,
+        color-mix(in oklch, var(--accent) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .scenarios-surface-case-1 {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 15% 25%,
+        color-mix(in oklch, var(--accent) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 85% 75%,
+        color-mix(in oklch, var(--secondary) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .scenarios-surface-case-2 {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 80% 20%,
+        color-mix(in oklch, var(--secondary) 15%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .scenarios-surface-case-3 {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        54rem 40rem at 25% 75%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        48rem 38rem at 75% 25%,
+        color-mix(in oklch, var(--gradient-purple) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .scenarios-surface-case-4 {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 80% 75%,
+        color-mix(in oklch, var(--gradient-purple) 13%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 30%,
+        color-mix(in oklch, var(--destructive) 10%, transparent),
+        transparent 72%
+      );
+  }
+
+  .scenarios-surface-case-5 {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        60rem 46rem at 30% 20%,
+        color-mix(in oklch, var(--destructive) 11%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 70% 80%,
+        color-mix(in oklch, var(--primary) 13%, transparent),
+        transparent 70%
+      );
+  }
+
+  .scenarios-surface-case-6 {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        54rem 40rem at 75% 25%,
+        color-mix(in oklch, var(--primary) 15%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        48rem 38rem at 25% 75%,
+        color-mix(in oklch, var(--accent) 13%, transparent),
+        transparent 72%
+      );
+  }
+
+  .scenarios-surface-cta {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 50% 15%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 12%, transparent),
+        transparent 74%
+      );
+  }
+
+  /* How It Works page: section surfaces */
+  .how-surface-hero {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        60rem 45rem at 20% 20%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        48rem 36rem at 85% 80%,
+        color-mix(in oklch, var(--accent) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .how-surface-steps {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 15% 25%,
+        color-mix(in oklch, var(--accent) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 85% 75%,
+        color-mix(in oklch, var(--secondary) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .how-surface-data {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 80% 20%,
+        color-mix(in oklch, var(--secondary) 15%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .how-surface-supervision {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        54rem 40rem at 25% 75%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        48rem 38rem at 75% 25%,
+        color-mix(in oklch, var(--gradient-purple) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .how-surface-messaging {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 80% 75%,
+        color-mix(in oklch, var(--gradient-purple) 13%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 30%,
+        color-mix(in oklch, var(--destructive) 10%, transparent),
+        transparent 72%
+      );
+  }
+
+  .how-surface-patient {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        60rem 46rem at 30% 20%,
+        color-mix(in oklch, var(--destructive) 11%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 70% 80%,
+        color-mix(in oklch, var(--primary) 13%, transparent),
+        transparent 70%
+      );
+  }
+
+  .how-surface-faq {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        54rem 40rem at 75% 25%,
+        color-mix(in oklch, var(--primary) 15%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        48rem 38rem at 25% 75%,
+        color-mix(in oklch, var(--accent) 13%, transparent),
+        transparent 72%
+      );
+  }
+
+  .how-surface-cta {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 50% 15%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 12%, transparent),
+        transparent 74%
+      );
+  }
+
+  /* Contact page: section surfaces */
+  .contact-surface-hero {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        60rem 45rem at 20% 20%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        48rem 36rem at 85% 80%,
+        color-mix(in oklch, var(--accent) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .contact-surface-form {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 80% 25%,
+        color-mix(in oklch, var(--secondary) 14%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 75%,
+        color-mix(in oklch, var(--gradient-to) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .contact-surface-info {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        54rem 40rem at 25% 75%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        48rem 38rem at 75% 25%,
+        color-mix(in oklch, var(--gradient-purple) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .contact-surface-cta {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 50% 15%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 12%, transparent),
+        transparent 74%
+      );
+  }
+
+  /* Scenarios page: shadows */
+  .scenarios-shadow-hero {
+    box-shadow:
+      inset 0 24px 48px color-mix(in oklch, var(--primary) 8%, transparent),
+      inset 0 -24px 48px color-mix(in oklch, var(--accent) 6%, transparent);
+  }
+
+  .scenarios-shadow-cases {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--foreground) 6%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--gradient-purple) 5%, transparent);
+  }
+
+  .scenarios-shadow-case-a {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--primary) 7%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--accent) 6%, transparent);
+  }
+
+  .scenarios-shadow-case-b {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--secondary) 7%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--gradient-to) 6%, transparent);
+  }
+
+  .scenarios-shadow-case-c {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--destructive) 6%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--primary) 6%, transparent);
+  }
+
+  .scenarios-shadow-cta {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--foreground) 7%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--primary) 6%, transparent);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1869,3 +2230,79 @@
 .gap-fluid-lg {
   gap: clamp(1.5rem, 3vw, 3rem);
 }
+
+  /* ROI page: section surfaces */
+  .roi-surface-hero {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        60rem 45rem at 20% 20%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 65%
+      ),
+      radial-gradient(
+        48rem 36rem at 85% 80%,
+        color-mix(in oklch, var(--accent) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .roi-surface-info {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        56rem 42rem at 15% 25%,
+        color-mix(in oklch, var(--accent) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 85% 75%,
+        color-mix(in oklch, var(--secondary) 12%, transparent),
+        transparent 72%
+      );
+  }
+
+  .roi-surface-calculator {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 80% 20%,
+        color-mix(in oklch, var(--secondary) 15%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 14%, transparent),
+        transparent 70%
+      );
+  }
+
+  .roi-surface-results {
+    background-color: var(--card);
+    background-image:
+      radial-gradient(
+        60rem 46rem at 30% 20%,
+        color-mix(in oklch, var(--destructive) 11%, transparent),
+        transparent 66%
+      ),
+      radial-gradient(
+        46rem 36rem at 70% 80%,
+        color-mix(in oklch, var(--primary) 13%, transparent),
+        transparent 70%
+      );
+  }
+
+  .roi-surface-cta {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        58rem 44rem at 50% 15%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        44rem 34rem at 20% 80%,
+        color-mix(in oklch, var(--gradient-to) 12%, transparent),
+        transparent 74%
+      );
+  }

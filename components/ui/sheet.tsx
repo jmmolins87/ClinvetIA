@@ -70,7 +70,8 @@ function SheetOverlay({
       className={cn(
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "fixed inset-0 z-50",
-        "bg-white/40 dark:bg-black/40",
+        "bg-white/55 dark:bg-black/55",
+        "supports-[backdrop-filter]:bg-white/30 dark:supports-[backdrop-filter]:bg-black/30",
         "backdrop-blur-xl backdrop-saturate-150",
         "overscroll-contain touch-none",
         className

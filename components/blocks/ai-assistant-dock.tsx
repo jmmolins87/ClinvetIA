@@ -7,7 +7,6 @@ import { useTranslation } from "@/components/providers/i18n-provider";
 import { AvatarIA } from "@/components/ui/avatar-ia";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Logo } from "@/components/logo";
 import {
   Sheet,
   SheetContent,
@@ -127,7 +126,6 @@ export function AiAssistantDock({
       <SheetContent
         side="right"
         className="p-0 sm:max-w-md"
-        overlayClassName="backdrop-blur-xl backdrop-saturate-150 bg-white/60 dark:bg-black/60"
       >
         <SheetHeader className="relative overflow-hidden border-b border-border/60">
           <div

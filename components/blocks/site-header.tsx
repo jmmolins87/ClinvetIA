@@ -27,6 +27,7 @@ const NAV_LINKS = [
   { href: "/solucion", labelKey: "nav.solution" },
   { href: "/escenarios", labelKey: "nav.scenarios" },
   { href: "/como-funciona", labelKey: "nav.howItWorks" },
+
   { href: "/contacto", labelKey: "nav.contact" },
 ] as const;
 
@@ -281,7 +282,11 @@ export function SiteHeader({ className }: { className?: string }) {
             <SheetContent
               side="top"
               showCloseButton={false}
-              className="w-full h-screen p-0 flex flex-col bg-background/95 backdrop-blur-md overflow-hidden"
+              className={cn(
+                "w-full h-screen p-0 flex flex-col overflow-hidden",
+                "bg-background/70 supports-[backdrop-filter]:bg-background/55",
+                "backdrop-blur-2xl"
+              )}
             >
               <div className="flex-1 flex flex-col justify-center p-6">
                 <SheetHeader className="mb-6 flex items-center justify-center">

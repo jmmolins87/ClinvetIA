@@ -24,6 +24,7 @@ type I18nContextValue = {
   lang: Language;
   setLang: (lang: Language) => void;
   t: (key: string) => string;
+  get: (key: string) => unknown;
 };
 
 const I18nContext = React.createContext<I18nContextValue | null>(null);
@@ -56,6 +57,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const fallback = es as Messages;
   const messages = lang === "en" ? (en as Messages) : fallback;
 
+  const get = React.useCallback(
+    (key: string) => {
+      const value = getFromMessages(messages, key);
+      if (value !== undefined) return value;
+      return getFromMessages(fallback, key);
+    },
+    [messages, fallback]
+  );
+
   const t = React.useCallback(
     (key: string) => {
       const value = getFromMessages(messages, key);
@@ -69,7 +79,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     [messages, fallback]
   );
 
-  const value = React.useMemo<I18nContextValue>(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  const value = React.useMemo<I18nContextValue>(() => ({ lang, setLang, t, get }), [lang, setLang, t, get]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

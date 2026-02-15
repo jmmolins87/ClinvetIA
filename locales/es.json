@@ -3,6 +3,7 @@
     "solution": "Solucion",
     "scenarios": "Escenarios",
     "howItWorks": "Como funciona",
+
     "contact": "Contacto"
   },
   "common": {
@@ -17,7 +18,279 @@
     "openAssistant": "Abrir asistente",
     "aiAssistantTitle": "¡Hola soy ClinvetIA!",
     "aiAssistantDescription": "¿en qué puedo ayudarte?",
-    "aiAssistantPlaceholder": "Aqui vivira el asistente. De momento, usa los accesos rapidos para reservar una demo o ver el ROI."
+    "aiAssistantPlaceholder": "Aqui vivira el asistente. De momento, usa los accesos rapidos para reservar una demo o ver el ROI.",
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "continue": "Continuar"
+  },
+  "roi": {
+    "calculator": {
+      "title": "Calculadora de ROI",
+      "description": "Estima el retorno de la inversión que puedes obtener con ClinvetIA.",
+      "whatIsROI": {
+        "title": "¿Qué es el ROI?",
+        "description": "El Retorno de la Inversión (ROI) es una métrica que mide la ganancia o pérdida generada en relación con la cantidad de dinero invertido."
+      },
+      "whatIsCalculator": {
+        "title": "¿Qué es esta calculadora?",
+        "description": "Esta calculadora te ayuda a estimar los ingresos que podrías recuperar al automatizar la captación de citas perdidas."
+      },
+      "inputs": {
+        "title": "Introduce tus datos",
+        "clinicType": {
+          "label": "Tipo de clínica",
+          "help": "Selecciona el tipo de clínica que mejor se adapte a la tuya."
+        },
+        "presets": {
+          "small": "Pequeña",
+          "medium": "Mediana",
+          "large": "Grande",
+          "specialized": "Especializada",
+          "clear": "Limpiar"
+        },
+        "monthlyPatients": {
+          "label": "Pacientes mensuales",
+          "help": "Número de pacientes únicos que atiendes al mes."
+        },
+        "avgTicket": {
+          "label": "Ticket promedio",
+          "help": "Ingreso promedio por paciente."
+        },
+        "missedRate": {
+          "label": "Tasa de citas perdidas",
+          "help": "Porcentaje de consultas que no se convierten en citas."
+        }
+      },
+      "results": {
+        "title": "Resultados estimados",
+        "monthlyRevenue": "Ingresos recuperados al mes",
+        "yearlyRevenue": "Ingresos anuales",
+        "roi": "ROI",
+        "roiHelp": "Retorno de la inversión",
+        "breakEven": "Punto de equilibrio",
+        "days": "días",
+        "breakEvenHelp": "Tiempo para recuperar la inversión",
+        "breakdown": "Desglose",
+        "missedPatients": "Pacientes perdidos",
+        "recoveredPatients": "Pacientes recuperados",
+        "recoveryRate": "Tasa de recuperación"
+      },
+      "disclaimer": "Los resultados son una estimación y pueden variar.",
+      "cta": {
+        "title": "¿Listo para empezar?",
+        "description": "Descubre cómo ClinvetIA puede ayudarte a capturar más citas y mejorar la rentabilidad de tu clínica.",
+        "button": "Contactar ahora"
+      }
+    },
+    "dialog": {
+      "title": "Guardar resultados",
+      "description": "Al aceptar, guardarás los resultados de la calculadora para usarlos en el formulario de contacto. ClinvetIA usará estos datos para entender mejor tus necesidades.",
+      "cancel": "Cancelar",
+      "accept": "Aceptar y continuar",
+      "incomplete": {
+        "title": "Datos incompletos",
+        "description": "Por favor, completa todos los campos de la calculadora para poder continuar.",
+        "button": "Entendido"
+      }
+    }
+  },
+  "contact": {
+    "title": "Contacto",
+    "description": "Rellena el formulario y nos pondremos en contacto contigo lo antes posible.",
+    "form": {
+      "title": "Formulario de Contacto",
+      "fields": {
+        "name": {
+          "label": "Nombre",
+          "placeholder": "Tu nombre completo",
+          "error": {
+            "required": "El nombre es obligatorio.",
+            "minLength": "El nombre debe tener al menos 5 caracteres."
+          }
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "tu@email.com",
+          "error": {
+            "required": "El email es obligatorio.",
+            "invalid": "El email no es válido."
+          }
+        },
+        "phone": {
+          "label": "Teléfono",
+          "placeholder": "Tu número de teléfono",
+          "error": {
+            "required": "El teléfono es obligatorio.",
+            "invalid": "El número de teléfono no es válido."
+          }
+        },
+        "clinic": {
+          "label": "Clínica",
+          "placeholder": "Nombre de tu clínica",
+          "error": {
+            "required": "El nombre de la clínica es obligatorio.",
+            "minLength": "El nombre de la clínica debe tener al menos 2 caracteres."
+          }
+        },
+        "message": {
+          "label": "Mensaje",
+          "placeholder": "Cuéntanos cómo podemos ayudarte...",
+          "error": {
+            "required": "El mensaje es obligatorio.",
+            "minLength": "El mensaje debe tener al menos 20 caracteres."
+          }
+        }
+      },
+      "submit": "Enviar Mensaje",
+      "success": {
+        "title": "¡Mensaje Enviado!",
+        "message": "Gracias por contactarnos. Te responderemos lo antes posible."
+      },
+      "roiRequired": "Calculadora de ROI requerida",
+      "roiNotAccepted": "Debes aceptar los resultados del ROI para continuar.",
+      "roiNotCalculated": "Debes calcular tu ROI antes de contactarnos.",
+      "goToROI": "Ir a la Calculadora de ROI",
+      "dataAcceptance": "He leído y acepto la política de privacidad.",
+      "demoStatus": {
+        "label": "Estado de la Demo",
+        "booked": {
+          "title": "Demo Reservada"
+        },
+        "notBooked": {
+          "title": "Demo no Reservada",
+          "message": "Para ofrecerte una mejor experiencia, te recomendamos que reserves una demo."
+        },
+        "cancelled": {
+          "title": "Demo Cancelada",
+          "message": "Tu demo ha sido cancelada. Puedes reservar una nueva cuando quieras."
+        },
+        "changeDate": "Cambiar Fecha",
+        "cancelDemo": "Cancelar Demo",
+        "bookNow": "Reservar Ahora",
+        "confirmCancel": "¿Estás seguro de que quieres cancelar la demo?",
+        "changeROI": "Cambiar ROI",
+        "confirmChangeROI": "¿Estás seguro de que quieres cambiar los datos del ROI? Perderás los datos actuales del formulario."
+      },
+      "roiSummary": {
+        "title": "Resumen de ROI",
+        "monthlyRevenue": "Ingresos mensuales",
+        "yearlyRevenue": "Ingresos anuales",
+        "roi": "ROI",
+        "calculated": "Calculado"
+      }
+    }
+  },
+  "book": {
+    "title": "Reservar Demo",
+    "description": "Agenda una demo para ver ClinvetIA en acción.",
+    "backend": {
+      "contact_fallback_title": "No se ha encontrado ninguna reserva",
+      "contact_fallback_desc": "No hemos podido encontrar los detalles de tu reserva. Por favor, vuelve a reservar una demo.",
+      "contact_fallback_cta": "Reservar una demo",
+      "contact_summary_title": "Resumen de la reserva",
+      "contact_summary_desc": "Estos son los detalles de tu reserva. Por favor, completa el formulario para finalizar."
+    }
+  },
+  "booking": {
+    "alreadySubmitted": {
+        "title": "Ya has enviado tus datos",
+        "description": "Gracias por tu interés. Ya hemos recibido tus datos y nos pondremos en contacto contigo en breve.",
+        "goBack": "Volver al inicio",
+        "goToContact": "Ver mi envío"
+    },
+    "leaveWarning": {
+        "title": "¿Seguro que quieres salir?",
+        "description": "Si sales ahora, perderás los datos que has introducido.",
+        "leave": "Salir",
+        "stay": "Quedarme"
+    }
+  },
+  "scenarios": {
+    "title": "Casos de Uso",
+    "description": "Ejemplos de cómo ClinvetIA atiende consultas veterinarias.",
+    "veterinary": {
+      "title": "Clínica Veterinaria",
+      "subtitle": "Casos de uso para clínicas veterinarias.",
+      "cases": {
+        "title": "Casos de Uso",
+        "description": "Ejemplos de cómo ClinvetIA atiende consultas veterinarias.",
+        "ownerMessageLabel": "Mensaje del dueño",
+        "systemDoesLabel": "Lo que hace el sistema",
+        "outcomeLabel": "Resultado",
+        "items": {
+          "midnight": {
+            "badge": "Urgencia de medianoche",
+            "title": "Vómitos y decaimiento",
+            "story": "Un dueño preocupado escribe a las 2 AM porque su perro no para de vomitar.",
+            "ownerMessage": "Mi perro lleva vomitando toda la noche, ¿qué hago?",
+            "system": "El sistema detecta la urgencia, hace preguntas clave y agenda una cita prioritaria.",
+            "outcome": "El perro es atendido a primera hora, evitando complicaciones."
+          },
+          "postSurgery": {
+            "badge": "Post-operatorio",
+            "title": "Seguimiento de cirugía",
+            "story": "Tras una cirugía, el sistema envía recordatorios para la medicación y seguimiento.",
+            "ownerMessage": "¿Cuándo le toca el antiinflamatorio?",
+            "system": "Envía recordatorios de medicación y agenda la revisión post-operatoria.",
+            "outcome": "Recuperación exitosa y el dueño se siente acompañado."
+          },
+          "chronic": {
+            "badge": "Enfermedad crónica",
+            "title": "Control de diabetes",
+            "story": "Un gato diabético necesita controles periódicos de glucosa.",
+            "ownerMessage": "Se me ha olvidado la cita de este mes para el control de Tico.",
+            "system": "Agenda la cita de control y envía recordatorios automáticos.",
+            "outcome": "Control riguroso de la enfermedad y mejora de la calidad de vida."
+          },
+          "vaccines": {
+            "badge": "Vacunación",
+            "title": "Recordatorio de vacunas",
+            "story": "El sistema avisa de que a un cachorro le toca la siguiente dosis de la vacuna.",
+            "ownerMessage": "¡No me acordaba! ¿Cuándo podemos ir?",
+            "system": "Envía un recordatorio y ofrece varias opciones de cita para la vacunación.",
+            "outcome": "El cachorro completa su pauta de vacunación a tiempo."
+          },
+          "preventive": {
+            "badge": "Consulta Preventiva",
+            "title": "Detección Temprana",
+            "story": "En una revisión anual, se detecta un bulto y se recomienda ecografía.",
+            "ownerMessage": "Le noté un bultito al perro, ¿debería preocuparme?",
+            "system": "Agenda una consulta para evaluación y posible ecografía.",
+            "outcome": "Diagnóstico temprano y tratamiento eficaz."
+          },
+          "multiservice": {
+            "badge": "Múltiples Servicios",
+            "title": "Peluquería y Consulta",
+            "story": "Un cliente agenda peluquería, y el sistema detecta que la vacuna está próxima.",
+            "ownerMessage": "Quiero cita para peluquería.",
+            "system": "Ofrece añadir la vacunación en la misma visita.",
+            "outcome": "Ahorro de tiempo para el cliente y servicio más completo."
+          },
+          "results": {
+            "badge": "Análisis de Resultados",
+            "title": "Comunicación Proactiva",
+            "story": "Los resultados de un análisis llegan, y el sistema avisa al dueño.",
+            "ownerMessage": "¿Están ya los resultados de las analíticas?",
+            "system": "Notifica al dueño y agenda una llamada para explicar los resultados.",
+            "outcome": "Dueño informado y tranquilo, sin necesidad de llamar a la clínica."
+          },
+          "firstVisit": {
+            "badge": "Primera Visita",
+            "title": "Nuevo Cachorro",
+            "story": "Un nuevo cliente pregunta por la primera visita de su cachorro.",
+            "ownerMessage": "Hemos adoptado un cachorro, ¿cuándo tenemos que ir?",
+            "system": "Guía sobre la primera visita, vacunas y agenda la cita.",
+            "outcome": "Cliente fidelizado desde el primer día."
+          }
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para empezar?",
+      "description": "Descubre cómo ClinvetIA puede transformar tu clínica.",
+      "demo": "Reservar demo",
+      "roi": "Calcular ROI"
+    }
   },
   "aria": {
     "sectionNavigation": "Navegacion por secciones"
@@ -147,6 +420,7 @@
       "title": "Casos veterinarios reales",
       "lead": "Situaciones del dia a dia en tu clinica veterinaria, resueltas con atencion inteligente.",
       "cta": "Ver casos de uso",
+      "ctaButton": "Ver casos de uso",
       "cards": {
         "emergency": {
           "title": "Urgencias Nocturnas",
@@ -164,6 +438,104 @@
           "title": "Multiples Servicios",
           "text": "Consulta, peluqueria, analisis, cirugias"
         }
+      },
+      "hero": {
+        "title": "Casos de Uso Reales",
+        "description": "Casos reales (cortos y claros) de como ClinvetIA convierte mensajes en citas sin saturar a tu equipo."
+      },
+      "labels": {
+        "context": "Contexto",
+        "problem": "Problema",
+        "solution": "Solucion con ClinvetIA",
+        "impact": "Impacto Real"
+      },
+      "cases": [
+        {
+          "title": "Urgencia Nocturna: Vomitos Persistentes",
+          "icon": "stethoscope",
+          "context": "Sábado, 2:15 AM. Luna (3 años) vomita sin parar y Miguel escribe asustado.",
+          "problem": "La clínica está cerrada y nadie orienta el triaje. Miguel duda, espera o se va a una urgencia de otra clínica.",
+          "solution": "ClinvetIA pregunta lo esencial (frecuencia, sangre, dolor, ingesta, estado general), detecta señales de alarma y deriva a urgencias si procede. Además, agenda cita prioritaria y envía un resumen al veterinario.",
+          "impact": "Atención la misma noche y el caso entra en tu agenda, no en la competencia. Facturación estimada del episodio: ~1.050€ (cirugía + hospitalización + pruebas)."
+        },
+        {
+          "title": "Seguimiento de Diabetes: Ajuste de Insulina",
+          "icon": "heart-pulse",
+          "context": "Toby (9 años) es diabético. Un viernes por la tarde Carmen nota letargo y menos sed.",
+          "problem": "Fuera de horario, la dueña improvisa y el riesgo es ajustar mal la dosis.",
+          "solution": "ClinvetIA revisa el historial, hace 5-6 preguntas clave y sugiere una pauta segura hasta el control del lunes, que queda agendado.",
+          "impact": "Evita una urgencia evitable y refuerza confianza en el seguimiento crónico. Ingresos recurrentes protegidos (controles + analíticas) y menos llamadas al mostrador."
+        },
+        {
+          "title": "Recordatorio de Vacunas: Captura Automática",
+          "icon": "syringe",
+          "context": "340 pacientes con vacunas por vencer en 30 dias. Recordatorios manuales por email: baja respuesta.",
+          "problem": "10h/semana del equipo y muchas vacunas no se agendan.",
+          "solution": "ClinvetIA envia WhatsApps personalizados con propuesta de hueco y agenda en 1 mensaje (con reintentos si no responden).",
+          "impact": "Respuesta sube a ~64% y se recuperan citas: +134 vacunaciones/mes (~6.030€) y menos carga administrativa."
+        },
+        {
+          "title": "Consulta Preventiva: Deteccion Temprana",
+          "icon": "shield-check",
+          "context": "En una revision anual, el veterinario detecta un bulto y recomienda ecografia en 2 semanas.",
+          "problem": "El dueno lo deja para 'cuando pueda' y se olvida; se pierde control y la cita no se agenda.",
+          "solution": "ClinvetIA hace seguimiento por WhatsApp con 2-3 opciones de hueco, confirma preparacion (ayuno) y agenda automaticamente.",
+          "impact": "La prueba se hace a tiempo y se recuperan ingresos (90€ ecografia + 45€ revision). El cliente percibe una clinica proactiva."
+        },
+        {
+          "title": "Gestion de Multiples Servicios: Peluqueria + Consulta",
+          "icon": "calendar-clock",
+          "context": "Marta agenda peluqueria para Coco. El historial indica vacuna proxima y antecedentes de otitis.",
+          "problem": "Sin conexion entre servicios, la visita se queda en 35€ y se pierden oportunidades de cuidado y facturacion.",
+          "solution": "ClinvetIA detecta pendientes al reservar y ofrece anadir 'vacuna + revision rapida' en el mismo desplazamiento, con duracion y precio claros.",
+          "impact": "Una visita, dos servicios: 35€ pasa a ~110€ (peluqueria + vacuna + revision) y mejor retencion del cliente."
+        },
+        {
+          "title": "Analisis de Resultados: Comunicacion Proactiva",
+          "icon": "microscope",
+          "context": "Los analisis de Bella llegan el miercoles, pero la veterinaria esta en cirugia.",
+          "problem": "El dueno llama varias veces, se frustra y recepcion se interrumpe.",
+          "solution": "ClinvetIA avisa proactivamente, tranquiliza (sin diagnosticar) y agenda una llamada corta para revisar resultados.",
+          "impact": "Menos llamadas repetidas, mejor experiencia postconsulta y mas seguimiento cuando hace falta."
+        },
+        {
+          "title": "Primera Visita: Convertir Consultas en Clientes Fieles",
+          "icon": "users",
+          "context": "Luna es un nuevo cachorro. Los duenos escriben preguntando sobre vacunas, comida y primera visita.",
+          "problem": "Sin seguimiento, se van con dudas y pueden no volver. Se pierde la oportunidad de crear un cliente para siempre.",
+          "solution": "ClinvetIA agenda la primera visita, envia recordatorios de calendario con todo lo que necesitan (vacunas, antiparasitarios) y hace seguimiento post-visita.",
+          "impact": "Mayor conversion de primera consulta a cliente recurrente. Valor estimado del ciclo de vida del cliente: ~2.400€ en 10 anos."
+        },
+        {
+          "title": "Cancelaciones y Lista de Espera: Optimizacion de Huecos",
+          "icon": "calendar-days",
+          "context": "Es martes y hay 3 cancelaciones para el jueves. La agenda tiene huecos.",
+          "problem": "El equipo no tiene tiempo de llamar a todos los pacientes en lista de espera y los huecos se pierden.",
+          "solution": "ClinvetIA contacta automaticamente a pacientes en lista de espera con huecos disponibles y confirma en un mensaje.",
+          "impact": "Recuperacion de huecos perdidos: ~120€ por cita y reduccion del tiempo administrativo del recepcionista."
+        },
+        {
+          "title": "Consulta por WhatsApp: Triaje Inteligente",
+          "icon": "message-circle",
+          "context": "Mariaenvia una foto de las heces de Max con mensaje: 'Esta raro, que le pasa?'",
+          "problem": "El recepcionista no sabe responder sin ver al animal y la consulta se queda sin atender o deriva a llamadas.",
+          "solution": "ClinvetIA hace preguntas estructuradas (desde cuando, apetito, comportamiento), clasifica la urgencia y deriva al vet o agenda cita.",
+          "impact": "El 40% de consultas se resuelven sin cita presencial, ahorrando tiempo al equipo y dando respuesta rapida al cliente."
+        },
+        {
+          "title": "Recordatorio de Medicacion: Cumplimiento Terapeutico",
+          "icon": "pill",
+          "context": "Rocky necesita antibiotico durante 10 dias. El dueno olvida dar la pastilla y llama tarde.",
+          "problem": "Tratamientos incompletos reducen eficacia y el cliente vuelve a consulta porno improvement.",
+          "solution": "ClinvetIA envia recordatorios diarios por WhatsApp con instrucciones y confirma si se ha administrado la dosis.",
+          "impact": "Mejora del cumplimiento terapeutico del 60% al 90% y menos consultas por recidiva."
+        }
+      ],
+      "cta": {
+        "title": "¿Listo para transformar tu clinica?",
+        "description": "Descubre como ClinvetIA puede ayudarte a capturar mas consultas, mejorar la experiencia de tus clientes y optimizar tu operacion diaria.",
+        "primary": "Reservar demo",
+        "secondary": "Ver la solucion"
       }
     },
     "kpi": {
@@ -333,6 +705,119 @@
       "howItWorks": "Como funciona",
       "faqs": "FAQs",
       "contact": "Contacto"
+    }
+  },
+  "howItWorks": {
+    "title": "Como funciona",
+    "description": "De consulta veterinaria a cita confirmada, con criterio profesional.",
+    "hero": {
+      "title": "Como funciona",
+      "heading": "De consulta a cita, con criterio veterinario",
+      "subheading": "Un flujo claro para atender consultas sobre mascotas, clasificar urgencias y agendar citas sin sobrecargar al equipo.",
+      "claimLight": "Inteligencia aplicada a la atencion veterinaria.",
+      "claimDark": "Atencion inteligente que convierte consultas en citas veterinarias."
+    },
+    "steps": {
+      "title": "El flujo en 4 pasos",
+      "items": [
+        {
+          "title": "Atender y clasificar",
+          "text": "Responde consultas sobre mascotas, identifica si es urgencia o rutina, y mantiene el tono profesional veterinario."
+        },
+        {
+          "title": "Recoger informacion clave",
+          "text": "Pregunta lo esencial: sintomas, mascota (especie, edad), historial de vacunas, y disponibilidad del dueno."
+        },
+        {
+          "title": "Proponer cita veterinaria",
+          "text": "Sugiere cita urgente, vacunacion, revision o cirugia segun el caso, siempre con confirmacion."
+        },
+        {
+          "title": "Confirmar y recordar",
+          "text": "Envia confirmacion con detalles (ayuno si aplica, que traer) y programa recordatorio 24h antes."
+        }
+      ]
+    },
+    "data": {
+      "title": "Que informacion recoge y por que",
+      "lead": "Solo lo necesario para atender bien a la mascota.",
+      "items": [
+        {
+          "title": "Sintomas y motivo",
+          "text": "Para clasificar urgencia (vomitos, accidentes) vs. rutina (vacunas, baño)."
+        },
+        {
+          "title": "Datos de la mascota",
+          "text": "Especie, raza, edad, peso, alergias conocidas y historial de vacunas."
+        },
+        {
+          "title": "Disponibilidad del dueno",
+          "text": "Para proponer horarios compatibles con el tipo de consulta."
+        },
+        {
+          "title": "Confirmaciones previas",
+          "text": "Ayuno, medicacion actual, comportamiento de la mascota antes de agendar cirugia."
+        }
+      ]
+    },
+    "supervision": {
+      "title": "Control veterinario y supervision",
+      "items": [
+        "El veterinario decide que casos revisar y cuando intervenir directamente.",
+        "Sintomas graves o casos complejos se derivan inmediatamente.",
+        "El sistema no diagnostica: guia al dueno y agenda con el profesional.",
+        "El tono se adapta a duenos preocupados, con empatia y profesionalidad."
+      ]
+    },
+    "messaging": {
+      "title": "WhatsApp y agenda veterinaria, sin friccion",
+      "p1": "El flujo esta diseñado para conversaciones reales con duenos de mascotas y para encajar con tu forma de organizar consultas, urgencias, cirugias y servicios adicionales.",
+      "p2": "El objetivo: que cada consulta tenga un siguiente paso claro, sin perder el control veterinario."
+    },
+    "patient": {
+      "title": "Experiencia del dueno",
+      "items": [
+        "Respuestas inmediatas sobre su mascota, 24/7.",
+        "Lenguaje claro adaptado a duenos (sin jerga veterinaria compleja).",
+        "Orientacion sobre que hacer: urgencia inmediata o cita programada.",
+        "Tranquilidad de que su mascota sera atendida por un profesional."
+      ]
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "items": [
+        {
+          "q": "El sistema diagnostica a las mascotas?",
+          "a": "No. El sistema recoge sintomas, clasifica urgencias y agenda cita con el veterinario. No sustituye el diagnostico profesional."
+        },
+        {
+          "q": "Que pasa con urgencias reales?",
+          "a": "Las urgencias graves se priorizan y derivan inmediatamente. El sistema identifica sintomas criticos y propone cita urgente o deriva a atencion 24h."
+        },
+        {
+          "q": "Se adapta al protocolo de mi clinica?",
+          "a": "Si. Defines tu protocolo de triaje, preguntas clave por tipo de consulta (urgencia, vacuna, cirugia) y tono de comunicacion."
+        },
+        {
+          "q": "Funciona para recordatorios de vacunas?",
+          "a": "Si. Envia recordatorios automaticos basados en el calendario de vacunacion y desparasitacion de cada mascota."
+        },
+        {
+          "q": "Puedo revisar las conversaciones?",
+          "a": "Si. Tienes visibilidad completa y puedes intervenir en cualquier momento, especialmente en casos sensibles."
+        },
+        {
+          "q": "Sirve para clinicas pequeñas?",
+          "a": "Si. Esta diseñado para veterinarias independientes donde cada consulta cuenta y el equipo esta saturado."
+        }
+      ]
+    },
+    "keyMessage": "Cada consulta sin responder es un cliente que se va a otra clinica.",
+    "microCta": "Cuanto clientes pierdes cada mes?",
+    "cta": {
+      "primary": "Reservar una demo",
+      "secondary": "Ver calculadora ROI",
+      "note": "Te mostramos el flujo y lo adaptamos a tu clinica veterinaria."
     }
   }
 }

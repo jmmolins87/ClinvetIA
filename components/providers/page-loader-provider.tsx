@@ -7,6 +7,16 @@ import { Loader } from "@/components/loader";
 
 export function PageLoaderProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // Skip loader for 404 page
+  if (pathname === "/404") {
+    return <>{children}</>;
+  }
+
+  return <PageLoader>{children}</PageLoader>;
+}
+
+function PageLoader({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const rafRef = React.useRef<number | null>(null);
   const timerRef = React.useRef<number | null>(null);
@@ -74,7 +84,6 @@ export function PageLoaderProvider({ children }: { children: React.ReactNode }) 
     };
 
     const waitForFonts = async () => {
-      // next/font uses FontFaceSet in modern browsers.
       const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
       if (!fonts?.ready) return;
       try {
@@ -90,7 +99,6 @@ export function PageLoaderProvider({ children }: { children: React.ReactNode }) 
     };
 
     const waitForHomeReady = () => {
-      if (pathname !== "/") return Promise.resolve();
       if (document.documentElement.dataset.homeReady === "true") return Promise.resolve();
 
       return new Promise<void>((resolve) => {
@@ -106,7 +114,6 @@ export function PageLoaderProvider({ children }: { children: React.ReactNode }) 
           await waitForWindowLoad();
           await waitForFonts();
           await waitForHomeReady();
-          // Let layout settle.
           await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
         })(),
         new Promise<void>((resolve) => {
@@ -126,7 +133,7 @@ export function PageLoaderProvider({ children }: { children: React.ReactNode }) 
     return () => {
       clearPending();
     };
-  }, [pathname, clearPending]);
+  }, [clearPending]);
 
   return (
     <>

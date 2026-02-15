@@ -10,6 +10,20 @@ import { AiAssistantDock } from "@/components/blocks/ai-assistant-dock";
 export function AppShell({ children }: { children: React.ReactNode }): React.JSX.Element {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  
+  // Pages that have integrated footer (using SectionCtaFooter component)
+  const hasIntegratedFooter = ["/", "/solucion", "/escenarios", "/como-funciona", "/roi"].includes(pathname);
+
+  // Pages without header/footer/AI dock (404, etc)
+  const noShell = pathname === "/404";
+
+  if (noShell) {
+    return (
+      <div className="min-h-dvh w-full">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -19,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.JSX
       >
         {children}
       </main>
-      {isHome ? null : <SiteFooter />}
+      {hasIntegratedFooter ? null : <SiteFooter />}
       <AiAssistantDock />
     </div>
   );

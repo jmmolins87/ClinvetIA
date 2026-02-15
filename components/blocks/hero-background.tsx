@@ -13,8 +13,15 @@ type HeroBackgroundVideo = {
   className?: string;
 };
 
+type HeroBackgroundGif = {
+  srcGif?: string;
+  alt?: string;
+  className?: string;
+};
+
 export interface HeroBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
   video?: false | HeroBackgroundVideo;
+  gif?: false | HeroBackgroundGif;
 }
 
 const DEFAULT_VIDEO: HeroBackgroundVideo = {
@@ -27,9 +34,11 @@ const DEFAULT_VIDEO: HeroBackgroundVideo = {
 export function HeroBackground({
   className,
   video,
+  gif,
   ...props
 }: HeroBackgroundProps): React.JSX.Element {
   const v = video === false ? null : { ...DEFAULT_VIDEO, ...(video ?? {}) };
+  const g = gif === false ? null : gif;
 
   return (
     <div
@@ -37,7 +46,19 @@ export function HeroBackground({
       {...props}
       className={cn("pointer-events-none absolute inset-0 z-0 overflow-hidden", className)}
     >
-      {v ? (
+      {g ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={g.srcGif}
+          alt={g.alt || ""}
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover",
+            "opacity-[0.16] dark:opacity-[0.12]",
+            g.className
+          )}
+          loading="eager"
+        />
+      ) : v ? (
         <video
           className={cn(
             "absolute inset-0 h-full w-full object-cover",

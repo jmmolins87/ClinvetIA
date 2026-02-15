@@ -3,6 +3,7 @@
     "solution": "Solution",
     "scenarios": "Scenarios",
     "howItWorks": "How it works",
+
     "contact": "Contact"
   },
   "common": {
@@ -17,7 +18,279 @@
     "openAssistant": "Open assistant",
     "aiAssistantTitle": "Hello, I'm ClinvetIA!",
     "aiAssistantDescription": "How can I help you?",
-    "aiAssistantPlaceholder": "The assistant will live here. For now, use the shortcuts to book a demo or view ROI."
+    "aiAssistantPlaceholder": "The assistant will live here. For now, use the shortcuts to book a demo or view ROI.",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "roi": {
+    "calculator": {
+      "title": "ROI Calculator",
+      "description": "Estimate the return on investment you can get with Clinvetia.",
+      "whatIsROI": {
+        "title": "What is ROI?",
+        "description": "Return on Investment (ROI) is a metric that measures the gain or loss generated in relation to the amount of money invested."
+      },
+      "whatIsCalculator": {
+        "title": "What is this calculator?",
+        "description": "This calculator helps you estimate the income you could recover by automating the capture of missed appointments."
+      },
+      "inputs": {
+        "title": "Enter your data",
+        "clinicType": {
+          "label": "Clinic type",
+          "help": "Select the type of clinic that best suits yours."
+        },
+        "presets": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large",
+          "specialized": "Specialized",
+          "clear": "Clear"
+        },
+        "monthlyPatients": {
+          "label": "Monthly patients",
+          "help": "Number of unique patients you see per month."
+        },
+        "avgTicket": {
+          "label": "Average ticket",
+          "help": "Average income per patient."
+        },
+        "missedRate": {
+          "label": "Missed appointment rate",
+          "help": "Percentage of inquiries that do not convert into appointments."
+        }
+      },
+      "results": {
+        "title": "Estimated results",
+        "monthlyRevenue": "Recovered monthly revenue",
+        "yearlyRevenue": "Yearly revenue",
+        "roi": "ROI",
+        "roiHelp": "Return on investment",
+        "breakEven": "Break-even point",
+        "days": "days",
+        "breakEvenHelp": "Time to recover the investment",
+        "breakdown": "Breakdown",
+        "missedPatients": "Missed patients",
+        "recoveredPatients": "Recovered patients",
+        "recoveryRate": "Recovery rate"
+      },
+      "disclaimer": "The results are an estimate and may vary.",
+      "cta": {
+        "title": "Ready to start?",
+        "description": "Discover how Clinvetia can help you capture more appointments and improve your clinic's profitability.",
+        "button": "Contact now"
+      }
+    },
+    "dialog": {
+      "title": "Save results",
+      "description": "By accepting, you will save the calculator results to use them in the contact form. Clinvetia will use this data to better understand your needs.",
+      "cancel": "Cancel",
+      "accept": "Accept and continue",
+      "incomplete": {
+        "title": "Incomplete data",
+        "description": "Please complete all the fields in the calculator to continue.",
+        "button": "Understood"
+      }
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "Fill out the form and we will get in touch with you as soon as possible.",
+    "form": {
+      "title": "Contact Form",
+      "fields": {
+        "name": {
+          "label": "Name",
+          "placeholder": "Your full name",
+          "error": {
+            "required": "Name is required.",
+            "minLength": "Name must be at least 5 characters long."
+          }
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "you@email.com",
+          "error": {
+            "required": "Email is required.",
+            "invalid": "Email is not valid."
+          }
+        },
+        "phone": {
+          "label": "Phone",
+          "placeholder": "Your phone number",
+          "error": {
+            "required": "Phone is required.",
+            "invalid": "Phone number is not valid."
+          }
+        },
+        "clinic": {
+          "label": "Clinic",
+          "placeholder": "Your clinic's name",
+          "error": {
+            "required": "Clinic name is required.",
+            "minLength": "Clinic name must be at least 2 characters long."
+          }
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Tell us how we can help you...",
+          "error": {
+            "required": "Message is required.",
+            "minLength": "Message must be at least 20 characters long."
+          }
+        }
+      },
+      "submit": "Send Message",
+      "success": {
+        "title": "Message Sent!",
+        "message": "Thank you for contacting us. We will get back to you as soon as possible."
+      },
+      "roiRequired": "ROI Calculator Required",
+      "roiNotAccepted": "You must accept the ROI results to continue.",
+      "roiNotCalculated": "You must calculate your ROI before contacting us.",
+      "goToROI": "Go to ROI Calculator",
+      "dataAcceptance": "I have read and accept the privacy policy.",
+      "demoStatus": {
+        "label": "Demo Status",
+        "booked": {
+          "title": "Demo Booked"
+        },
+        "notBooked": {
+          "title": "Demo Not Booked",
+          "message": "To provide you with a better experience, we recommend booking a demo."
+        },
+        "cancelled": {
+          "title": "Demo Cancelled",
+          "message": "Your demo has been cancelled. You can book a new one at any time."
+        },
+        "changeDate": "Change Date",
+        "cancelDemo": "Cancel Demo",
+        "bookNow": "Book Now",
+        "confirmCancel": "Are you sure you want to cancel the demo?",
+        "changeROI": "Change ROI",
+        "confirmChangeROI": "Are you sure you want to change the ROI data? You will lose the current form data."
+      },
+      "roiSummary": {
+        "title": "ROI Summary",
+        "monthlyRevenue": "Monthly Revenue",
+        "yearlyRevenue": "Yearly Revenue",
+        "roi": "ROI",
+        "calculated": "Calculated"
+      }
+    }
+  },
+  "book": {
+    "title": "Book a Demo",
+    "description": "Schedule a demo to see ClinvetIA in action.",
+    "backend": {
+      "contact_fallback_title": "No booking found",
+      "contact_fallback_desc": "We could not find your booking details. Please book a demo again.",
+      "contact_fallback_cta": "Book a demo",
+      "contact_summary_title": "Booking summary",
+      "contact_summary_desc": "These are your booking details. Please fill out the form to finalize."
+    }
+  },
+  "booking": {
+    "alreadySubmitted": {
+      "title": "You have already submitted your data",
+      "description": "Thank you for your interest. We have already received your data and will contact you shortly.",
+      "goBack": "Go back to home",
+      "goToContact": "View my submission"
+    },
+    "leaveWarning": {
+      "title": "Are you sure you want to leave?",
+      "description": "If you leave now, you will lose the data you have entered.",
+      "leave": "Leave",
+      "stay": "Stay"
+    }
+  },
+  "scenarios": {
+    "title": "Use Cases",
+    "description": "Examples of how ClinvetIA handles veterinary inquiries.",
+    "veterinary": {
+      "title": "Veterinary Clinic",
+      "subtitle": "Use cases for veterinary clinics.",
+      "cases": {
+        "title": "Use Cases",
+        "description": "Examples of how ClinvetIA handles veterinary inquiries.",
+        "ownerMessageLabel": "Owner's message",
+        "systemDoesLabel": "What the system does",
+        "outcomeLabel": "Outcome",
+        "items": {
+          "midnight": {
+            "badge": "Midnight emergency",
+            "title": "Vomiting and lethargy",
+            "story": "A worried owner writes at 2 AM because their dog won't stop vomiting.",
+            "ownerMessage": "My dog has been vomiting all night, what should I do?",
+            "system": "The system detects the urgency, asks key questions, and schedules a priority appointment.",
+            "outcome": "The dog is seen first thing in the morning, avoiding complications."
+          },
+          "postSurgery": {
+            "badge": "Post-surgery",
+            "title": "Surgery follow-up",
+            "story": "After a surgery, the system sends reminders for medication and follow-up.",
+            "ownerMessage": "When is the next anti-inflammatory due?",
+            "system": "Sends medication reminders and schedules the post-surgery check-up.",
+            "outcome": "Successful recovery and the owner feels supported."
+          },
+          "chronic": {
+            "badge": "Chronic illness",
+            "title": "Diabetes management",
+            "story": "A diabetic cat needs regular glucose checks.",
+            "ownerMessage": "I forgot this month's appointment for Tico's check-up.",
+            "system": "Schedules the check-up appointment and sends automatic reminders.",
+            "outcome": "Rigorous disease management and improved quality of life."
+          },
+          "vaccines": {
+            "badge": "Vaccination",
+            "title": "Vaccine reminder",
+            "story": "The system notifies that a puppy is due for its next vaccine dose.",
+            "ownerMessage": "I forgot! When can we come in?",
+            "system": "Sends a reminder and offers several appointment options for the vaccination.",
+            "outcome": "The puppy completes its vaccination schedule on time."
+          },
+          "preventive": {
+            "badge": "Preventive Consultation",
+            "title": "Early Detection",
+            "story": "During an annual check-up, a lump is detected and an ultrasound is recommended.",
+            "ownerMessage": "I noticed a small lump on my dog, should I be concerned?",
+            "system": "Schedules a consultation for evaluation and possible ultrasound.",
+            "outcome": "Early diagnosis and effective treatment."
+          },
+          "multiservice": {
+            "badge": "Multiple Services",
+            "title": "Grooming and Consultation",
+            "story": "A client schedules a grooming appointment, and the system detects that a vaccine is due.",
+            "ownerMessage": "I want to book a grooming appointment.",
+            "system": "Offers to add the vaccination in the same visit.",
+            "outcome": "Time saving for the client and a more complete service."
+          },
+          "results": {
+            "badge": "Results Analysis",
+            "title": "Proactive Communication",
+            "story": "The results of a test arrive, and the system notifies the owner.",
+            "ownerMessage": "Are the test results ready yet?",
+            "system": "Notifies the owner and schedules a call to explain the results.",
+            "outcome": "Informed and calm owner, without the need to call the clinic."
+          },
+          "firstVisit": {
+            "badge": "First Visit",
+            "title": "New Puppy",
+            "story": "A new client asks about the first visit for their puppy.",
+            "ownerMessage": "We've adopted a puppy, when should we come in?",
+            "system": "Provides guidance on the first visit, vaccines and schedules the appointment.",
+            "outcome": "Loyal client from day one."
+          }
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "description": "Discover how ClinvetIA can transform your clinic.",
+      "demo": "Book a demo",
+      "roi": "Calculate ROI"
+    }
   },
   "aria": {
     "sectionNavigation": "Section navigation"
@@ -147,6 +420,7 @@
       "title": "Real-world use cases",
       "lead": "Daily situations at your veterinary clinic, solved with intelligent care.",
       "cta": "View all scenarios",
+      "ctaButton": "View all scenarios",
       "cards": {
         "emergency": {
           "title": "Night Emergencies",
@@ -164,6 +438,104 @@
           "title": "Multiple Services",
           "text": "Consultations, grooming, lab work, surgeries"
         }
+      },
+      "hero": {
+        "title": "Real-World Use Cases",
+        "description": "Discover how ClinvetIA transforms veterinary care every day, solving real situations from clinics just like yours."
+      },
+      "labels": {
+        "context": "Context",
+        "problem": "Problem",
+        "solution": "Solution with ClinvetIA",
+        "impact": "Real Impact"
+      },
+      "cases": [
+        {
+          "title": "Night Emergency: Persistent Vomiting",
+          "icon": "stethoscope",
+          "context": "Luna, a 3-year-old golden retriever, starts vomiting repeatedly at 2 AM. Her owner, Miguel, is worried because it won't stop and doesn't know if he should go to the ER or wait until morning.",
+          "problem": "Miguel calls the clinic, but it's closed. The answering machine tells him to call during business hours. Without guidance, he decides to wait until morning. By 8 AM, Luna is dehydrated and weak. The situation worsened due to lack of early attention.",
+          "solution": "Miguel contacts ClinvetIA at 2 AM. The assistant asks about symptoms, frequency, and Luna's behavior. With this information, ClinvetIA identifies signs of possible intestinal obstruction and recommends going to the ER immediately. It also automatically schedules a priority appointment and sends the information to the on-call veterinarian.",
+          "impact": "Luna receives care at 3 AM, the obstruction is confirmed, and surgery is successful. Miguel greatly values the immediate response. The clinic captures an emergency case that would have otherwise gone to the competition, generating €850 in revenue and building loyalty with a high-value client."
+        },
+        {
+          "title": "Diabetes Follow-up: Insulin Adjustment",
+          "icon": "heart-pulse",
+          "context": "Toby, a 9-year-old Persian cat with diabetes, is on insulin treatment. His owner, Carmen, notices Toby is more lethargic and drinking less water than before. She doesn't know if this is good, bad, or if she should adjust the dose.",
+          "problem": "Carmen calls Friday afternoon, but the clinic is already closed. She has doubts about the weekend dose. She tries to remember what they told her at the last visit 3 weeks ago, but she's not sure. She decides to keep the current dose, although she's worried it might not be correct.",
+          "solution": "Carmen writes to ClinvetIA: 'Toby is calmer and drinking less, should I adjust the insulin?' ClinvetIA accesses Toby's history, reviews the latest glucose measurements, and asks about specific symptoms. It detects these are signs of mild hypoglycemia and recommends slightly reducing the dose. It sends written instructions and schedules a glucose check for Monday.",
+          "impact": "Carmen safely adjusts the dose over the weekend. On Monday, Toby arrives stable for the check. The clinic avoids an ER visit for severe hypoglycemia (saving stress and €200 for Carmen) and reinforces confidence in chronic follow-up. Toby remains stable, and Carmen renews the treatment plan for 6 more months."
+        },
+        {
+          "title": "Vaccine Reminder: Automatic Capture",
+          "icon": "syringe",
+          "context": "The 'VetSalud' clinic has 340 patients with vaccines expiring in the next 30 days. The administrative team sends manual email reminders, but the response rate is 18%. Many clients forget the appointment or postpone it indefinitely.",
+          "problem": "The manual process consumes 6 hours per week from the receptionist. Emails get lost in crowded inboxes. Clients don't respond or say 'I'll call later,' but never do. The clinic loses recurring revenue and patients remain unprotected.",
+          "solution": "ClinvetIA sends personalized WhatsApp reminders 15 days before expiration: 'Hi Ana, Max's vaccine expires on March 20. Does Saturday the 18th at 11 AM work for you?' If the client responds 'yes,' ClinvetIA automatically schedules. If they say 'I can't that day,' it offers 3 alternatives. If no response, it sends a second reminder 7 days before.",
+          "impact": "Response rate increases to 64%. The clinic schedules 210 vaccination appointments in one month (previously 61). Additional revenue: €3,150/month. Time saved: 24 hours/month. Patients are protected and owners appreciate the clinic's proactivity."
+        },
+        {
+          "title": "Preventive Consultation: Early Detection",
+          "icon": "shield-check",
+          "context": "Rocky, a 7-year-old Labrador, comes in for his annual checkup. During the consultation, the veterinarian notices a small lump on his abdomen. The owner, Laura, hadn't noticed it. The vet recommends a follow-up ultrasound in 2 weeks.",
+          "problem": "Laura leaves the clinic intending to call to schedule the ultrasound, but between work and family, she forgets. 6 weeks pass. No one from the clinic follows up because the system has no automatic alerts for this type of indication. When Laura finally remembers, the lump has grown.",
+          "solution": "At the end of the consultation, the veterinarian records in the system: 'Ultrasound check in 2 weeks for abdominal lump.' ClinvetIA automatically sends a message to Laura 10 days later: 'Hi Laura, Dr. Gomez indicated a follow-up ultrasound for Rocky. Does Thursday the 14th at 4 PM work for you?' Laura confirms instantly.",
+          "impact": "Rocky receives the ultrasound on time. A benign lipoma is detected that only requires observation. Laura feels cared for and trusts that the clinic is looking out for Rocky's health. The clinic ensures continuity of care, improves clinical outcomes, and generates an additional €90 for the ultrasound that would have otherwise been lost."
+        },
+        {
+          "title": "Multiple Services Management: Grooming + Consultation",
+          "icon": "calendar-clock",
+          "context": "'Happy Paws' clinic offers veterinary consultations, grooming, and product sales. Many clients bring their pet for grooming but aren't aware they need booster vaccines or deworming. There's no connection between services.",
+          "problem": "Marta takes her cocker 'Coco' to grooming every 6 weeks. The groomer sees that Coco has very long nails and matted fur, but doesn't have access to the medical history. No one mentions to Marta that Coco needs his annual vaccine. Marta leaves with only the grooming service (€35) and the clinic misses the opportunity to offer comprehensive care.",
+          "solution": "When Marta schedules the grooming appointment via WhatsApp, ClinvetIA automatically reviews Coco's history and detects that his annual vaccine expires in 10 days. It sends: 'Hi Marta, while Coco is at grooming on Saturday, would you like to take advantage of his annual vaccine? I'll reserve 15 minutes with Dr. Lopez at the end.' Marta accepts.",
+          "impact": "Coco leaves groomed and vaccinated in a single visit. Marta saves an extra trip and values the convenience. The clinic bills €35 (grooming) + €45 (vaccine) = €80 instead of €35. It also reinforces cross-selling between services and improves the client experience."
+        },
+        {
+          "title": "Test Results Analysis: Proactive Communication",
+          "icon": "microscope",
+          "context": "Bella, a 5-year-old German shepherd, dropped off blood and urine samples on Monday for routine analysis. The results arrive on Wednesday, but the veterinarian is in surgery all afternoon. The owner, Sofia, doesn't know when to call or if the results are ready yet.",
+          "problem": "Sofia calls Wednesday at 6 PM, but the receptionist tells her that Dr. Martinez is busy and 'we'll call you.' Two days pass. Sofia calls again Friday. They tell her everything is fine, but give no details. Sofia feels ignored and frustrated. The post-sale experience is poor, even though the clinical service was excellent.",
+          "solution": "When Bella's results arrive in the system on Wednesday, ClinvetIA automatically sends a message to Sofia: 'Hi Sofia, Bella's test results are ready. Everything is within normal values. Dr. Martinez will review the details with you tomorrow Thursday at 10 AM by video call or phone, which do you prefer?' Sofia chooses phone and receives the full explanation the next day.",
+          "impact": "Sofia feels informed and calm. Dr. Martinez can review the results calmly, without interruptions. The clinic improves the client experience, reduces repetitive calls to reception (saves 20 min), and reinforces the perception of professionalism and personalized care."
+        },
+        {
+          "title": "First Visit: Converting Consultations into Loyal Clients",
+          "icon": "users",
+          "context": "Luna is a new 3-month-old puppy. Her owners write asking about vaccines, food, and the first visit.",
+          "problem": "Without follow-up, they leave with doubts and may not return. The opportunity to create a lifelong client is lost.",
+          "solution": "ClinvetIA schedules the first visit, sends calendar reminders with everything they need (vaccines, deworming), and follows up after the visit.",
+          "impact": "Higher conversion from first consultation to recurring client. Estimated lifetime customer value: ~$2,400 over 10 years."
+        },
+        {
+          "title": "Cancellations and Waitlist: Slot Optimization",
+          "icon": "calendar-days",
+          "context": "It's Tuesday and there are 3 cancellations for Thursday. The schedule has gaps.",
+          "problem": "The team doesn't have time to call all patients on the waitlist, and the slots go unused.",
+          "solution": "ClinvetIA automatically contacts patients on the waitlist with available slots and confirms in one message.",
+          "impact": "Recovering lost slots: ~$120 per appointment and reduced administrative time for the receptionist."
+        },
+        {
+          "title": "WhatsApp Consultation: Smart Triage",
+          "icon": "message-circle",
+          "context": "Maria sends a photo of Max's stool with a message: 'He looks weird, what's wrong with him?'",
+          "problem": "The receptionist doesn't know how to respond without seeing the animal, and the consultation goes unanswered or gets referred to phone calls.",
+          "solution": "ClinvetIA asks structured questions (how long, appetite, behavior), classifies urgency, and refers to the vet or schedules an appointment.",
+          "impact": "40% of consultations are resolved without an in-person visit, saving time for the team and providing quick response to the client."
+        },
+        {
+          "title": "Medication Reminder: Therapeutic Adherence",
+          "icon": "pill",
+          "context": "Rocky needs antibiotics for 10 days. The owner forgets to give the pill and calls late.",
+          "problem": "Incomplete treatments reduce efficacy and the client returns for consultation due to no improvement.",
+          "solution": "ClinvetIA sends daily WhatsApp reminders with instructions and confirms if the dose was administered.",
+          "impact": "Improvement in therapeutic adherence from 60% to 90% and fewer consultations due to relapse."
+        }
+      ],
+      "cta": {
+        "title": "Ready to transform your clinic?",
+        "description": "Discover how ClinvetIA can help you capture more consultations, improve your clients' experience, and optimize your daily operations.",
+        "primary": "Book a demo",
+        "secondary": "View the solution"
       }
     },
     "kpi": {
