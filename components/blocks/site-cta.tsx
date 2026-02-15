@@ -43,12 +43,12 @@ export function SiteCta({
       <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
         {description}
       </p>
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="mt-6 flex flex-col md:flex-row gap-3 justify-center">
         <Button
           variant="default"
           size="lg"
           asChild
-          className="h-12 w-full sm:w-auto dark:glow-primary"
+          className="h-12 w-full md:w-auto dark:glow-primary"
         >
           <Link href={roiHref}>{roiLabel}</Link>
         </Button>
@@ -56,14 +56,16 @@ export function SiteCta({
           variant="secondary"
           size="lg"
           asChild
-          className="h-12 w-full sm:w-auto"
+          className="h-12 w-full md:w-auto"
         >
           <Link href={demoHref}>{demoLabel}</Link>
         </Button>
-      </div>
-
-      <div className="mt-3 flex justify-center">
-        <Button variant="tertiary" size="lg" asChild className="h-12 w-full sm:w-auto">
+        <Button
+          variant="tertiary"
+          size="lg"
+          asChild
+          className="h-12 w-full md:w-auto"
+        >
           <Link href={contactHref}>{contactLabel}</Link>
         </Button>
       </div>

@@ -60,10 +60,87 @@ export function Calendar({
   const daysInMonth = lastDay.getDate();
   const startingDay = firstDay.getDay(); // 0..6 (Sun..Sat)
 
+  const min = fromDate ? startOfDay(fromDate) : null;
+  const max = toDate ? startOfDay(toDate) : null;
+
   const setMonth = (next: Date) => {
     if (onMonthChange) onMonthChange(next);
     if (!month) setInternalMonth(next);
   };
+
+  // Keyboard navigation handler
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent, day: number, date: Date) => {
+      const isDisabled =
+        Boolean(disabled?.(date)) ||
+        (min ? date.getTime() < min.getTime() : false) ||
+        (max ? date.getTime() > max.getTime() : false);
+
+      if (isDisabled) return;
+
+      switch (e.key) {
+        case "ArrowLeft": {
+          e.preventDefault();
+          const prevDate = new Date(year, mon, day - 1);
+          if (prevDate.getMonth() === mon) {
+            onSelect?.(prevDate);
+          }
+          break;
+        }
+        case "ArrowRight": {
+          e.preventDefault();
+          const nextDate = new Date(year, mon, day + 1);
+          if (nextDate.getMonth() === mon) {
+            onSelect?.(nextDate);
+          }
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          const prevWeek = new Date(year, mon, day - 7);
+          if (prevWeek.getMonth() === mon) {
+            onSelect?.(prevWeek);
+          }
+          break;
+        }
+        case "ArrowDown": {
+          e.preventDefault();
+          const nextWeek = new Date(year, mon, day + 7);
+          if (nextWeek.getMonth() === mon) {
+            onSelect?.(nextWeek);
+          }
+          break;
+        }
+        case "Home": {
+          e.preventDefault();
+          onSelect?.(new Date(year, mon, 1));
+          break;
+        }
+        case "End": {
+          e.preventDefault();
+          onSelect?.(new Date(year, mon, daysInMonth));
+          break;
+        }
+        case "PageUp": {
+          e.preventDefault();
+          setMonth(new Date(year, mon - 1, 1));
+          break;
+        }
+        case "PageDown": {
+          e.preventDefault();
+          setMonth(new Date(year, mon + 1, 1));
+          break;
+        }
+        case "Enter":
+        case " ": {
+          e.preventDefault();
+          onSelect?.(date);
+          break;
+        }
+      }
+    },
+    [year, mon, daysInMonth, min, max, disabled, onSelect, setMonth]
+  );
 
   const weekdayLabels = React.useMemo(() => {
     const base = new Date(2024, 0, 7); // Sunday
@@ -75,9 +152,6 @@ export function Calendar({
 
   const cells: Array<React.ReactNode> = [];
   const total = Math.ceil((daysInMonth + startingDay) / 7) * 7;
-
-  const min = fromDate ? startOfDay(fromDate) : null;
-  const max = toDate ? startOfDay(toDate) : null;
 
   for (let i = 0; i < total; i++) {
     if (i < startingDay || i >= startingDay + daysInMonth) {
@@ -103,8 +177,14 @@ export function Calendar({
         type="button"
         disabled={isDisabled}
         onClick={() => onSelect?.(date)}
+        onKeyDown={(e) => handleKeyDown(e, day, date)}
+        role="gridcell"
+        aria-selected={isSelected}
+        aria-disabled={isDisabled}
+        aria-label={label}
+        tabIndex={isSelected ? 0 : -1}
         className={cn(
-          "aspect-square rounded-lg border text-sm font-medium transition-colors",
+          "aspect-square rounded-lg border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
           isDisabled ? "cursor-not-allowed opacity-40" : "hover:bg-primary/10 hover:border-primary",
           isSelected
             ? "bg-primary text-primary-foreground border-primary dark:glow-primary"
@@ -143,14 +223,24 @@ export function Calendar({
       </div>
 
       <div className="grid grid-cols-7 gap-2 pb-2">
-        {weekdayLabels.map((w) => (
-          <div key={w} className="text-center text-[11px] font-medium text-muted-foreground">
+        {weekdayLabels.map((w, i) => (
+          <div 
+            key={w} 
+            role="columnheader" 
+            className="text-center text-[11px] font-medium text-muted-foreground"
+          >
             {w}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">{cells}</div>
+      <div 
+        className="grid grid-cols-7 gap-2" 
+        role="grid" 
+        aria-label={title}
+      >
+        {cells}
+      </div>
     </div>
   );
 }

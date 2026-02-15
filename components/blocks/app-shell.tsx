@@ -10,6 +10,7 @@ import { AiAssistantDock } from "@/components/blocks/ai-assistant-dock";
 export function AppShell({ children }: { children: React.ReactNode }): React.JSX.Element {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   
   // Pages that have integrated footer (using SectionCtaFooter component)
   const hasIntegratedFooter = ["/", "/solucion", "/escenarios", "/como-funciona", "/roi"].includes(pathname);
@@ -27,14 +28,14 @@ export function AppShell({ children }: { children: React.ReactNode }): React.JSX
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <SiteHeader />
+      <SiteHeader mobileMenuOpen={isMobileMenuOpen} onMobileMenuChange={setIsMobileMenuOpen} />
       <main
         className={isHome ? "w-full flex-1 mt-[calc(-1*var(--site-header-h))]" : "w-full flex-1 flex flex-col mt-[calc(-1*var(--site-header-h))]"}
       >
         {children}
       </main>
       {hasIntegratedFooter ? null : <SiteFooter />}
-      <AiAssistantDock />
+      {!isMobileMenuOpen && <AiAssistantDock />}
     </div>
   );
 }

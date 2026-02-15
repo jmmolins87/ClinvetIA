@@ -21,7 +21,9 @@
     "aiAssistantPlaceholder": "Aqui vivira el asistente. De momento, usa los accesos rapidos para reservar una demo o ver el ROI.",
     "loading": "Cargando...",
     "cancel": "Cancelar",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "back": "Volver",
+    "ok": "Aceptar"
   },
   "roi": {
     "calculator": {
@@ -92,11 +94,43 @@
         "description": "Por favor, completa todos los campos de la calculadora para poder continuar.",
         "button": "Entendido"
       }
+    },
+    "final": {
+      "title": "Empieza a capturar cada consulta",
+      "lead": "Agenda una demo y descubre cómo el Sistema de Atención Inteligente transforma tu clínica veterinaria.",
+      "ctaPrimary": "Reservar Demo Gratuita",
+      "ctaSecondary": "Calcular mi ROI"
     }
   },
   "contact": {
     "title": "Contacto",
     "description": "Rellena el formulario y nos pondremos en contacto contigo lo antes posible.",
+    "booking_title": "Finalizar Reserva",
+    "booking_description": "Completa tus datos para confirmar tu demo personalizada",
+    "booking_summary": {
+      "title": "Resumen de tu reserva",
+      "date": "Fecha",
+      "time": "Hora",
+      "expired": "El tiempo de reserva ha expirado. Por favor selecciona otro horario.",
+      "select_another": "Seleccionar otro horario",
+      "hold_notice": "Tienes 10 minutos para completar el formulario"
+    },
+    "roi_summary": {
+      "title": "Tu ROI estimado",
+      "monthly": "Mensual",
+      "yearly": "Anual"
+    },
+    "error": {
+      "title": "Error",
+      "no_hold": "No se encontró la reserva. Por favor inicia el proceso de nuevo.",
+      "no_roi": "Necesitas calcular tu ROI primero.",
+      "generic": "Ha ocurrido un error. Por favor inténtalo de nuevo."
+    },
+    "success": {
+      "title": "¡Reserva Confirmada!",
+      "description": "Gracias por reservar tu demo. Te enviaremos un email de confirmación pronto.",
+      "back_home": "Volver al inicio"
+    },
     "form": {
       "title": "Formulario de Contacto",
       "fields": {
@@ -141,7 +175,21 @@
           }
         }
       },
+      "name": "Nombre",
+      "name_placeholder": "Tu nombre completo",
+      "email": "Email",
+      "email_placeholder": "tu@email.com",
+      "phone": "Teléfono",
+      "phone_placeholder": "Tu número de teléfono",
+      "clinic": "Nombre de la clínica (opcional)",
+      "clinic_placeholder": "Nombre de tu clínica",
+      "message": "Mensaje (opcional)",
+      "message_placeholder": "Cuéntanos cómo podemos ayudarte...",
+      "booking_title": "Datos de contacto",
+      "roi_required": "Necesitas calcular tu ROI antes de continuar.",
+      "go_to_roi": "Ir a calculadora ROI",
       "submit": "Enviar Mensaje",
+      "submitting": "Enviando...",
       "success": {
         "title": "¡Mensaje Enviado!",
         "message": "Gracias por contactarnos. Te responderemos lo antes posible."
@@ -182,13 +230,69 @@
   },
   "book": {
     "title": "Reservar Demo",
-    "description": "Agenda una demo para ver ClinvetIA en acción.",
+    "description": "Selecciona fecha y hora para tu demostración personalizada",
+    "step1": {
+      "title": "Selecciona una fecha"
+    },
+    "step2": {
+      "title": "Elige un horario",
+      "to": "a",
+      "available": "disponible",
+      "occupied": "ocupado"
+    },
+    "step3": {
+      "title": "Completa tus datos"
+    },
+    "cutoff_warning": "No se pueden hacer reservas para hoy después de las 19:00. Por favor selecciona otra fecha.",
+    "loading_slots": "Cargando horarios disponibles...",
+    "no_slots": "No hay horarios disponibles para esta fecha",
+    "hold_timer": "Tiempo restante:",
+    "roi_required": "Para continuar necesitas completar la calculadora ROI",
+    "go_to_roi": "Ir a calculadora ROI",
+    "confirming": "Confirmando...",
+    "confirm": "Confirmar Reserva",
+    "redirecting": {
+      "title": "Redirigiendo...",
+      "description": "Por favor completa tus datos de contacto"
+    },
+    "leave_warning": {
+      "title": "¿Abandonar sin terminar?",
+      "description": "Tienes una reserva en proceso. Si sales ahora perderás el horario seleccionado.",
+      "confirm": "Salir de todas formas"
+    },
+    "roi_redirect": {
+      "title": "Calculadora ROI requerida",
+      "description": "Para reservar una demo necesitamos que completes la calculadora ROI. Tu reserva actual se guardará.",
+      "confirm": "Ir a calculadora"
+    },
+    "already_submitted": {
+      "title": "Ya enviaste una solicitud",
+      "description": "Ya has enviado una solicitud de contacto anteriormente. Nuestro equipo se pondrá en contacto contigo pronto."
+    },
+    "error": {
+      "title": "Error al confirmar"
+    },
     "backend": {
       "contact_fallback_title": "No se ha encontrado ninguna reserva",
       "contact_fallback_desc": "No hemos podido encontrar los detalles de tu reserva. Por favor, vuelve a reservar una demo.",
       "contact_fallback_cta": "Reservar una demo",
       "contact_summary_title": "Resumen de la reserva",
-      "contact_summary_desc": "Estos son los detalles de tu reserva. Por favor, completa el formulario para finalizar."
+      "contact_summary_desc": "Estos son los detalles de tu reserva. Por favor, completa el formulario para finalizar.",
+      "confirm_success": "¡Reserva confirmada! Redirigiendo...",
+      "errors": {
+        "NETWORK_ERROR": "Error de conexión. Verifica tu internet.",
+        "TIMEOUT": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+        "SLOT_TAKEN": "Este horario ya no está disponible. Selecciona otro.",
+        "TOKEN_EXPIRED": "Tu reserva ha expirado. Selecciona un nuevo horario.",
+        "TOKEN_INVALID": "Sesión inválida. Por favor recarga la página.",
+        "ROI_REQUIRED": "Necesitas completar la calculadora ROI primero.",
+        "INVALID_INPUT": "Datos inválidos. Verifica el formulario.",
+        "NOT_FOUND": "No se encontró la reserva.",
+        "BOOKING_NOT_HELD": "La reserva no está activa.",
+        "INTERNAL_ERROR": "Error del servidor. Inténtalo más tarde.",
+        "UNKNOWN_ERROR": "Error desconocido. Contacta con soporte."
+      },
+      "email_failed": "Reserva confirmada pero no se pudo enviar el email de confirmación. Revisa tu bandeja de entrada más tarde."
     }
   },
   "booking": {

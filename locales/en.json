@@ -21,7 +21,9 @@
     "aiAssistantPlaceholder": "The assistant will live here. For now, use the shortcuts to book a demo or view ROI.",
     "loading": "Loading...",
     "cancel": "Cancel",
-    "continue": "Continue"
+    "continue": "Continue",
+    "back": "Back",
+    "ok": "OK"
   },
   "roi": {
     "calculator": {
@@ -92,11 +94,43 @@
         "description": "Please complete all the fields in the calculator to continue.",
         "button": "Understood"
       }
+    },
+    "final": {
+      "title": "Start capturing every consultation",
+      "lead": "Schedule a demo and discover how the Intelligent Care System transforms your veterinary clinic.",
+      "ctaPrimary": "Book Free Demo",
+      "ctaSecondary": "Calculate My ROI"
     }
   },
   "contact": {
     "title": "Contact",
     "description": "Fill out the form and we will get in touch with you as soon as possible.",
+    "booking_title": "Complete Booking",
+    "booking_description": "Complete your details to confirm your personalized demo",
+    "booking_summary": {
+      "title": "Your booking summary",
+      "date": "Date",
+      "time": "Time",
+      "expired": "Booking time has expired. Please select another time slot.",
+      "select_another": "Select another time slot",
+      "hold_notice": "You have 10 minutes to complete the form"
+    },
+    "roi_summary": {
+      "title": "Your estimated ROI",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "error": {
+      "title": "Error",
+      "no_hold": "No booking found. Please start the booking process again.",
+      "no_roi": "You need to calculate your ROI first.",
+      "generic": "An error occurred. Please try again."
+    },
+    "success": {
+      "title": "Booking Confirmed!",
+      "description": "Thank you for booking your demo. We will send you a confirmation email soon.",
+      "back_home": "Back to home"
+    },
     "form": {
       "title": "Contact Form",
       "fields": {
@@ -141,7 +175,21 @@
           }
         }
       },
+      "name": "Name",
+      "name_placeholder": "Your full name",
+      "email": "Email",
+      "email_placeholder": "you@email.com",
+      "phone": "Phone",
+      "phone_placeholder": "Your phone number",
+      "clinic": "Clinic name (optional)",
+      "clinic_placeholder": "Your clinic's name",
+      "message": "Message (optional)",
+      "message_placeholder": "Tell us how we can help you...",
+      "booking_title": "Contact details",
+      "roi_required": "You need to calculate your ROI before continuing.",
+      "go_to_roi": "Go to ROI Calculator",
       "submit": "Send Message",
+      "submitting": "Sending...",
       "success": {
         "title": "Message Sent!",
         "message": "Thank you for contacting us. We will get back to you as soon as possible."
@@ -181,14 +229,70 @@
     }
   },
   "book": {
-    "title": "Book a Demo",
-    "description": "Schedule a demo to see ClinvetIA in action.",
+    "title": "Book your Demo",
+    "description": "Select date and time for your personalized demonstration",
+    "step1": {
+      "title": "Select a date"
+    },
+    "step2": {
+      "title": "Choose a time",
+      "to": "to",
+      "available": "available",
+      "occupied": "occupied"
+    },
+    "step3": {
+      "title": "Complete your details"
+    },
+    "cutoff_warning": "Same-day bookings are not allowed after 7:00 PM. Please select another date.",
+    "loading_slots": "Loading available time slots...",
+    "no_slots": "No time slots available for this date",
+    "hold_timer": "Time remaining:",
+    "roi_required": "You need to complete the ROI calculator to continue",
+    "go_to_roi": "Go to ROI calculator",
+    "confirming": "Confirming...",
+    "confirm": "Confirm Booking",
+    "redirecting": {
+      "title": "Redirecting...",
+      "description": "Please complete your contact details"
+    },
+    "leave_warning": {
+      "title": "Leave without finishing?",
+      "description": "You have a booking in progress. If you leave now you'll lose the selected time slot.",
+      "confirm": "Leave anyway"
+    },
+    "roi_redirect": {
+      "title": "ROI Calculator Required",
+      "description": "To book a demo we need you to complete the ROI calculator. Your current booking will be saved.",
+      "confirm": "Go to calculator"
+    },
+    "already_submitted": {
+      "title": "Already submitted",
+      "description": "You've already submitted a contact request. Our team will get in touch with you soon."
+    },
+    "error": {
+      "title": "Confirmation error"
+    },
     "backend": {
       "contact_fallback_title": "No booking found",
       "contact_fallback_desc": "We could not find your booking details. Please book a demo again.",
       "contact_fallback_cta": "Book a demo",
       "contact_summary_title": "Booking summary",
-      "contact_summary_desc": "These are your booking details. Please fill out the form to finalize."
+      "contact_summary_desc": "These are your booking details. Please fill out the form to finalize.",
+      "confirm_success": "Booking confirmed! Redirecting...",
+      "errors": {
+        "NETWORK_ERROR": "Connection error. Check your internet.",
+        "TIMEOUT": "Request timed out. Please try again.",
+        "SLOT_TAKEN": "This time slot is no longer available. Select another.",
+        "TOKEN_EXPIRED": "Your booking has expired. Select a new time.",
+        "TOKEN_INVALID": "Invalid session. Please reload the page.",
+        "ROI_REQUIRED": "You need to complete the ROI calculator first.",
+        "INVALID_INPUT": "Invalid data. Check the form.",
+        "NOT_FOUND": "Booking not found.",
+        "BOOKING_NOT_HELD": "Booking is not active.",
+        "INTERNAL_ERROR": "Server error. Try again later.",
+        "UNKNOWN_ERROR": "Unknown error. Contact support."
+      },
+      "email_failed": "Booking confirmed but confirmation email could not be sent. Check your inbox later."
     }
   },
   "booking": {

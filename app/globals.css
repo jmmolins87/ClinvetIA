@@ -349,7 +349,6 @@
   .home-reflections > :not(.home-bg) {
     position: relative;
     z-index: 1;
-    padding-bottom: 0;
   }
 
   .home-reflections::before,
@@ -2328,3 +2327,59 @@
         transparent 74%
       );
   }
+
+  /* ============================================
+     PHASE 7: Responsive & Mobile
+     ============================================ */
+
+  /* Touch targets - minimum 44x44px for mobile */
+  @media (pointer: coarse) {
+    button,
+    a,
+    [role="button"],
+    .btn {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Calendar day cells - larger touch target */
+    .calendar-day,
+    [role="gridcell"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Time slot buttons */
+    .time-slot,
+    [role="option"] {
+      min-height: 48px;
+    }
+  }
+
+  /* Modal responsive - max-height for small screens */
+  @media (max-width: 640px) {
+    [role="dialog"],
+    .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+      margin: 1rem;
+    }
+  }
+
+  /* Calendar grid - smaller gaps on mobile */
+  @media (max-width: 480px) {
+    .calendar-grid,
+    [role="grid"] {
+      gap: 0.25rem;
+    }
+  }
+
+  /* Form inputs - larger on mobile */
+  @media (max-width: 480px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+

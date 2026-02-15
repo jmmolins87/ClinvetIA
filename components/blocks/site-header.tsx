@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -31,37 +30,25 @@ const NAV_LINKS = [
   { href: "/contacto", labelKey: "nav.contact" },
 ] as const;
 
-export function SiteHeader({ className }: { className?: string }) {
+export function SiteHeader({ 
+  className, 
+  mobileMenuOpen, 
+  onMobileMenuChange 
+}: { 
+  className?: string;
+  mobileMenuOpen?: boolean;
+  onMobileMenuChange?: (open: boolean) => void;
+}) {
   const { t, lang, setLang } = useTranslation();
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [chatText, setChatText] = React.useState("");
+  const [internalIsOpen, setInternalIsOpen] = React.useState(false);
+  
+  // Use controlled state if props are provided, otherwise use internal state
+  const isOpen = mobileMenuOpen !== undefined ? mobileMenuOpen : internalIsOpen;
+  const setIsOpen = onMobileMenuChange || setInternalIsOpen;
   const pathnameFromNext = usePathname();
   const router = useRouter();
   const pathname = pathnameFromNext;
   const isHomePage = pathname === "/";
-
-  const sendChat = React.useCallback(() => {
-    const text = chatText.trim();
-    if (!text) return;
-
-    setChatText("");
-
-    try {
-      const w = window as unknown as {
-        botpressWebChat?: {
-          sendEvent?: (event: unknown) => void;
-          sendPayload?: (payload: unknown) => void;
-        };
-      };
-      const bp = w.botpressWebChat;
-
-      bp?.sendEvent?.({ type: "show" });
-      bp?.sendEvent?.({ type: "message", payload: { type: "text", text } });
-      bp?.sendPayload?.({ type: "text", text });
-    } catch {
-      // Ignore if Botpress is not ready.
-    }
-  }, [chatText]);
 
   const [showHeaderLogo, setShowHeaderLogo] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -76,7 +63,7 @@ export function SiteHeader({ className }: { className?: string }) {
     }
 
     router.push("/");
-  }, [pathname, router]);
+  }, [pathname, router, setIsOpen]);
 
   const navRef = React.useRef<HTMLElement | null>(null);
   const linkRefs = React.useRef<Record<string, HTMLAnchorElement | null>>({});
@@ -283,12 +270,12 @@ export function SiteHeader({ className }: { className?: string }) {
               side="top"
               showCloseButton={false}
               className={cn(
-                "w-full h-screen p-0 flex flex-col overflow-hidden",
+                "w-full h-[100dvh] p-0 flex flex-col overflow-hidden",
                 "bg-background/70 supports-[backdrop-filter]:bg-background/55",
                 "backdrop-blur-2xl"
               )}
             >
-              <div className="flex-1 flex flex-col justify-center p-6">
+              <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
                 <SheetHeader className="mb-6 flex items-center justify-center">
                   <SheetTitle className="sr-only">{t("common.menu")}</SheetTitle>
                   <SheetDescription className="sr-only">
@@ -359,32 +346,6 @@ export function SiteHeader({ className }: { className?: string }) {
               </div>
 
               <SheetFooter className="p-6 border-t border-border/50 backdrop-blur-sm">
-                <form
-                  className="flex w-full items-center gap-2"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    sendChat();
-                  }}
-                >
-                  <Input
-                    value={chatText}
-                    onChange={(e) => setChatText(e.target.value)}
-                    placeholder={
-                      lang === "es" ? "Escribe un mensaje..." : "Type a message..."
-                    }
-                    className="h-12 rounded-lg bg-background/60"
-                    aria-label={lang === "es" ? "Mensaje" : "Message"}
-                  />
-                  <Button
-                    type="submit"
-                    size="icon-lg"
-                    className="h-12 w-12 dark:glow-primary"
-                    aria-label={lang === "es" ? "Enviar" : "Send"}
-                  >
-                    <Icon name="ArrowUp" className="h-5 w-5" />
-                  </Button>
-                </form>
-
                 <Button
                   variant="ghost"
                   size="default"

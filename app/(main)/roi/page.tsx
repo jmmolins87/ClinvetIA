@@ -1,111 +1,151 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/components/providers/i18n-provider";
-import { AppShell } from "@/components/blocks/app-shell";
-import { SiteFooter } from "@/components/blocks/site-footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
-  TrendingUp,
-  Euro,
-  Clock,
-  Calculator,
-  Info,
-  Building2,
-  Store,
-  Building,
-  Home,
-} from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Icon } from "@/components/ui/icon";
+import { useRoi, type ClinicType } from "@/features/roi";
+import { useMounted } from "@/hooks/use-mounted";
+import { SiteFooter } from '@/components/blocks/site-footer';
 
-type ClinicType = "small" | "medium" | "large" | "specialized";
-
-const CLINIC_TYPES: { id: ClinicType; icon: typeof Building2; color: string }[] = [
-  { id: "small", icon: Home, color: "from-pink-500 via-fuchsia-600 to-pink-600 dark:from-green-500 dark:via-pink-500 dark:to-fuchsia-500" },
-  { id: "medium", icon: Store, color: "from-green-500 via-emerald-600 to-green-600 dark:from-green-500 dark:via-emerald-500 dark:to-green-500" },
-  { id: "large", icon: Building, color: "from-purple-500 via-pink-600 to-purple-600 dark:from-purple-500 dark:via-pink-500 dark:to-purple-500" },
-  { id: "specialized", icon: Building2, color: "from-orange-500 via-amber-600 to-orange-600 dark:from-orange-500 dark:via-amber-500 dark:to-orange-500" },
+const CLINIC_TYPES: { id: ClinicType; icon: string; color: string }[] = [
+  { id: "small", icon: "Home", color: "from-pink-500 via-fuchsia-600 to-pink-600 dark:from-green-500 dark:via-pink-500 dark:to-fuchsia-500" },
+  { id: "medium", icon: "Store", color: "from-green-500 via-emerald-600 to-green-600 dark:from-green-500 dark:via-emerald-500 dark:to-green-500" },
+  { id: "large", icon: "Building", color: "from-purple-500 via-pink-600 to-purple-600 dark:from-purple-500 dark:via-pink-500 dark:to-purple-500" },
+  { id: "specialized", icon: "Building2", color: "from-orange-500 via-amber-600 to-orange-600 dark:from-orange-500 dark:via-amber-500 dark:to-orange-500" },
 ];
 
 export default function ROIPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const mounted = useMounted();
   
-  const [clinicType, setClinicType] = React.useState<ClinicType | null>(null);
-  const [monthlyPatients, setMonthlyPatients] = React.useState(0);
-  const [avgTicket, setAvgTicket] = React.useState(0);
-  const [missedRate, setMissedRate] = React.useState(0);
+  // Use ROI hook (new logic)
+  const {
+    inputs,
+    results,
+    hasData,
+    hasAcceptedData,
+    setClinicType,
+    setMonthlyPatients,
+    setAvgTicket,
+    setMissedRate,
+    acceptData,
+    clearData,
+  } = useRoi();
   
-  const getClinicConfig = (type: ClinicType) => {
-    switch (type) {
-      case "small":
-        return {
-          recoveryRate: 0.65,
-          systemCost: 179,
-          defaultPatients: 120,
-          defaultTicket: 55,
-          defaultMissedRate: 35
+  // Modal states
+  const [showAcceptDialog, setShowAcceptDialog] = React.useState(false);
+  const [showIncompleteDialog, setShowIncompleteDialog] = React.useState(false);
+  const [pendingNavigation, setPendingNavigation] = React.useState<string | null>(null);
+  const [shouldBlockNavigation, setShouldBlockNavigation] = React.useState(true);
+  
+  // Check if data is complete (for incomplete modal)
+  const isDataComplete = React.useCallback(() => {
+    return inputs.clinicType && inputs.monthlyPatients > 0 && inputs.avgTicket > 0 && inputs.missedRate > 0;
+  }, [inputs]);
+  
+  // Intercept navigation if data not accepted
+  React.useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (!shouldBlockNavigation || hasAcceptedData) return;
+      
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
+      
+      if (link && link.href && !link.href.includes("/roi")) {
+        // User has data but hasn't accepted it
+        if (hasData && !hasAcceptedData) {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingNavigation(link.href);
+          
+          // Check if data is complete
+          if (!isDataComplete()) {
+            setShowIncompleteDialog(true);
+          } else {
+            setShowAcceptDialog(true);
+          }
         }
-      case "medium":
-        return {
-          recoveryRate: 0.70,
-          systemCost: 199,
-          defaultPatients: 250,
-          defaultTicket: 65,
-          defaultMissedRate: 30
-        }
-      case "large":
-        return {
-          recoveryRate: 0.75,
-          systemCost: 249,
-          defaultPatients: 450,
-          defaultTicket: 75,
-          defaultMissedRate: 25
-        }
-      case "specialized":
-        return {
-          recoveryRate: 0.60,
-          systemCost: 229,
-          defaultPatients: 180,
-          defaultTicket: 95,
-          defaultMissedRate: 30
-        }
+      }
+    };
+    
+    document.addEventListener("click", handleClick, { capture: true });
+    return () => document.removeEventListener("click", handleClick, { capture: true });
+  }, [hasData, hasAcceptedData, shouldBlockNavigation, isDataComplete]);
+  
+  // Handle CTA button click
+  const handleNavigateToContact = () => {
+    if (!hasData) {
+      setPendingNavigation("/contacto");
+      setShowIncompleteDialog(true);
+      return;
     }
-  }
+    
+    if (!isDataComplete()) {
+      setPendingNavigation("/contacto");
+      setShowIncompleteDialog(true);
+      return;
+    }
+    
+    setPendingNavigation("/contacto");
+    setShowAcceptDialog(true);
+  };
   
-  const emptyConfig = {
-    recoveryRate: 0,
-    systemCost: 0,
-    defaultPatients: 0,
-    defaultTicket: 0,
-    defaultMissedRate: 0,
-  }
-
-  const config = clinicType ? getClinicConfig(clinicType) : emptyConfig;
+  // Accept and navigate
+  const handleAccept = () => {
+    acceptData();
+    setShouldBlockNavigation(false);
+    setShowAcceptDialog(false);
+    
+    setTimeout(() => {
+      if (pendingNavigation) {
+        router.push(pendingNavigation);
+      }
+    }, 100);
+  };
   
-  const missedPatients = Math.round((monthlyPatients * missedRate) / 100);
-  const recoveredPatients = Math.round(missedPatients * config.recoveryRate);
-  const monthlyRevenue = recoveredPatients * avgTicket;
-  const yearlyRevenue = monthlyRevenue * 12;
-  const roi = config.systemCost > 0 ? Math.round(((monthlyRevenue - config.systemCost) / config.systemCost) * 100) : 0;
-  const breakEvenDays = config.systemCost > 0 && monthlyRevenue > 0 ? Math.round((config.systemCost / (monthlyRevenue / 30))) : 0;
+  // Cancel and navigate without saving
+  const handleCancel = () => {
+    clearData();
+    setShouldBlockNavigation(false);
+    setShowAcceptDialog(false);
+    
+    setTimeout(() => {
+      if (pendingNavigation) {
+        router.push(pendingNavigation);
+      }
+    }, 100);
+  };
   
-  const handleClinicTypeChange = (type: ClinicType) => {
-    setClinicType(type);
-    const config = getClinicConfig(type);
-    setMonthlyPatients(config.defaultPatients);
-    setAvgTicket(config.defaultTicket);
-    setMissedRate(config.defaultMissedRate);
+  // Close incomplete dialog
+  const handleCloseIncomplete = () => {
+    setShowIncompleteDialog(false);
+    setPendingNavigation(null);
   };
 
   return (
-    <AppShell>
-      <section className="roi-surface-hero ambient-section home-reflections pt-32 pb-16 md:pt-40 md:py-16">
+    <>
+      <section className="ambient-section home-reflections py-12 md:py-16">
         <div className="container relative z-10 mx-auto max-w-screen-xl px-4">
             <div className="max-w-4xl mx-auto text-center space-y-4">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-pink-600 dark:from-primary dark:via-gradient-purple dark:to-gradient-to flex items-center justify-center shadow-lg dark:glow-primary">
-                  <Calculator className="w-8 h-8 text-white dark:text-black" />
+                  <Icon name="Calculator" className="w-8 h-8 text-white dark:text-black" />
                 </div>
               </div>
               <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
@@ -118,13 +158,13 @@ export default function ROIPage() {
         </div>
       </section>
 
-      <section className="roi-surface-info ambient-section home-reflections py-12 md:py-16">
+      <section className="ambient-section home-reflections py-12 md:py-16">
         <div className="container relative z-10 mx-auto max-w-screen-xl px-4">
             <div className="max-w-4xl mx-auto">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="rounded-xl border border-primary/20 bg-card/80 backdrop-blur-sm p-6 transition-all hover:border-primary hover:shadow-2xl dark:hover:shadow-primary/20">
                   <h2 className="text-xl font-bold mb-3 text-foreground flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <Icon name="TrendingUp" className="w-5 h-5 text-primary" />
                     {t("roi.calculator.whatIsROI.title")}
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
@@ -134,7 +174,7 @@ export default function ROIPage() {
 
                 <div className="rounded-xl border border-primary/20 bg-card/80 backdrop-blur-sm p-6 transition-all hover:border-primary hover:shadow-2xl dark:hover:shadow-primary/20">
                   <h2 className="text-xl font-bold mb-3 text-foreground flex items-center gap-2">
-                    <Calculator className="w-5 h-5 text-primary" />
+                    <Icon name="Calculator" className="w-5 h-5 text-primary" />
                     {t("roi.calculator.whatIsCalculator.title")}
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
@@ -146,18 +186,15 @@ export default function ROIPage() {
         </div>
       </section>
 
-      <section className="roi-surface-calculator ambient-section home-reflections py-12 md:py-16">
+      <section className="ambient-section home-reflections py-12 md:py-16">
         <div id="roi-calculator" className="container relative z-10 mx-auto max-w-screen-xl px-4 scroll-mt-24">
           <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto items-stretch">
             {/* Inputs */}
-            <div
-              className="rounded-xl border border-border bg-card/80 backdrop-blur-sm p-8 transition-all hover:border-primary hover:shadow-2xl dark:hover:shadow-primary/20 h-full flex flex-col"
-            >
+            <div className="rounded-xl border border-border bg-card/80 backdrop-blur-sm p-8 transition-all hover:border-primary hover:shadow-2xl dark:hover:shadow-primary/20 h-full flex flex-col">
               <h2 className="text-2xl font-bold mb-6 text-foreground flex items-center gap-3">
-                <Info className="w-6 h-6 text-primary" />
+                <Icon name="Info" className="w-6 h-6 text-primary" />
                 {t("roi.calculator.inputs.title")}
               </h2>
-              
               <div className="space-y-6 flex-1">
                 {/* Clinic Type */}
                 <div className="space-y-3">
@@ -166,12 +203,11 @@ export default function ROIPage() {
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
                     {CLINIC_TYPES.map((clinic) => {
-                      const Icon = clinic.icon
-                      const isSelected = clinicType === clinic.id
+                      const isSelected = inputs.clinicType === clinic.id;
                       return (
                         <button
                           key={clinic.id}
-                          onClick={() => handleClinicTypeChange(clinic.id)}
+                          onClick={() => setClinicType(clinic.id)}
                           className={`relative rounded-lg border p-4 transition-all cursor-pointer ${
                             isSelected
                               ? "border-primary bg-primary/10 dark:bg-primary/20"
@@ -180,7 +216,7 @@ export default function ROIPage() {
                         >
                           <div className="flex flex-col items-center gap-2 text-center">
                             <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${clinic.color} flex items-center justify-center ${isSelected ? "dark:glow-sm" : ""}`}>
-                              <Icon className="w-6 h-6 text-white" />
+                              <Icon name={clinic.icon as any} className="w-6 h-6 text-white" />
                             </div>
                             <span className={`text-sm font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
                               {t(`roi.calculator.inputs.presets.${clinic.id}`)}
@@ -192,7 +228,7 @@ export default function ROIPage() {
                             </div>
                           )}
                         </button>
-                      )
+                      );
                     })}
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -209,7 +245,7 @@ export default function ROIPage() {
                     <Input
                       id="monthly-patients"
                       type="number"
-                      value={monthlyPatients}
+                      value={inputs.monthlyPatients}
                       onChange={(e) => setMonthlyPatients(Number(e.target.value))}
                       className="text-lg"
                       min="0"
@@ -225,11 +261,11 @@ export default function ROIPage() {
                       {t("roi.calculator.inputs.avgTicket.label")}
                     </Label>
                     <div className="relative">
-                      <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Icon name="Euro" className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="avg-ticket"
                         type="number"
-                        value={avgTicket}
+                        value={inputs.avgTicket}
                         onChange={(e) => setAvgTicket(Number(e.target.value))}
                         className="text-lg pl-10"
                         min="0"
@@ -249,7 +285,7 @@ export default function ROIPage() {
                       <Input
                         id="missed-rate"
                         type="number"
-                        value={missedRate}
+                        value={inputs.missedRate}
                         onChange={(e) => setMissedRate(Number(e.target.value))}
                         className="text-lg"
                         min="0"
@@ -270,12 +306,7 @@ export default function ROIPage() {
               <div className="mt-6 flex justify-end">
                 <Button
                   variant="destructive"
-                  onClick={() => {
-                    setClinicType(null);
-                    setMonthlyPatients(0);
-                    setAvgTicket(0);
-                    setMissedRate(0);
-                  }}
+                  onClick={clearData}
                   className="cursor-pointer"
                 >
                   {t("roi.calculator.inputs.presets.clear")}
@@ -283,9 +314,10 @@ export default function ROIPage() {
               </div>
             </div>
             
+            {/* Results */}
             <div className="space-y-6 h-full flex flex-col">
               <h2 className="text-3xl font-bold mb-6 text-foreground flex items-center gap-3">
-                <TrendingUp className="w-7 h-7 text-primary" />
+                <Icon name="TrendingUp" className="w-7 h-7 text-primary" />
                 {t("roi.calculator.results.title")}
               </h2>
 
@@ -295,13 +327,13 @@ export default function ROIPage() {
                     <p className="text-sm text-muted-foreground font-medium">
                       {t("roi.calculator.results.monthlyRevenue")}
                     </p>
-                    <Euro className="w-5 h-5 text-primary" />
+                    <Icon name="Euro" className="w-5 h-5 text-primary" />
                   </div>
                   <p className="text-4xl font-bold text-primary mb-1">
-                    {`${monthlyRevenue.toLocaleString()}€`}
+                    {!hasData ? '-' : (mounted ? `${results?.monthlyRevenue.toLocaleString()}€` : `${results?.monthlyRevenue}€`)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {t("roi.calculator.results.yearlyRevenue")}: {`${yearlyRevenue.toLocaleString()}€`}
+                    {t("roi.calculator.results.yearlyRevenue")}: {!hasData ? '-' : (mounted ? `${results?.yearlyRevenue.toLocaleString()}€` : `${results?.yearlyRevenue}€`)}
                   </p>
                 </div>
 
@@ -310,10 +342,10 @@ export default function ROIPage() {
                     <p className="text-sm text-muted-foreground font-medium">
                       {t("roi.calculator.results.roi")}
                     </p>
-                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <Icon name="TrendingUp" className="w-5 h-5 text-primary" />
                   </div>
                   <p className="text-4xl font-bold text-foreground mb-1">
-                    {roi > 0 ? '+' : ''}{roi}%
+                    {!hasData ? '-' : `${(results?.roi ?? 0) > 0 ? '+' : ''}${results?.roi}%`}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {t("roi.calculator.results.roiHelp")}
@@ -325,10 +357,10 @@ export default function ROIPage() {
                     <p className="text-sm text-muted-foreground font-medium">
                       {t("roi.calculator.results.breakEven")}
                     </p>
-                    <Clock className="w-5 h-5 text-primary" />
+                    <Icon name="Clock" className="w-5 h-5 text-primary" />
                   </div>
                   <p className="text-4xl font-bold text-foreground mb-1">
-                    {breakEvenDays} {t("roi.calculator.results.days")}
+                    {!hasData ? '-' : `${results?.breakEvenDays} ${t("roi.calculator.results.days")}`}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {t("roi.calculator.results.breakEvenHelp")}
@@ -342,15 +374,15 @@ export default function ROIPage() {
                   <div className="space-y-3 text-base">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t("roi.calculator.results.missedPatients")}</span>
-                      <span className="font-medium text-foreground">{missedPatients}</span>
+                      <span className="font-medium text-foreground">{!hasData ? '-' : results?.missedPatients}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t("roi.calculator.results.recoveredPatients")}</span>
-                      <span className="font-medium text-primary">{recoveredPatients}</span>
+                      <span className="font-medium text-primary">{!hasData ? '-' : results?.recoveredPatients}</span>
                     </div>
                     <div className="flex justify-between pt-3 border-t border-border">
                       <span className="text-muted-foreground">{t("roi.calculator.results.recoveryRate")}</span>
-                      <span className="font-medium text-foreground">{`${Math.round(config.recoveryRate * 100)}%`}</span>
+                      <span className="font-medium text-foreground">{!hasData ? '-' : `${Math.round((results?.recoveryRate ?? 0) * 100)}%`}</span>
                     </div>
                   </div>
                 </div>
@@ -361,17 +393,67 @@ export default function ROIPage() {
           <div className="hidden lg:block max-w-4xl mx-auto mt-6">
             <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm p-4">
               <p className="text-sm text-foreground/70 text-center">
-                <Info className="w-4 h-4 inline mr-2 text-gradient-to dark:text-primary" />
+                <Icon name="Info" className="w-4 h-4 inline mr-2 text-gradient-to dark:text-primary" />
                 {t("roi.calculator.disclaimer")}
               </p>
             </div>
           </div>
 
+          <div className="max-w-3xl mx-auto mt-12 text-center">
+            <div className="rounded-2xl border border-primary bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 p-8 backdrop-blur-sm">
+              <h3 className="text-2xl font-bold mb-4 text-foreground">
+                {t("roi.calculator.cta.title")}
+              </h3>
+              <p className="text-lg text-muted-foreground mb-6">
+                {t("roi.calculator.cta.description")}
+              </p>
+              <Button onClick={handleNavigateToContact} className="cursor-pointer">
+                {t("roi.calculator.cta.button")}
+                <Icon name="Send" className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
+      
+      {/* Accept ROI Dialog */}
+      <AlertDialog open={showAcceptDialog} onOpenChange={setShowAcceptDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("roi.dialog.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("roi.dialog.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancel}>
+              {t("roi.dialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleAccept}>
+              {t("roi.dialog.accept")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Incomplete Data Dialog */}
+      <AlertDialog open={showIncompleteDialog} onOpenChange={setShowIncompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("roi.dialog.incomplete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("roi.dialog.incomplete.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleCloseIncomplete}>
+              {t("roi.dialog.incomplete.button")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <SiteFooter />
-    </AppShell>
+    </>
   );
 }
-

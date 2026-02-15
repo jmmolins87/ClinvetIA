@@ -88,7 +88,7 @@ export function AiAssistantDock({
       {!isOpen && (
         <div
           className={cn(
-            "fixed right-[calc(1rem+env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[60]",
+            "fixed right-[calc(1rem+env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40",
             className
           )}
         >
@@ -125,7 +125,7 @@ export function AiAssistantDock({
 
       <SheetContent
         side="right"
-        className="p-0 sm:max-w-md"
+        className="p-0 gap-0 sm:max-w-md"
       >
         <SheetHeader className="relative overflow-hidden border-b border-border/60">
           <div

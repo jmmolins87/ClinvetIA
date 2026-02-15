@@ -2,6 +2,13 @@
 
 This repository is a Next.js App Router app (Next 16, React 19) using TypeScript (strict), Tailwind CSS v4, Vitest + Testing Library, and Storybook.
 
+**Core Features:**
+- 🎯 ROI Calculator for veterinary clinics
+- 📅 Booking system with time slot management (mock API enabled)
+- 🌐 i18n support (ES/EN) via `next-intl`
+- 🎨 Dark/light theme support
+- ♿ Accessibility-first UI components
+
 ## Commands (Build / Lint / Typecheck / Tests / Storybook)
 
 ```bash
@@ -25,8 +32,8 @@ pnpm exec tsc --noEmit
 
 # Tests (Vitest)
 pnpm test            # vitest run
-pnpm test:watch      # watch
-pnpm test:coverage   # strict coverage
+pnpm test:watch      # watch mode
+pnpm test:coverage   # strict coverage (100% thresholds)
 
 # Run a single test file
 pnpm test -- components/ui/button.test.tsx
@@ -51,6 +58,7 @@ pnpm lint && pnpm exec tsc --noEmit && pnpm test && pnpm build
 - TypeScript project excludes Storybook sources (`tsconfig.json` excludes `stories/` and `.storybook/`).
 - ESLint uses flat config (`eslint.config.mjs`) and ignores build outputs and `.storybook/**`.
 - Storybook config lives in `.storybook/` (tracked) and runs via Vite; `next/*` is aliased to `.storybook/mocks/*`.
+- Mock API is enabled by default (`NEXT_PUBLIC_USE_MOCK_API=true` in `.env.local`); see `services/mockApi/` for implementation.
 
 ## Project Structure (High Level)
 
@@ -63,9 +71,12 @@ components/
   blocks/            # Page sections (header/footer/hero, etc.)
   providers/         # Client providers (theme, i18n, loaders)
   ui/                # UI primitives (Radix/shadcn-style)
+features/            # Feature-specific logic (booking, ROI)
 lib/
   api/               # Client-side API wrappers with typed results
   utils.ts           # `cn()` helper (clsx + tailwind-merge)
+services/
+  mockApi/           # Mock API implementations (availability, holds, bookings)
 stories/             # Storybook stories + MSW handlers
 styles/              # Storybook-specific CSS
 ```
@@ -92,6 +103,10 @@ styles/              # Storybook-specific CSS
 - Prefer typed result objects/unions over throwing for expected failures (see `lib/api/bookings.ts`).
 - Be explicit about client-only code: add `"use client"` when using hooks or browser APIs.
 - Avoid importing browser-only modules into Server Components; some `lib/api/*` utilities rely on `window`.
+- Example of typed result pattern:
+  ```typescript
+  type Result<T> = { ok: true; data: T } | { ok: false; code: string; message: string };
+  ```
 
 ### Naming
 
@@ -105,6 +120,7 @@ styles/              # Storybook-specific CSS
 - `app/` pages/layouts: default-export the component; type `export const metadata` as `Metadata` when used.
 - Default to Server Components; only add `"use client"` when needed.
 - Providers live in `components/providers/` and are composed in `app/layout.tsx`.
+- Use `useTranslations()` from `next-intl` for i18n; translations live in `locales/{es,en}.json`.
 
 ### Styling (Tailwind v4)
 
@@ -129,6 +145,7 @@ styles/              # Storybook-specific CSS
 - `vitest.setup.ts` mocks `next/link`, `next/image`, and `next/navigation` for component tests.
 - Prefer queries by role/label/text; use `user-event` for interactions.
 - Coverage is strict (100% thresholds in `vitest.config.mjs`) and targets `components/**/*.{ts,tsx}`.
+- Tests should be colocated: `component.tsx` → `component.test.tsx` in same directory.
 
 ### Storybook
 
@@ -136,10 +153,18 @@ styles/              # Storybook-specific CSS
 - Stories live under `stories/` (commonly `stories/ui/*.stories.tsx`); MSW handlers live in `stories/mocks/handlers.ts`.
 - Use CSF3 (`satisfies Meta<typeof Component>`) and prefer real app variants.
 
+### Mock APIs
+
+- Mock APIs are enabled by default for booking system (see `services/mockApi/`).
+- Control via `NEXT_PUBLIC_USE_MOCK_API=true` in `.env.local`.
+- Mock state exposed globally for debugging: `window.__mockState` (dev only).
+- Switch to real API by setting env var to `false` (backend endpoints required).
+
 ### Environment & Secrets
 
 - Never commit `.env*` (ignored by `.gitignore`).
 - Only expose client-safe values via `NEXT_PUBLIC_*` env vars.
+- `.env.example` contains template for required environment variables.
 
 ### Git / Workspace Hygiene
 
