@@ -101,7 +101,6 @@ export function Calendar({
       <button
         key={label}
         type="button"
-        aria-label={label}
         disabled={isDisabled}
         onClick={() => onSelect?.(date)}
         className={cn(
@@ -122,7 +121,7 @@ export function Calendar({
       <div className="flex items-center justify-between gap-2 pb-3">
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           size="icon"
           onClick={() => setMonth(new Date(year, mon - 1, 1))}
           aria-label="Previous month"
@@ -133,7 +132,7 @@ export function Calendar({
         <div className="min-w-0 flex-1 text-center text-sm font-semibold capitalize">{title}</div>
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           size="icon"
           onClick={() => setMonth(new Date(year, mon + 1, 1))}
           aria-label="Next month"

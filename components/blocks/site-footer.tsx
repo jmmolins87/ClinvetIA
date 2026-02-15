@@ -35,7 +35,7 @@ export function SiteFooter({
   const isCompact = density === "compact";
 
   return (
-    <footer className={cn("border-t border-border/40 bg-background", className)}>
+    <footer className={cn("border-t border-border/40 bg-background home-reflections home-surface-footer home-shadow-footer", className)}>
       <div
         className={cn(
           "container mx-auto max-w-screen-2xl px-4",

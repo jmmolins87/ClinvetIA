@@ -1,8 +1,6 @@
 "use client";
 
-import * as React from "react";
 import { useTranslation } from "@/components/providers/i18n-provider";
-import { SectionCtaFooter } from "@/components/blocks/section-cta-footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +31,6 @@ export default function ContactoPage() {
   };
 
   const isSubmitting = false; // Always false for static display
-  const hasSubmittedBefore = false; // Always false for static display
 
   const roiData = {
     monthlyRevenue: 1340,

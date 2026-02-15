@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { AppShell } from "@/components/blocks/app-shell";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { SectionCtaFooter } from "@/components/blocks/section-cta-footer";
-import { Icon } from "@/components/ui/icon";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 const SCENARIO = {
   id: "veterinary",
@@ -14,13 +15,36 @@ const SCENARIO = {
 
 const CASES = ["midnight", "postSurgery", "chronic", "vaccines", "preventive", "multiservice", "results", "firstVisit"] as const;
 
+const BADGE_ICONS: Record<string, IconName> = {
+  midnight: "BellRing",
+  postSurgery: "ClipboardList",
+  chronic: "HeartPulse",
+  vaccines: "Syringe",
+  preventive: "ShieldCheck",
+  multiservice: "Layers",
+  results: "FileText",
+  firstVisit: "Users",
+};
+
+const CASE_IMAGES: Record<string, string> = {
+  midnight: "/use-cases/urgencia-nocturna.jpeg",
+  postSurgery: "/use-cases/post-operatorio.jpeg",
+  chronic: "/use-cases/enfermedad-cronica.jpeg",
+  vaccines: "/use-cases/recordatorio-vac.jpeg",
+  preventive: "/use-cases/deteccion-temprana.jpeg",
+  multiservice: "/use-cases/peluqueria-consulta.jpeg",
+  results: "/use-cases/comun-proactiva.jpeg",
+  firstVisit: "/use-cases/cachorro.jpeg",
+};
+
+
 export default function EscenariosPage() {
   const { t } = useTranslation();
 
   return (
     <AppShell>
-      <section className="scenarios-surface-hero home-reflections ambient-section text-foreground">
-        <div className="page-hero-content container relative z-10 mx-auto max-w-screen-xl px-4">
+      <section className="scenarios-surface-hero home-reflections ambient-section text-foreground pb-[80px]">
+        <div className="page-hero-content container relative z-10 mx-auto max-w-screen-xl px-4 pb-12 md:pb-16">
           <div className="max-w-4xl mx-auto text-center space-y-4 mb-12">
             <div className="flex items-center justify-center gap-4 mb-3">
               <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${SCENARIO.color} flex items-center justify-center shadow-lg dark:glow-primary`}>
@@ -34,55 +58,65 @@ export default function EscenariosPage() {
               {t(`scenarios.${SCENARIO.id}.subtitle`)}
             </p>
           </div>
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="grid gap-6 md:grid-cols-2">
               {CASES.map((caseId) => (
-                <div
-                  key={caseId}
-                  className="rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-6 md:p-7 transition-all hover:border-primary/40 hover:shadow-xl dark:hover:shadow-primary/15"
-                >
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gradient-to dark:text-primary">
-                        {t(`scenarios.veterinary.cases.items.${caseId}.badge`)}
-                      </p>
-                      <h4 className="text-xl md:text-2xl font-bold text-foreground">
-                        {t(`scenarios.veterinary.cases.items.${caseId}.title`)}
-                      </h4>
-                    </div>
+                <div key={caseId} className="flex flex-col gap-3">
+                  <p className="text-sm font-medium text-gradient-to dark:text-primary flex items-center gap-2">
+                    <Icon name={BADGE_ICONS[caseId]} className="w-5 h-5" />
+                    {t(`scenarios.veterinary.cases.items.${caseId}.badge`)}
+                  </p>
+                  <div
+                    className="group relative rounded-2xl border border-border bg-card/80 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-xl dark:hover:shadow-primary/15 overflow-hidden aspect-video"
+                  >
+                    <Image 
+                      src={CASE_IMAGES[caseId]} 
+                      alt={t(`scenarios.veterinary.cases.items.${caseId}.title`)} 
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-110 group-hover:brightness-50"
+                    />
+                    <div className="absolute inset-0 bg-black/80 p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <h4 className="text-lg md:text-xl font-bold text-white">
+                            {t(`scenarios.veterinary.cases.items.${caseId}.title`)}
+                          </h4>
+                        </div>
 
-                    <p className="text-base text-foreground/80 dark:text-foreground/85 leading-relaxed">
-                      {t(`scenarios.veterinary.cases.items.${caseId}.story`)}
-                    </p>
+                        <p className="text-sm text-white/80 leading-relaxed">
+                          {t(`scenarios.veterinary.cases.items.${caseId}.story`)}
+                        </p>
 
-                    <div className="rounded-xl border border-destructive/60 bg-destructive/5 p-4">
-                      <p className="text-sm font-semibold text-destructive mb-2 flex items-center gap-2">
-                        <Icon name="MessageCircleQuestionMark" />
-                        {t("scenarios.veterinary.cases.ownerMessageLabel")}
-                      </p>
-                      <p className="text-base text-foreground leading-relaxed">
-                        &quot;{t(`scenarios.veterinary.cases.items.${caseId}.ownerMessage`)}&quot;
-                      </p>
-                    </div>
+                        <div className="rounded-xl border border-destructive/60 bg-destructive/10 p-4">
+                          <p className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+                            <Icon name="MessageCircleQuestionMark" />
+                            {t("scenarios.veterinary.cases.ownerMessageLabel")}
+                          </p>
+                          <p className="text-sm text-white leading-relaxed">
+                            &quot;{t(`scenarios.veterinary.cases.items.${caseId}.ownerMessage`)}&quot;
+                          </p>
+                        </div>
 
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="rounded-xl border border-green-500/60 bg-green-500/5 p-4">
-                        <p className="text-sm font-semibold text-green-600 dark:text-green-500 mb-2 flex items-center gap-2">
-                          <Icon name="Lightbulb" />
-                          {t("scenarios.veterinary.cases.systemDoesLabel")}
-                        </p>
-                        <p className="text-sm text-foreground/80 leading-relaxed">
-                          {t(`scenarios.veterinary.cases.items.${caseId}.system`)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-green-500/60 bg-green-500/5 p-4">
-                        <p className="text-sm font-semibold text-green-600 dark:text-green-500 mb-2 flex items-center gap-2">
-                          <Icon name="Check" />
-                          {t("scenarios.veterinary.cases.outcomeLabel")}
-                        </p>
-                        <p className="text-sm text-foreground/80 leading-relaxed">
-                          {t(`scenarios.veterinary.cases.items.${caseId}.outcome`)}
-                        </p>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div className="rounded-xl border border-green-500/60 bg-green-500/10 p-4">
+                            <p className="text-sm font-semibold text-green-400 mb-2 flex items-center gap-2">
+                              <Icon name="Lightbulb" />
+                              {t("scenarios.veterinary.cases.systemDoesLabel")}
+                            </p>
+                            <p className="text-sm text-white/80 leading-relaxed">
+                              {t(`scenarios.veterinary.cases.items.${caseId}.system`)}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-green-500/60 bg-green-500/10 p-4">
+                            <p className="text-sm font-semibold text-green-400 mb-2 flex items-center gap-2">
+                              <Icon name="Check" />
+                              {t("scenarios.veterinary.cases.outcomeLabel")}
+                            </p>
+                            <p className="text-sm text-white/80 leading-relaxed">
+                              {t(`scenarios.veterinary.cases.items.${caseId}.outcome`)}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

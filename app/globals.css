@@ -1655,6 +1655,28 @@
       inset 0 -28px 56px color-mix(in oklch, var(--primary) 6%, transparent);
   }
 
+  /* Footer surface and shadow */
+  .home-surface-footer {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        52rem 38rem at 24% 18%,
+        color-mix(in oklch, var(--primary) 14%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        46rem 34rem at 82% 72%,
+        color-mix(in oklch, var(--gradient-purple) 12%, transparent),
+        transparent 74%
+      );
+  }
+
+  .home-shadow-footer {
+    box-shadow:
+      inset 0 28px 56px color-mix(in oklch, var(--primary) 6%, transparent),
+      inset 0 -28px 56px color-mix(in oklch, var(--gradient-purple) 5%, transparent);
+  }
+
   /* Solution page: per-section surfaces (keep sections visually distinct). */
   .solution-surface-hero {
     background-color: var(--background);
