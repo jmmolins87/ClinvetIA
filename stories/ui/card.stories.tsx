@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 const meta = {
-  title: "UI/Card",
+  title: "UI/Data Display/Card",
   component: Card,
   tags: ["autodocs"],
 } satisfies Meta<typeof Card>;

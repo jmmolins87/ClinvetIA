@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const meta = {
-  title: "UI/Tooltip",
+  title: "UI/Overlays/Tooltip",
   component: Tooltip,
   tags: ["autodocs"],
 } satisfies Meta<typeof Tooltip>;

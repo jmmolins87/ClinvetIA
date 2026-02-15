@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 import { NeonButton } from "@/components/ui/neon-button";
 
 const meta = {
-  title: "UI/NeonButton",
+  title: "UI/Buttons/NeonButton",
   component: NeonButton,
   tags: ["autodocs"],
 } satisfies Meta<typeof NeonButton>;

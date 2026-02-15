@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 const NOW = Date.now();
 
 const meta = {
-  title: "UI/Calendar",
+  title: "UI/Forms/Calendar",
   component: Calendar,
   tags: ["autodocs"],
 } satisfies Meta<typeof Calendar>;

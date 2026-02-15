@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CancelButton } from "@/components/ui/cancel-button";
 
 const meta = {
-  title: "UI/NeonCard",
+  title: "UI/Data Display/NeonCard",
   component: NeonCard,
   tags: ["autodocs"],
 } satisfies Meta<typeof NeonCard>;

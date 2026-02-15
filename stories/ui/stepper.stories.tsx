@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Stepper } from "../../components/ui/stepper";
 
 const meta = {
-  title: "UI/Stepper",
+  title: "UI/Navigation/Stepper",
   component: Stepper,
   parameters: {
     layout: "padded",

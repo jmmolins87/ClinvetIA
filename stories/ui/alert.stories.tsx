@@ -4,7 +4,7 @@ import { CircleCheck, Info, OctagonX, TriangleAlert } from "lucide-react";
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from "@/components/ui/alert";
 
 const meta = {
-  title: "UI/Alert",
+  title: "UI/Alerts/Alert",
   component: Alert,
   tags: ["autodocs"],
 } satisfies Meta<typeof Alert>;

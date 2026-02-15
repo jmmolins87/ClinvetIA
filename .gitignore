@@ -13,10 +13,14 @@
 # testing
 /coverage
 
+# storybook (config lives in .storybook/)
+/.storybook-run.log
+/.storybook-*/
+/storybook-static/
+/debug-storybook.log
+
 # next.js
 /.next/
-/.storybook/
-.storybook-*/
 /out/
 
 # production

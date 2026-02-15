@@ -7,17 +7,129 @@ import { cn } from "@/lib/utils";
 
 interface LoaderProps {
   className?: string;
+  mode?: "fullscreen" | "contained";
+  lockScroll?: boolean;
 }
 
-export function Loader({ className }: LoaderProps) {
-  return (
-    <div
-      className={cn(
-        "fixed inset-0 z-[9999] flex items-center justify-center bg-background backdrop-blur-sm",
-        className
-      )}
-    >
-      <div className="flex flex-col items-center gap-8">
+export function Loader({ className, mode = "fullscreen", lockScroll }: LoaderProps) {
+  const overlayRef = React.useRef<HTMLDivElement | null>(null);
+  const shouldLockScroll = lockScroll ?? true;
+
+  const findScrollableAncestor = React.useCallback((from: HTMLElement | null): HTMLElement | null => {
+    if (!from) return null;
+    let cur: HTMLElement | null = from.parentElement;
+    while (cur && cur !== document.body) {
+      const cs = window.getComputedStyle(cur);
+      const oy = cs.overflowY;
+      const o = cs.overflow;
+      if (
+        oy === "auto" ||
+        oy === "scroll" ||
+        oy === "overlay" ||
+        o === "auto" ||
+        o === "scroll" ||
+        o === "overlay"
+      ) {
+        return cur;
+      }
+      cur = cur.parentElement;
+    }
+    return null;
+  }, []);
+
+  React.useEffect(() => {
+    if (!shouldLockScroll) return;
+
+    if (mode === "contained") {
+      const overlay = overlayRef.current;
+      if (!overlay) return;
+
+      const container = findScrollableAncestor(overlay) ?? overlay.parentElement;
+      if (!container) return;
+
+      const prevOverflow = container.style.overflow;
+      const prevOverscroll = (container.style as CSSStyleDeclaration & { overscrollBehavior?: string })
+        .overscrollBehavior;
+
+      container.style.overflow = "hidden";
+      (container.style as CSSStyleDeclaration & { overscrollBehavior?: string }).overscrollBehavior =
+        "none";
+
+      const prevent = (event: Event) => {
+        event.preventDefault();
+      };
+
+      // Only block scroll inside the box where the loader lives.
+      overlay.addEventListener("wheel", prevent, { passive: false });
+      overlay.addEventListener("touchmove", prevent, { passive: false });
+
+      return () => {
+        overlay.removeEventListener("wheel", prevent as EventListener);
+        overlay.removeEventListener("touchmove", prevent as EventListener);
+        container.style.overflow = prevOverflow;
+        (container.style as CSSStyleDeclaration & { overscrollBehavior?: string }).overscrollBehavior =
+          prevOverscroll;
+      };
+    }
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      htmlOverscroll: (html.style as CSSStyleDeclaration & { overscrollBehavior?: string })
+        .overscrollBehavior,
+      bodyOverflow: body.style.overflow,
+      bodyPaddingRight: body.style.paddingRight,
+    };
+
+    const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
+
+    html.style.overflow = "hidden";
+    (html.style as CSSStyleDeclaration & { overscrollBehavior?: string }).overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    const preventScroll = (event: Event) => {
+      event.preventDefault();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Prevent common scroll keys while loader is shown.
+      if (
+        e.key === " " ||
+        e.key === "PageDown" ||
+        e.key === "PageUp" ||
+        e.key === "Home" ||
+        e.key === "End" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowUp"
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", preventScroll, { passive: false });
+    window.addEventListener("touchmove", preventScroll, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("wheel", preventScroll as EventListener);
+      window.removeEventListener("touchmove", preventScroll as EventListener);
+      window.removeEventListener("keydown", onKeyDown);
+
+      html.style.overflow = prev.htmlOverflow;
+      (html.style as CSSStyleDeclaration & { overscrollBehavior?: string }).overscrollBehavior =
+        prev.htmlOverscroll;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.paddingRight = prev.bodyPaddingRight;
+    };
+  }, [findScrollableAncestor, mode, shouldLockScroll]);
+
+  const content = (
+    <div className="flex flex-col items-center gap-8">
         <div className="relative h-32 w-32">
           <Image
             src="/logo.png"
@@ -76,6 +188,26 @@ export function Loader({ className }: LoaderProps) {
           <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-[spin_0.8s_linear_infinite]" />
         </div>
       </div>
+  );
+
+  return (
+    <div
+      ref={overlayRef}
+      role="status"
+      aria-live="polite"
+      aria-label="Loading"
+      className={cn(
+        mode === "contained"
+          ? "absolute inset-0 z-50 flex h-full w-full items-center justify-center"
+          : "fixed inset-0 z-[9999] flex items-center justify-center",
+        "bg-white/85 dark:bg-black/75",
+        "supports-[backdrop-filter]:bg-white/55 dark:supports-[backdrop-filter]:bg-black/55",
+        "backdrop-blur-2xl backdrop-saturate-150",
+        "pointer-events-auto touch-none",
+        className
+      )}
+    >
+      {content}
     </div>
   );
 }

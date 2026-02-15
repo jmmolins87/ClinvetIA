@@ -1,155 +1,150 @@
 # Agent Instructions for Clinvetia App
 
-This repository is a Next.js (App Router) app using React 19, TypeScript (strict), Tailwind CSS v4, and Storybook.
+This repository is a Next.js App Router app (Next 16, React 19) using TypeScript (strict), Tailwind CSS v4, Vitest + Testing Library, and Storybook.
 
-## Commands (Build / Lint / Typecheck / Storybook)
+## Commands (Build / Lint / Typecheck / Tests / Storybook)
 
 ```bash
-# Install deps
+# Install deps (pnpm)
 pnpm install
 
 # Dev server (http://localhost:3000)
 pnpm dev
 
-# Production build
+# Production build / start
 pnpm build
-
-# Start production server
 pnpm start
 
-# Lint entire repo (ESLint 9 + eslint-config-next)
+# Lint (ESLint 9 + eslint-config-next; flat config in eslint.config.mjs)
 pnpm lint
-
-# Lint with auto-fix (pnpm requires "--" to pass args)
 pnpm lint -- --fix
-
-# Lint a single file
 pnpm lint -- app/page.tsx
 
 # Typecheck (no emit)
 pnpm exec tsc --noEmit
 
+# Tests (Vitest)
+pnpm test            # vitest run
+pnpm test:watch      # watch
+pnpm test:coverage   # strict coverage
+
+# Run a single test file
+pnpm test -- components/ui/button.test.tsx
+
+# Run a single test by name (optionally scoped to a file)
+pnpm test -- -t "renders"
+pnpm test -- components/ui/button.test.tsx -t "renders"
+
 # Storybook (port 6006)
 pnpm storybook
-
-# Build Storybook
 pnpm build-storybook
+
+# Closest CI-like smoke check
+pnpm lint && pnpm exec tsc --noEmit && pnpm test && pnpm build
 ```
-
-## Tests
-
-Unit tests are run with Vitest (jsdom + Testing Library).
-
-- Run all tests once: `pnpm test`
-- Watch mode: `pnpm test:watch`
-- Coverage (strict; thresholds are configured in `vitest.config.mjs`): `pnpm test:coverage`
-- Run a single test file / a single test by name:
-
-```bash
-pnpm test -- components/ui/button.test.tsx
-pnpm test -- components/ui/button.test.tsx -t "renders"
-```
-
-- Closest “CI-like” smoke check: `pnpm lint && pnpm exec tsc --noEmit && pnpm test && pnpm build`.
 
 ## Repo-Specific Notes
 
-- Package manager: use `pnpm` (lockfile is `pnpm-lock.yaml`).
-- Module alias: `@/*` maps to the repo root via `tsconfig.json`.
-- Tailwind v4 is configured via CSS (`app/globals.css` uses `@import "tailwindcss"`).
-- Storybook uses Vite and provides Next.js module mocks/aliases in `.storybook/main.js`.
-- `.gitignore` currently ignores `.storybook/`. If you need to commit Storybook config changes, fix the ignore first.
+- Package manager: use `pnpm` (lockfile: `pnpm-lock.yaml`).
+- Module alias: `@/*` maps to repo root (`tsconfig.json` + Vitest alias in `vitest.config.mjs`).
+- Tailwind v4 is configured via CSS (`app/globals.css` uses `@import "tailwindcss"`; PostCSS in `postcss.config.mjs`; no `tailwind.config.*` in this repo).
+- TypeScript project excludes Storybook sources (`tsconfig.json` excludes `stories/` and `.storybook/`).
+- ESLint uses flat config (`eslint.config.mjs`) and ignores build outputs and `.storybook/**`.
+- Storybook config lives in `.storybook/` (tracked) and runs via Vite; `next/*` is aliased to `.storybook/mocks/*`.
 
 ## Project Structure (High Level)
 
 ```
-app/                 # Next.js App Router (server components by default)
-  layout.tsx         # Root layout + fonts + globals
-  page.tsx           # Home page
-  globals.css        # Tailwind v4 + theme tokens + utilities
+app/                 # Next.js App Router (Server Components by default)
+  layout.tsx         # Root layout + fonts + providers
+  page.tsx           # Home (client component)
+  globals.css        # Tailwind v4 + theme tokens
 components/
-  providers/         # Client providers (theme, loaders)
-  ui/                # Reusable UI primitives (Radix/shadcn-style)
+  blocks/            # Page sections (header/footer/hero, etc.)
+  providers/         # Client providers (theme, i18n, loaders)
+  ui/                # UI primitives (Radix/shadcn-style)
 lib/
   api/               # Client-side API wrappers with typed results
-  admin/             # Demo/admin helpers
-  utils.ts           # `cn()` helper for Tailwind class merging
+  utils.ts           # `cn()` helper (clsx + tailwind-merge)
 stories/             # Storybook stories + MSW handlers
 styles/              # Storybook-specific CSS
-public/              # Static assets
-scripts/             # Utility scripts
 ```
 
 ## Code Style Guidelines
 
-### TypeScript
+### Formatting
 
-- `tsconfig.json` is `strict: true`; avoid `any` and prefer narrow, explicit types at module boundaries.
-- Use `type` for unions/utility types and `interface` for object shapes that benefit from declaration merging/extension.
-- Prefer typed result objects over throwing for expected failures (see `lib/api/bookings.ts`).
-- Keep client-only code behind `"use client"`; default to Server Components in `app/` when possible.
+- Match existing style (no Prettier configured): 2-space indentation, semicolons, double quotes.
+- Avoid drive-by reformatting; keep diffs tight and intentional.
+- Prefer readable multiline JSX/objects over dense one-liners.
 
 ### Imports
 
-- Prefer absolute imports from `@/` over deep relative paths.
-- Group imports with blank lines: (1) type-only, (2) React/Next, (3) third-party, (4) `@/` local.
+- Prefer `@/` absolute imports over deep relative paths.
+- Group imports with blank lines: (1) type-only, (2) React/Next, (3) third-party, (4) `@/` locals.
 - Use type-only imports where helpful: `import type { Metadata } from "next"`.
-- In mixed imports, inline type modifiers are fine: `import { clsx, type ClassValue } from "clsx"`.
+- Mixed imports may use inline type modifiers: `import { clsx, type ClassValue } from "clsx"`.
 
-### Icons
+### TypeScript
 
-- Use `Icon` from `components/ui/icon.tsx` instead of importing from `lucide-react` directly.
-- Prefer base icon names (e.g. `name="X"`, `name="ChevronRight"`) over `*Icon` aliases.
-
-### Formatting
-
-- No Prettier/EditorConfig is configured; match existing style.
-- 2-space indentation, semicolons, double quotes.
-- Prefer readable multiline props/objects over dense one-liners when it improves clarity.
+- `strict: true`: avoid `any`; prefer `unknown` + narrowing/guards at boundaries.
+- Use `type` for unions/utility types; use `interface` when extension/merging is useful.
+- Prefer typed result objects/unions over throwing for expected failures (see `lib/api/bookings.ts`).
+- Be explicit about client-only code: add `"use client"` when using hooks or browser APIs.
+- Avoid importing browser-only modules into Server Components; some `lib/api/*` utilities rely on `window`.
 
 ### Naming
 
-- Components: `PascalCase` (files and exports).
-- Hooks: `camelCase` with `use` prefix.
-- Types: `PascalCase`; enums are used in `lib/` where appropriate.
-- Constants: `UPPER_SNAKE_CASE` for true constants.
-- Tailwind utility helpers: use `cn()` from `lib/utils.ts` for conditional class merging.
+- Components/files: `PascalCase` for React components; exported components also `PascalCase`.
+- Hooks: `camelCase` with `use*` prefix.
+- Types: `PascalCase`; constants: `UPPER_SNAKE_CASE`.
+- Tests: `*.test.ts` / `*.test.tsx` colocated near the code they cover.
 
 ### React / Next.js Patterns
 
-- `app/` pages/layouts: default-export the component; keep `export const metadata` typed as `Metadata` when used.
-- Only add `"use client"` when the file uses hooks, browser-only APIs, or client-side providers.
-- Prefer Radix primitives (in `components/ui/`) for accessibility; add `aria-label` for icon-only controls.
+- `app/` pages/layouts: default-export the component; type `export const metadata` as `Metadata` when used.
+- Default to Server Components; only add `"use client"` when needed.
+- Providers live in `components/providers/` and are composed in `app/layout.tsx`.
 
 ### Styling (Tailwind v4)
 
-- Prefer Tailwind utilities over new custom CSS.
-- Use design tokens / CSS variables defined in `app/globals.css` (background/foreground, gradients, radius).
+- Prefer Tailwind utilities and design tokens in `app/globals.css`.
+- Use `cn()` from `lib/utils.ts` for conditional class merging.
 - Avoid inline styles unless there is no reasonable Tailwind/CSS-variable alternative.
+
+### Icons
+
+- Use `Icon` from `components/ui/icon.tsx` (do not import lucide icons directly).
+- Icon-only controls must have `aria-label`.
 
 ### Error Handling
 
-- For network/API calls in `lib/api/*`, prefer typed return unions (e.g., `ApiResult<T>`) and normalize parse errors.
-- Use `try/catch` around JSON parsing and any code that can throw; return a stable error shape.
-- For UI errors, use Next.js `error.tsx` boundaries when/if introduced; avoid swallowing exceptions silently.
+- For API wrappers (`lib/api/*`), return typed unions and normalize parse/network errors.
+- Wrap parsing and other throwy code in `try/catch`; keep error shapes stable.
+- Avoid silently swallowing UI errors; use `error.tsx` boundaries when introduced.
 
-### Environment & Secrets
+### Testing
 
-- Never commit `.env*` files (ignored by `.gitignore`).
-- Only expose client-safe values via `NEXT_PUBLIC_*` env vars; treat all others as server-only.
-- Validate env vars at startup in a single place if/when env usage grows.
-
-### Git / Workspace Hygiene
-
-- Don’t commit secrets, API keys, credentials, or large build outputs (`.next/`, `out/`, `build/`).
-- Prefer small, focused changes; avoid drive-by formatting across unrelated files.
-- If you touch `.storybook/`, remember it’s currently ignored and may not be included in commits.
+- Vitest + jsdom + Testing Library; global setup/mocks live in `vitest.setup.ts`.
+- `vitest.setup.ts` mocks `next/link`, `next/image`, and `next/navigation` for component tests.
+- Prefer queries by role/label/text; use `user-event` for interactions.
+- Coverage is strict (100% thresholds in `vitest.config.mjs`) and targets `components/**/*.{ts,tsx}`.
 
 ### Storybook
 
-- Stories live under `stories/` and should use CSF3 (`satisfies Meta<typeof Component>`).
-- Prefer real variants used by the app (sizes, states, disabled, loading).
-- MSW handlers are defined in `stories/mocks/handlers.ts` and wired in `.storybook/preview.tsx`.
+- See `STORYBOOK.md` for repo-specific story conventions.
+- Stories live under `stories/` (commonly `stories/ui/*.stories.tsx`); MSW handlers live in `stories/mocks/handlers.ts`.
+- Use CSF3 (`satisfies Meta<typeof Component>`) and prefer real app variants.
+
+### Environment & Secrets
+
+- Never commit `.env*` (ignored by `.gitignore`).
+- Only expose client-safe values via `NEXT_PUBLIC_*` env vars.
+
+### Git / Workspace Hygiene
+
+- Don’t commit secrets, credentials, or build outputs (`.next/`, `out/`, `build/`, `coverage/`).
+- Keep changes focused; avoid touching unrelated files.
 
 ## Cursor / Copilot Rules
 

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet";
 
 const meta = {
-  title: "UI/Sheet",
+  title: "UI/Overlays/Sheet",
   component: Sheet,
   tags: ["autodocs"],
 } satisfies Meta<typeof Sheet>;

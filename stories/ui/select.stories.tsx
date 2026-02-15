@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 
 const meta = {
-  title: "UI/Select",
+  title: "UI/Forms/Select",
   component: Select,
   tags: ["autodocs"],
 } satisfies Meta<typeof Select>;

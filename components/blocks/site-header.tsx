@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -32,13 +33,38 @@ const NAV_LINKS = [
 export function SiteHeader({ className }: { className?: string }) {
   const { t, lang, setLang } = useTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [chatText, setChatText] = React.useState("");
   const pathnameFromNext = usePathname();
   const router = useRouter();
   const pathname = pathnameFromNext;
   const isHomePage = pathname === "/";
 
+  const sendChat = React.useCallback(() => {
+    const text = chatText.trim();
+    if (!text) return;
+
+    setChatText("");
+
+    try {
+      const w = window as unknown as {
+        botpressWebChat?: {
+          sendEvent?: (event: unknown) => void;
+          sendPayload?: (payload: unknown) => void;
+        };
+      };
+      const bp = w.botpressWebChat;
+
+      bp?.sendEvent?.({ type: "show" });
+      bp?.sendEvent?.({ type: "message", payload: { type: "text", text } });
+      bp?.sendPayload?.({ type: "text", text });
+    } catch {
+      // Ignore if Botpress is not ready.
+    }
+  }, [chatText]);
+
   const [showHeaderLogo, setShowHeaderLogo] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const showSurface = isScrolled;
 
   const handleMobileLogoClick = React.useCallback(() => {
     setIsOpen(false);
@@ -142,9 +168,9 @@ export function SiteHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300 site-header-border",
-        isScrolled || !isHomePage
-          ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        showSurface
+          ? "site-header-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
           : "bg-transparent",
         className
       )}
@@ -328,6 +354,32 @@ export function SiteHeader({ className }: { className?: string }) {
               </div>
 
               <SheetFooter className="p-6 border-t border-border/50 backdrop-blur-sm">
+                <form
+                  className="flex w-full items-center gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    sendChat();
+                  }}
+                >
+                  <Input
+                    value={chatText}
+                    onChange={(e) => setChatText(e.target.value)}
+                    placeholder={
+                      lang === "es" ? "Escribe un mensaje..." : "Type a message..."
+                    }
+                    className="h-12 rounded-lg bg-background/60"
+                    aria-label={lang === "es" ? "Mensaje" : "Message"}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon-lg"
+                    className="h-12 w-12 dark:glow-primary"
+                    aria-label={lang === "es" ? "Enviar" : "Send"}
+                  >
+                    <Icon name="ArrowUp" className="h-5 w-5" />
+                  </Button>
+                </form>
+
                 <Button
                   variant="ghost"
                   size="default"

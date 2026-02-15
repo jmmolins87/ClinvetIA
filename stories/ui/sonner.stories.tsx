@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 
 const meta = {
-  title: "UI/Sonner",
+  title: "UI/Feedback/Sonner",
   component: Toaster,
   tags: ["autodocs"],
 } satisfies Meta<typeof Toaster>;

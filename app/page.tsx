@@ -3,11 +3,13 @@
 import Link from "next/link";
 
 import { HomeEffects } from "@/app/home-effects";
-import { HeroDnaBackground } from "@/components/blocks/hero-dna-background";
+import { HeroBackground } from "@/components/blocks/hero-background";
+import { ActiveSectionIndicator } from "@/components/blocks/active-section-indicator";
 import { SiteCta } from "@/components/blocks/site-cta";
 import { SiteFooter } from "@/components/blocks/site-footer";
 import { Logo } from "@/components/logo";
 import { useTranslation } from "@/components/providers/i18n-provider";
+import { LenisProvider } from "@/components/providers/lenis-provider";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { ScrollDownButton } from "@/components/ui/scroll-down-button";
@@ -22,28 +24,58 @@ import { Stepper } from "@/components/ui/stepper";
 export default function Home() {
   const { t } = useTranslation();
 
+  const parseCountup = (text: string) => {
+    const trimmed = text.trim();
+    const firstDigit = trimmed.search(/[0-9]/);
+    if (firstDigit < 0) return null;
+
+    let last = -1;
+    for (let i = trimmed.length - 1; i >= 0; i -= 1) {
+      if (/[0-9]/.test(trimmed[i])) {
+        last = i;
+        break;
+      }
+    }
+    if (last < firstDigit) return null;
+
+    const prefix = trimmed.slice(0, firstDigit);
+    const numberPart = trimmed.slice(firstDigit, last + 1);
+    const suffix = trimmed.slice(last + 1);
+
+    const normalized = numberPart.replace(",", ".");
+    const end = Number.parseFloat(normalized);
+    if (!Number.isFinite(end)) return null;
+
+    const decimals = normalized.includes(".") ? normalized.split(".")[1]!.length : 0;
+    return { prefix, suffix, end, decimals };
+  };
+
   const problemCards = [
     {
       icon: "MessageCircle",
       titleKey: "home.problem.cards.late.title",
       textKey: "home.problem.cards.late.text",
+      extraKey: "home.problem.cards.late.extra",
     },
     {
       icon: "Users",
       titleKey: "home.problem.cards.overload.title",
       textKey: "home.problem.cards.overload.text",
+      extraKey: "home.problem.cards.overload.extra",
     },
     {
       icon: "CircleAlert",
       titleKey: "home.problem.cards.missed.title",
       textKey: "home.problem.cards.missed.text",
+      extraKey: "home.problem.cards.missed.extra",
     },
     {
       icon: "Calendar",
       titleKey: "home.problem.cards.manual.title",
       textKey: "home.problem.cards.manual.text",
+      extraKey: "home.problem.cards.manual.extra",
     },
-  ] satisfies Array<{ icon: IconName; titleKey: string; textKey: string }>;
+  ] satisfies Array<{ icon: IconName; titleKey: string; textKey: string; extraKey: string }>;
 
   const featureCards = [
     {
@@ -133,81 +165,91 @@ export default function Home() {
   ] as const;
 
   return (
-    <div className="w-full">
-      <HomeEffects />
+    <LenisProvider>
+      <div className="w-full">
+        <HomeEffects />
+        <ActiveSectionIndicator />
 
       <section
         id="hero"
-        className="home-reflections relative w-full min-h-dvh overflow-hidden bg-background text-foreground"
+        className="home-section home-hero home-reflections relative w-full overflow-hidden bg-background text-foreground flex flex-col"
         aria-label="Hero"
       >
-        <HeroDnaBackground />
+        <HeroBackground
+          className="home-bg parallax-y"
+          data-parallax
+          data-parallax-speed="0.9"
+        />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent"
+          data-parallax
+          data-parallax-speed="0.45"
+          className="home-bg parallax-y absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent"
         />
 
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 pt-12 pb-20 md:pt-16 md:pb-28 min-h-dvh flex flex-col justify-center"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex-1 flex flex-col"
           data-reveal
           data-reveal-children
         >
-          <div className="mx-auto w-full max-w-5xl text-center">
-            <div className="flex justify-center" data-reveal-item>
-              <Logo
-                width={960}
-                height={240}
-                className="h-16 w-auto sm:h-20 md:h-28 lg:h-32"
-                priority
-              />
-            </div>
-
-            <h1
-              className="hero-title mt-8 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
-              data-reveal-item
-            >
-              {t("home.hero.title")}
-            </h1>
-            <p
-              className="hero-subtitle mx-auto mt-5 max-w-3xl text-lg font-medium text-foreground/85 sm:text-xl md:text-2xl"
-              data-reveal-item
-            >
-              {t("home.hero.subtitle")}
-            </p>
-
-            <div
-              className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-              data-reveal-item
-            >
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-12 w-full sm:w-auto"
-                asChild
-              >
-                <Link href="/reservar" data-cta-anim>{t("home.hero.ctaPrimary")}</Link>
-              </Button>
-              <Button
-                variant="default"
-                size="lg"
-                className="h-12 w-full sm:w-auto dark:glow-primary"
-                asChild
-              >
-                <Link href="/roi" data-cta-anim>{t("home.hero.ctaSecondary")}</Link>
-              </Button>
-            </div>
-
-            <div className="mt-8" data-reveal-item>
-              <div className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <span>{t("common.discoverMore")}</span>
-              </div>
-              <div className="mt-3 flex justify-center">
-                <ScrollDownButton
-                  aria-label={t("common.discoverMore")}
-                  targetId="problem-section"
-                  className="cursor-pointer"
+            <div className="flex-1 flex flex-col justify-center">
+             <div className="mx-auto w-full max-w-7xl text-center">
+              <div className="flex justify-center" data-reveal-item>
+                <Logo
+                  width={960}
+                  height={240}
+                  className="h-20 w-auto sm:h-24 md:h-32 lg:h-40 xl:h-48"
+                  priority
                 />
               </div>
+
+               <h1
+                 className="hero-title mt-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
+                 data-reveal-item
+               >
+                 {t("home.hero.title")}
+               </h1>
+               <p
+                 className="hero-subtitle mx-auto mt-4 max-w-4xl text-base font-medium text-foreground/85 sm:text-lg md:text-xl lg:max-w-5xl lg:text-2xl"
+                 data-reveal-item
+               >
+                 {t("home.hero.subtitle")}
+               </p>
+
+              <div
+                className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row"
+                data-reveal-item
+              >
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="h-12 w-full sm:w-auto"
+                  asChild
+                >
+                  <Link href="/reservar" data-cta-anim>{t("home.hero.ctaPrimary")}</Link>
+                </Button>
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="h-12 w-full sm:w-auto dark:glow-primary"
+                  asChild
+                >
+                  <Link href="/roi" data-cta-anim>{t("home.hero.ctaSecondary")}</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center" data-reveal-item>
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <span>{t("common.discoverMore")}</span>
+            </div>
+            <div className="flex justify-center">
+              <ScrollDownButton
+                aria-label={t("common.discoverMore")}
+                targetId="problem-section"
+                className="cursor-pointer"
+              />
             </div>
           </div>
         </div>
@@ -215,11 +257,12 @@ export default function Home() {
 
       <section
         id="problem-section"
-        className="home-reflections home-surface-problem home-shadow-problem scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.4"
+        className="home-section home-reflections home-surface-problem home-shadow-problem flex"
         aria-label={t("home.problem.eyebrow")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -240,12 +283,13 @@ export default function Home() {
             {problemCards.map((item) => (
               <NeonCard key={item.titleKey} className="bg-card/80 backdrop-blur-sm" hover glow>
                 <NeonCardHeader className="flex-row items-start gap-4">
-                  <div className="mt-1 inline-flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-destructive to-orange-500 text-white shadow-sm">
-                    <Icon name={item.icon} size={22} aria-label={t(item.titleKey)} />
+                  <div className="mt-0.5 shrink-0 text-destructive">
+                    <Icon name={item.icon} size={34} aria-label={t(item.titleKey)} />
                   </div>
                   <div className="min-w-0">
                     <NeonCardTitle className="text-xl leading-tight">{t(item.titleKey)}</NeonCardTitle>
                     <NeonCardDescription className="mt-1 text-sm">{t(item.textKey)}</NeonCardDescription>
+                    <p className="mt-2 text-xs text-muted-foreground/90">{t(item.extraKey)}</p>
                   </div>
                 </NeonCardHeader>
               </NeonCard>
@@ -256,11 +300,12 @@ export default function Home() {
 
       <section
         id="system-section"
-        className="home-reflections home-surface-system home-shadow-system scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.35"
+        className="home-section home-reflections home-surface-system home-shadow-system flex"
         aria-label={t("home.features.title")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -278,8 +323,8 @@ export default function Home() {
             {featureCards.map((item) => (
               <NeonCard key={item.titleKey} className="bg-card/80 backdrop-blur-sm" hover glow>
                 <NeonCardHeader className="items-center text-center">
-                  <div className="inline-flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground shadow-sm dark:glow-sm">
-                    <Icon name={item.icon} size={22} aria-label={t(item.titleKey)} />
+                  <div className="text-gradient-to dark:text-primary">
+                    <Icon name={item.icon} size={34} aria-label={t(item.titleKey)} />
                   </div>
                   <NeonCardTitle className="mt-4 text-lg">{t(item.titleKey)}</NeonCardTitle>
                   <NeonCardDescription className="mt-2">{t(item.textKey)}</NeonCardDescription>
@@ -288,13 +333,13 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mx-auto mt-10 max-w-4xl" data-reveal-item>
-            <NeonCard className="relative bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
-              <NeonCardHeader className="text-center">
-                <div className="mx-auto -mt-10 w-fit rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm dark:glow-primary">
-                  {t("home.features.stat")}
-                </div>
-                <NeonCardDescription className="mt-4 text-base text-foreground/80">
+          <div className="mx-auto mt-14 max-w-5xl md:mt-16" data-reveal-item>
+            <NeonCard className="relative overflow-visible bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
+              <div className="absolute left-1/2 top-0 z-10 w-fit -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-primary px-6 py-2.5 text-sm font-semibold leading-none text-primary-foreground shadow-sm dark:glow-primary md:px-8 md:text-base">
+                {t("home.features.stat")}
+              </div>
+              <NeonCardHeader className="pt-10 text-center md:pt-12">
+                <NeonCardDescription className="text-base text-foreground/80 md:text-lg">
                   {t("home.features.statNote")}
                 </NeonCardDescription>
               </NeonCardHeader>
@@ -305,11 +350,12 @@ export default function Home() {
 
       <section
         id="flow-section"
-        className="home-reflections home-surface-flow home-shadow-flow scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.35"
+        className="home-section home-reflections home-surface-flow home-shadow-flow flex"
         aria-label={t("home.flow.title")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -323,6 +369,7 @@ export default function Home() {
           <div className="mx-auto mt-10 max-w-6xl" data-reveal-item>
             <Stepper
               variant="cards"
+              className="md:grid-cols-2"
               steps={[
                 {
                   key: "1",
@@ -356,11 +403,12 @@ export default function Home() {
 
       <section
         id="benefits-section"
-        className="home-reflections home-surface-benefits home-shadow-benefits scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.35"
+        className="home-section home-reflections home-surface-benefits home-shadow-benefits flex"
         aria-label={t("home.benefits.title")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -378,8 +426,8 @@ export default function Home() {
             {benefitCards.map((item) => (
               <NeonCard key={item.titleKey} className="bg-card/80 backdrop-blur-sm" hover glow>
                 <NeonCardHeader className="flex-row items-start gap-4">
-                  <div className="mt-1 inline-flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground shadow-sm dark:glow-sm">
-                    <Icon name={item.icon} size={22} aria-label={t(item.titleKey)} />
+                  <div className="mt-0.5 shrink-0 text-gradient-to dark:text-primary">
+                    <Icon name={item.icon} size={34} aria-label={t(item.titleKey)} />
                   </div>
                   <div className="min-w-0">
                     <NeonCardTitle className="text-xl leading-tight text-gradient-to dark:text-primary">
@@ -396,11 +444,12 @@ export default function Home() {
 
       <section
         id="scenarios-section"
-        className="home-reflections home-surface-scenarios home-shadow-scenarios scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.4"
+        className="home-section home-reflections home-surface-scenarios home-shadow-scenarios flex"
         aria-label={t("home.scenarios.title")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -418,8 +467,8 @@ export default function Home() {
             {scenarioCards.map((item) => (
               <NeonCard key={item.titleKey} className="bg-background/55 backdrop-blur-sm" hover glow>
                 <NeonCardHeader className="items-center text-center">
-                  <div className="inline-flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground shadow-sm dark:glow-sm">
-                    <Icon name={item.icon} size={22} aria-label={t(item.titleKey)} />
+                  <div className="text-gradient-to dark:text-primary">
+                    <Icon name={item.icon} size={34} aria-label={t(item.titleKey)} />
                   </div>
                   <NeonCardTitle className="mt-4 text-lg">{t(item.titleKey)}</NeonCardTitle>
                   <NeonCardDescription className="mt-2">{t(item.textKey)}</NeonCardDescription>
@@ -438,11 +487,12 @@ export default function Home() {
 
       <section
         id="roi-section"
-        className="home-reflections home-surface-roi home-shadow-roi scroll-mt-20 min-h-dvh flex items-center"
+        data-parallax-speed="0.35"
+        className="home-section home-reflections home-surface-roi home-shadow-roi flex"
         aria-label={t("home.kpi.title")}
       >
         <div
-          className="mx-auto w-full max-w-screen-2xl px-4 py-16 md:py-20"
+          className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
           data-reveal
           data-reveal-children
         >
@@ -457,23 +507,35 @@ export default function Home() {
             className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3 md:gap-6"
             data-reveal-item
           >
-            {roiStats.map((stat) => (
-              <NeonCard key={stat.key} className="bg-card/80 backdrop-blur-sm" hover glow>
-                <NeonCardHeader className="items-center text-center">
-                  <div className="text-4xl font-bold text-gradient-to dark:text-primary">
-                    {t(stat.valueKey)}
-                  </div>
-                  <NeonCardDescription className="mt-2 text-sm">{t(stat.labelKey)}</NeonCardDescription>
-                </NeonCardHeader>
-              </NeonCard>
-            ))}
+            {roiStats.map((stat) => {
+              const valueText = t(stat.valueKey);
+              const parsed = parseCountup(valueText);
+
+              return (
+                <NeonCard key={stat.key} className="bg-card/80 backdrop-blur-sm" hover glow>
+                  <NeonCardHeader className="items-center text-center">
+                    <div
+                      className="text-4xl font-bold text-gradient-to tabular-nums dark:text-primary"
+                      data-countup={parsed ? "true" : undefined}
+                      data-countup-end={parsed ? String(parsed.end) : undefined}
+                      data-countup-prefix={parsed ? parsed.prefix : undefined}
+                      data-countup-suffix={parsed ? parsed.suffix : undefined}
+                      data-countup-decimals={parsed ? String(parsed.decimals) : undefined}
+                    >
+                      {valueText}
+                    </div>
+                    <NeonCardDescription className="mt-2 text-sm">{t(stat.labelKey)}</NeonCardDescription>
+                  </NeonCardHeader>
+                </NeonCard>
+              );
+            })}
           </div>
 
           <div className="mx-auto mt-6 grid max-w-5xl gap-4 md:grid-cols-2 md:gap-6" data-reveal-item>
             <NeonCard className="bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
               <NeonCardHeader className="flex-row items-start gap-4">
-                <div className="mt-1 inline-flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground">
-                  <Icon name="Euro" size={22} aria-label={t("home.kpi.impact.money.title")} />
+                <div className="mt-0.5 shrink-0 text-gradient-to dark:text-primary">
+                  <Icon name="Euro" size={34} aria-label={t("home.kpi.impact.money.title")} />
                 </div>
                 <div className="min-w-0">
                   <NeonCardTitle className="text-xl">{t("home.kpi.impact.money.title")}</NeonCardTitle>
@@ -484,8 +546,8 @@ export default function Home() {
 
             <NeonCard className="bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
               <NeonCardHeader className="flex-row items-start gap-4">
-                <div className="mt-1 inline-flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-gradient-from to-gradient-to text-primary-foreground">
-                  <Icon name="Clock" size={22} aria-label={t("home.kpi.impact.time.title")} />
+                <div className="mt-0.5 shrink-0 text-gradient-to dark:text-primary">
+                  <Icon name="Clock" size={34} aria-label={t("home.kpi.impact.time.title")} />
                 </div>
                 <div className="min-w-0">
                   <NeonCardTitle className="text-xl">{t("home.kpi.impact.time.title")}</NeonCardTitle>
@@ -505,12 +567,13 @@ export default function Home() {
 
       <section
         id="final-cta-section"
-        className="home-reflections home-surface-final home-shadow-final scroll-mt-20 min-h-dvh flex flex-col"
+        data-parallax-speed="0.35"
+        className="home-section home-reflections home-surface-final home-shadow-final flex flex-col"
         aria-label={t("home.final.title")}
       >
         <div className="flex-1 flex items-center">
           <div
-            className="mx-auto w-full max-w-screen-2xl px-4 py-12 md:py-16"
+            className="home-section-content mx-auto w-full max-w-screen-2xl px-4 flex flex-col justify-center"
             data-reveal
             data-reveal-children
           >
@@ -529,6 +592,7 @@ export default function Home() {
 
         <SiteFooter density="compact" className="bg-transparent" />
       </section>
-    </div>
+      </div>
+    </LenisProvider>
   );
 }

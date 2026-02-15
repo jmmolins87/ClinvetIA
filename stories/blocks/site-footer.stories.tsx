@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SiteFooter } from "../../components/blocks/site-footer";
 
 const meta = {
-  title: "Block Components/SiteFooter",
+  title: "Blocks/SiteFooter",
   component: SiteFooter,
   tags: ["autodocs"],
   parameters: {

@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: "UI/Label",
+  title: "UI/Forms/Label",
   component: Label,
   tags: ["autodocs"],
 } satisfies Meta<typeof Label>;

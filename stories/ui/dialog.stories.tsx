@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { CancelButton } from "@/components/ui/cancel-button";
 
 const meta = {
-  title: "UI/Dialog",
+  title: "UI/Overlays/Dialog",
   component: Dialog,
   tags: ["autodocs"],
 } satisfies Meta<typeof Dialog>;

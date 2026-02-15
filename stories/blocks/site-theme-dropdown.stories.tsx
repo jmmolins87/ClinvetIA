@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SiteThemeDropdown } from "../../components/blocks/site-theme-dropdown";
 
 const meta = {
-  title: "Block Components/SiteThemeDropdown",
+  title: "Blocks/SiteThemeDropdown",
   component: SiteThemeDropdown,
   tags: ["autodocs"],
   parameters: {

@@ -6,7 +6,7 @@ import { Icon, type IconName } from "../../components/ui/icon";
 const iconNames = Object.keys(icons) as IconName[];
 
 const meta = {
-  title: "UI/Icon",
+  title: "UI/Data Display/Icon",
   component: Icon,
   tags: ["autodocs"],
   argTypes: {

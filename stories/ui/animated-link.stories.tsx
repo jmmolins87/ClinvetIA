@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AnimatedLink } from "@/components/ui/animated-link";
 
 const meta = {
-  title: "UI/AnimatedLink",
+  title: "UI/Navigation/AnimatedLink",
   component: AnimatedLink,
   tags: ["autodocs"],
 } satisfies Meta<typeof AnimatedLink>;

@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SiteCta } from "../../components/blocks/site-cta";
 
 const meta = {
-  title: "Block Components/SiteCta",
+  title: "Blocks/SiteCta",
   component: SiteCta,
   tags: ["autodocs"],
   parameters: {

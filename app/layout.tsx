@@ -4,6 +4,7 @@ import "@/app/globals.css";
 
 import { I18nProvider } from "@/components/providers/i18n-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { PageLoaderProvider } from "@/components/providers/page-loader-provider";
 import { AppShell } from "@/components/blocks/app-shell";
 
 const geistSans = Geist({
@@ -35,7 +36,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <I18nProvider>
-            <AppShell>{children}</AppShell>
+            <PageLoaderProvider>
+              <AppShell>{children}</AppShell>
+            </PageLoaderProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>
