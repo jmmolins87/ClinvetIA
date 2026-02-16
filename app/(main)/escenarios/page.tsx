@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { AppShell } from "@/components/blocks/app-shell";
 import { useTranslation } from "@/components/providers/i18n-provider";
@@ -40,6 +41,11 @@ const CASE_IMAGES: Record<string, string> = {
 
 export default function EscenariosPage() {
   const { t } = useTranslation();
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  const toggleCard = (caseId: string) => {
+    setExpandedCard((prev) => (prev === caseId ? null : caseId));
+  };
 
   return (
     <AppShell>
@@ -67,15 +73,23 @@ export default function EscenariosPage() {
                     {t(`scenarios.veterinary.cases.items.${caseId}.badge`)}
                   </p>
                   <div
-                    className="group relative rounded-2xl border border-border bg-card/80 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-xl dark:hover:shadow-primary/15 overflow-hidden aspect-video"
+                    className={`group relative rounded-2xl border border-border bg-card/80 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-xl dark:hover:shadow-primary/15 overflow-hidden aspect-video cursor-pointer md:cursor-auto ${expandedCard === caseId ? "expanded" : ""}`}
+                    onClick={() => toggleCard(caseId)}
+                    onKeyDown={(e) => e.key === "Enter" && toggleCard(caseId)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expandedCard === caseId}
                   >
                     <Image 
                       src={CASE_IMAGES[caseId]} 
                       alt={t(`scenarios.veterinary.cases.items.${caseId}.title`)} 
                       fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-110 group-hover:brightness-50"
+                      className="object-cover transition-transform duration-300 group-hover:scale-110 group-hover:brightness-50 md:group-[&:not(:hover)]:group-[&:not(.expanded)]:brightness-50"
                     />
-                    <div className="absolute inset-0 bg-black/80 p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div 
+                      className="absolute inset-0 bg-black/80 p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:[&:not(:hover)]:opacity-0 data-[expanded=true]:opacity-100"
+                      data-expanded={expandedCard === caseId}
+                    >
                       <div className="space-y-4">
                         <div className="space-y-1">
                           <h4 className="text-lg md:text-xl font-bold text-white">

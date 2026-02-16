@@ -220,6 +220,7 @@ BookingSchema.methods.canConfirm = function (): boolean {
  * Pre-save hook: Validar estado antes de guardar
  */
 BookingSchema.pre("save", function (next) {
+  // @ts-ignore - Mongoose pre hook typing issue
   // Si status es confirmed, limpiar expiresAt
   if (this.status === "confirmed") {
     this.expiresAt = null;
@@ -228,9 +229,11 @@ BookingSchema.pre("save", function (next) {
   // Si status es held, debe tener expiresAt
   if (this.status === "held" && !this.expiresAt) {
     const error = new Error("Hold must have expiresAt");
+    // @ts-ignore
     return next(error);
   }
 
+  // @ts-ignore
   next();
 });
 

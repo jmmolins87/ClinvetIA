@@ -185,7 +185,7 @@ export function Calendar({
         tabIndex={isSelected ? 0 : -1}
         className={cn(
           "aspect-square rounded-md md:rounded-lg border text-xs md:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 md:focus:ring-offset-2",
-          isDisabled ? "cursor-not-allowed opacity-40" : "hover:bg-primary/10 hover:border-primary",
+          isDisabled ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:bg-primary/10 hover:border-primary",
           isSelected
             ? "bg-primary text-primary-foreground border-primary dark:glow-primary"
             : "bg-card text-foreground border-border"
