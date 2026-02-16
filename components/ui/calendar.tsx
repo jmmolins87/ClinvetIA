@@ -184,7 +184,7 @@ export function Calendar({
         aria-label={label}
         tabIndex={isSelected ? 0 : -1}
         className={cn(
-          "aspect-square rounded-lg border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+          "aspect-square rounded-md md:rounded-lg border text-xs md:text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 md:focus:ring-offset-2",
           isDisabled ? "cursor-not-allowed opacity-40" : "hover:bg-primary/10 hover:border-primary",
           isSelected
             ? "bg-primary text-primary-foreground border-primary dark:glow-primary"
@@ -198,36 +198,36 @@ export function Calendar({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="flex items-center justify-between gap-2 pb-3">
+      <div className="flex items-center justify-between gap-2 pb-2 md:pb-3">
         <Button
           type="button"
           variant="outline"
           size="icon"
           onClick={() => setMonth(new Date(year, mon - 1, 1))}
           aria-label="Previous month"
-          className="h-9 w-9"
+          className="h-8 w-8 md:h-9 md:w-9 shrink-0"
         >
-          <Icon name="ChevronLeft" className="size-4" />
+          <Icon name="ChevronLeft" className="size-3 md:size-4" />
         </Button>
-        <div className="min-w-0 flex-1 text-center text-sm font-semibold capitalize">{title}</div>
+        <div className="min-w-0 flex-1 text-center text-xs md:text-sm font-semibold capitalize">{title}</div>
         <Button
           type="button"
           variant="outline"
           size="icon"
           onClick={() => setMonth(new Date(year, mon + 1, 1))}
           aria-label="Next month"
-          className="h-9 w-9"
+          className="h-8 w-8 md:h-9 md:w-9 shrink-0"
         >
-          <Icon name="ChevronRight" className="size-4" />
+          <Icon name="ChevronRight" className="size-3 md:size-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 pb-2">
+      <div className="grid grid-cols-7 gap-1 md:gap-2 pb-1.5 md:pb-2">
         {weekdayLabels.map((w, i) => (
           <div 
             key={w} 
             role="columnheader" 
-            className="text-center text-[11px] font-medium text-muted-foreground"
+            className="text-center text-[10px] md:text-[11px] font-medium text-muted-foreground"
           >
             {w}
           </div>
@@ -235,7 +235,7 @@ export function Calendar({
       </div>
 
       <div 
-        className="grid grid-cols-7 gap-2" 
+        className="grid grid-cols-7 gap-1 md:gap-2" 
         role="grid" 
         aria-label={title}
       >

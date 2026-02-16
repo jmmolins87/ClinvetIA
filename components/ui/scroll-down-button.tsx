@@ -15,11 +15,22 @@ export function ScrollDownButton({
   className,
   targetId,
   behavior = "smooth",
-  offsetPx = 0,
   onClick,
   "aria-label": ariaLabel = "Bajar",
   ...props
 }: ScrollDownButtonProps) {
+  const lenisRef = React.useRef<{ scrollTo: (target: HTMLElement, options?: { offset?: number }) => void } | null>(null);
+
+  React.useEffect(() => {
+    const checkLenis = () => {
+      const lenisGlobal = (window as unknown as { lenis?: { scrollTo: (target: HTMLElement, options?: { offset?: number }) => void } }).lenis;
+      if (lenisGlobal) {
+        lenisRef.current = lenisGlobal;
+      }
+    };
+    checkLenis();
+  }, []);
+
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       onClick?.(event);
@@ -31,14 +42,17 @@ export function ScrollDownButton({
         const el = document.getElementById(targetId);
         if (!el) return;
 
-        const top = el.getBoundingClientRect().top + window.scrollY + offsetPx;
-        window.scrollTo({ top, behavior });
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(el, { offset: 64 });
+        } else {
+          el.scrollIntoView({ behavior, block: "start" });
+        }
         return;
       }
 
       window.scrollTo({ top: window.scrollY + window.innerHeight, behavior });
     },
-    [behavior, offsetPx, onClick, targetId]
+    [behavior, onClick, targetId]
   );
 
   return (

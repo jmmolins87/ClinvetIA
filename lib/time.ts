@@ -28,24 +28,50 @@ export function toIsoDate(date: Date): string {
 
 /**
  * Parse ISO date string (YYYY-MM-DD) to Date object
+ * Safari-compatible: uses Date constructor instead of Date.parse
  */
 export function parseIsoDate(isoDate: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
   if (!match) return null;
 
   const [, year, month, day] = match;
-  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  const yearNum = Number(year);
+  const monthNum = Number(month);
+  const dayNum = Number(day);
+
+  // Create date at midnight local time (Safari-safe)
+  const date = new Date(yearNum, monthNum - 1, dayNum, 0, 0, 0, 0);
 
   // Validate date is valid (e.g., reject 2026-02-31)
   if (
-    date.getFullYear() !== Number(year) ||
-    date.getMonth() !== Number(month) - 1 ||
-    date.getDate() !== Number(day)
+    date.getFullYear() !== yearNum ||
+    date.getMonth() !== monthNum - 1 ||
+    date.getDate() !== dayNum
   ) {
     return null;
   }
 
   return date;
+}
+
+/**
+ * Parse ISO datetime string to Date object
+ * Safari-compatible: handles ISO 8601 format
+ */
+export function parseIsoDateTime(isoDateTime: string): Date | null {
+  try {
+    // Safari requires strict ISO 8601 format
+    const date = new Date(isoDateTime);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  } catch {
+    return null;
+  }
 }
 
 /**

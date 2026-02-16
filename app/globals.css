@@ -277,10 +277,49 @@
     max-height: 100dvh;
   }
 
+  @media (max-width: 767px) {
+    .home-section:not(.home-hero) {
+      height: auto;
+      min-height: auto;
+      max-height: none;
+      padding-top: var(--site-header-h);
+      padding-bottom: 2rem;
+      scroll-margin-top: var(--site-header-h);
+    }
+
+    .home-section:not(.home-hero) .home-section-content {
+      height: auto;
+      min-height: auto;
+      max-height: none;
+      margin-top: 0;
+      overflow-y: visible;
+    }
+  }
+
   .home-hero {
     height: 100dvh;
     min-height: 100dvh;
     max-height: 100dvh;
+  }
+
+  @media (max-width: 767px) {
+    .home-hero {
+      height: 100dvh !important;
+      height: 100vh !important;
+      min-height: 100dvh !important;
+      min-height: 100vh !important;
+      max-height: 100dvh !important;
+      max-height: 100vh !important;
+      overflow: hidden;
+    }
+
+    .home-hero .home-section-content {
+      height: 100% !important;
+      min-height: auto !important;
+      max-height: none !important;
+      margin-top: 0 !important;
+      overflow-y: visible !important;
+    }
   }
 
   .home-section-content {
@@ -2345,14 +2384,14 @@
     /* Calendar day cells - larger touch target */
     .calendar-day,
     [role="gridcell"] {
-      min-height: 44px;
-      min-width: 44px;
+      min-height: 40px;
+      min-width: 40px;
     }
 
     /* Time slot buttons */
     .time-slot,
     [role="option"] {
-      min-height: 48px;
+      min-height: 44px;
     }
   }
 
@@ -2380,6 +2419,39 @@
     textarea,
     select {
       font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+
+  /* Mobile spacing improvements */
+  @media (max-width: 640px) {
+    /* Reduce vertical spacing */
+    .how-surface-hero {
+      padding-top: 3rem;
+      padding-bottom: 2rem;
+    }
+
+    /* Tighter container padding */
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* Smaller hero icons */
+    .page-hero-content h1 {
+      line-height: 1.2;
+    }
+  }
+
+  /* Extra small devices */
+  @media (max-width: 375px) {
+    /* Even more compact for small phones */
+    [role="gridcell"] {
+      font-size: 0.75rem;
+    }
+
+    /* Tighter time slot grid */
+    .time-slots-grid {
+      gap: 0.375rem;
     }
   }
 

@@ -193,8 +193,8 @@ export default function Home() {
           data-reveal-children
         >
             <div className="flex-1 flex flex-col justify-center">
-             <div className="mx-auto w-full max-w-7xl text-center">
-              <div className="flex justify-center" data-reveal-item>
+              <div className="mx-auto w-full max-w-7xl text-center">
+              <div className="hidden md:flex justify-center" data-reveal-item>
                 <Logo
                   width={960}
                   height={240}
@@ -204,13 +204,13 @@ export default function Home() {
               </div>
 
                <h1
-                 className="hero-title mt-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
+                 className="hero-title mt-6 text-4xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
                  data-reveal-item
                >
                  {t("home.hero.title")}
                </h1>
                <p
-                 className="hero-subtitle mx-auto mt-4 max-w-4xl text-base font-medium text-foreground/85 sm:text-lg md:text-xl lg:max-w-5xl lg:text-2xl"
+                 className="hero-subtitle mx-auto mt-4 max-w-4xl text-lg font-medium text-foreground/85 sm:text-lg md:text-xl lg:max-w-5xl lg:text-2xl"
                  data-reveal-item
                >
                  {t("home.hero.subtitle")}

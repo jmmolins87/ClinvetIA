@@ -5,9 +5,9 @@ This repository is a Next.js App Router app (Next 16, React 19) using TypeScript
 **Core Features:**
 - 🎯 ROI Calculator for veterinary clinics
 - 📅 Booking system with time slot management (mock API enabled)
-- 🌐 i18n support (ES/EN) via `next-intl`
-- 🎨 Dark/light theme support
-- ♿ Accessibility-first UI components
+- 🌐 i18n support (ES/EN) via locale files in `locales/` directory
+- 🎨 Dark/light theme support via `next-themes`
+- ♿ Accessibility-first UI components (Radix UI primitives)
 
 ## Commands (Build / Lint / Typecheck / Tests / Storybook)
 
@@ -120,7 +120,7 @@ styles/              # Storybook-specific CSS
 - `app/` pages/layouts: default-export the component; type `export const metadata` as `Metadata` when used.
 - Default to Server Components; only add `"use client"` when needed.
 - Providers live in `components/providers/` and are composed in `app/layout.tsx`.
-- Use `useTranslations()` from `next-intl` for i18n; translations live in `locales/{es,en}.json`.
+- i18n translations live in `locales/{es,en}.json` (no i18n library installed yet; direct JSON imports if needed).
 
 ### Styling (Tailwind v4)
 

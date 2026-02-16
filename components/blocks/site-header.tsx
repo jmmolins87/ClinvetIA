@@ -5,15 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetDescription,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +130,17 @@ export function SiteHeader({
   };
 
   React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const scrollThreshold = 300;
@@ -255,112 +257,112 @@ export function SiteHeader({
             </Button>
           </div>
 
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden h-12 w-12"
-                aria-label={t("common.menu")}
-              >
-                <Icon name="Menu" className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="top"
-              showCloseButton={false}
-              className={cn(
-                "w-full h-[100dvh] p-0 flex flex-col overflow-hidden",
-                "bg-background/70 supports-[backdrop-filter]:bg-background/55",
-                "backdrop-blur-2xl"
-              )}
-            >
-              <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
-                <SheetHeader className="mb-6 flex items-center justify-center">
-                  <SheetTitle className="sr-only">{t("common.menu")}</SheetTitle>
-                  <SheetDescription className="sr-only">
-                    {t("common.primaryNav")}
-                  </SheetDescription>
-                  <button
-                    type="button"
-                    onClick={handleMobileLogoClick}
-                    className="inline-flex cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                    aria-label={t("common.scrollTop")}
-                  >
-                    <Logo width={220} height={55} className="h-14" priority />
-                  </button>
-                </SheetHeader>
-
-                <nav className="flex flex-col items-center gap-5">
-                  {NAV_LINKS.map((link) => {
-                    const isActive = pathname === link.href;
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "text-xl font-medium transition-colors text-center",
-                          isActive
-                            ? "text-gradient-to"
-                            : "text-foreground hover:text-gradient-to"
-                        )}
-                      >
-                        {t(link.labelKey)}
-                      </Link>
-                    );
-                  })}
-
-                  <div className="mx-auto mt-4 relative left-1/2 -translate-x-1/2 w-screen flex flex-col items-center justify-center gap-3">
-                    <SiteLanguageSwitcher
-                      defaultLanguage={lang}
-                      onChange={setLang}
-                      className="h-12 rounded-lg border border-border/40 bg-transparent px-4"
-                    />
-                    <SiteThemeDropdown size="large" />
-                  </div>
-
-                  <div className="mt-3 flex flex-col gap-3 w-full max-w-sm">
-                    <Button
-                      variant="default"
-                      size="lg"
-                      className="h-12 dark:glow-primary"
-                      asChild
-                    >
-                      <Link href="/roi" onClick={() => setIsOpen(false)}>
-                        {t("common.roi")}
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="h-12"
-                      asChild
-                    >
-                      <Link href="/reservar" onClick={() => setIsOpen(false)}>
-                        {t("common.bookDemo")}
-                      </Link>
-                    </Button>
-                  </div>
-                </nav>
-              </div>
-
-              <SheetFooter className="p-6 border-t border-border/50 backdrop-blur-sm">
-                <Button
-                  variant="ghost"
-                  size="default"
-                  onClick={() => setIsOpen(false)}
-                  className="w-full cursor-pointer flex items-center justify-center gap-2 text-lg font-medium hover:bg-primary/10"
-                  aria-label={t("common.close")}
-                >
-                  <Icon name="X" className="h-6 w-6" />
-                  {t("common.close")}
-                </Button>
-              </SheetFooter>
-            </SheetContent>
-          </Sheet>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-12 w-12"
+            aria-label={t("common.menu")}
+            onClick={() => setIsOpen(true)}
+          >
+            <Icon name="Menu" className="h-5 w-5" />
+          </Button>
         </div>
       </div>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[60] md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("common.menu")}
+        >
+          <div
+            className="fixed inset-0 bg-background/70 supports-[backdrop-filter]:bg-background/55 backdrop-blur-2xl"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-x-0 top-0 h-[100dvh] w-full flex flex-col bg-background/70 supports-[backdrop-filter]:bg-background/55 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
+            <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
+              <div className="mb-6 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={handleMobileLogoClick}
+                  className="inline-flex cursor-pointer rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  aria-label={t("common.scrollTop")}
+                >
+                  <Logo width={220} height={55} className="h-14" priority />
+                </button>
+              </div>
+
+              <nav className="flex flex-col items-center gap-5">
+                {NAV_LINKS.map((link) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "text-xl font-medium transition-colors text-center",
+                        isActive
+                          ? "text-gradient-to"
+                          : "text-foreground hover:text-gradient-to"
+                      )}
+                    >
+                      {t(link.labelKey)}
+                    </Link>
+                  );
+                })}
+
+                <div className="mx-auto mt-4 relative left-1/2 -translate-x-1/2 w-screen flex flex-col items-center justify-center gap-3">
+                  <SiteLanguageSwitcher
+                    defaultLanguage={lang}
+                    onChange={setLang}
+                    className="h-12 rounded-lg border border-border/40 bg-transparent px-4"
+                  />
+                  <SiteThemeDropdown size="large" />
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3 w-full max-w-sm">
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="h-12 dark:glow-primary"
+                    asChild
+                  >
+                    <Link href="/roi" onClick={() => setIsOpen(false)}>
+                      {t("common.roi")}
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="h-12"
+                    asChild
+                  >
+                    <Link href="/reservar" onClick={() => setIsOpen(false)}>
+                      {t("common.bookDemo")}
+                    </Link>
+                  </Button>
+                </div>
+              </nav>
+            </div>
+
+            <div className="p-6 border-t border-border/50 backdrop-blur-sm">
+              <Button
+                variant="ghost"
+                size="default"
+                onClick={() => setIsOpen(false)}
+                className="w-full cursor-pointer flex items-center justify-center gap-2 text-lg font-medium hover:bg-primary/10"
+                aria-label={t("common.close")}
+              >
+                <Icon name="X" className="h-6 w-6" />
+                {t("common.close")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

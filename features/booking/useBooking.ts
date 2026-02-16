@@ -32,6 +32,8 @@ import {
 import { getAvailability, createHold, confirmBooking } from "@/services/api/bookings";
 import type { AvailabilityResponse, HoldResponse } from "@/services/api/bookings";
 import { useContactDraft, usePendingBooking } from "./booking.storage";
+import { createRateLimiter } from "@/lib/rateLimit";
+import { trackEvent, BookingEvents } from "@/lib/analytics";
 
 // ============================================================================
 // Types
@@ -93,6 +95,10 @@ export function useBooking(options: UseBookingOptions) {
   const availabilityInFlightRef = useRef<Map<string, Promise<AvailabilityResponse>>>(
     new Map()
   );
+
+  // Rate limiting refs (persistent across re-renders)
+  const holdRateLimiterRef = useRef(createRateLimiter(5, 60_000)); // 5 holds per minute
+  const confirmRateLimiterRef = useRef(createRateLimiter(3, 120_000)); // 3 confirmations per 2 minutes
 
   // ============================================================================
   // Restore pending booking from sessionStorage (ROI flow)
@@ -216,6 +222,12 @@ export function useBooking(options: UseBookingOptions) {
       setStep(2);
       onDateSelected?.();
 
+      // Track date selection
+      trackEvent(BookingEvents.DATE_SELECTED, {
+        date: formatYYYYMMDD(date),
+        dayOfWeek: date.getDay(),
+      });
+
       // Load availability
       const isoDate = formatYYYYMMDD(date);
       setAvailabilityLoading(true);
@@ -257,6 +269,26 @@ export function useBooking(options: UseBookingOptions) {
         return;
       }
 
+      // Rate limiting check
+      const rateLimiter = holdRateLimiterRef.current;
+      if (!rateLimiter.canProceed()) {
+        const remainingMs = rateLimiter.getRemainingTime();
+        const seconds = Math.ceil(remainingMs / 1000);
+        
+        // Track rate limit hit
+        trackEvent(BookingEvents.RATE_LIMIT_EXCEEDED, {
+          context: "hold_creation",
+          remainingSeconds: seconds,
+        });
+        
+        setAvailabilityError(
+          locale === "es"
+            ? `Demasiados intentos. Espera ${seconds} segundos antes de intentar de nuevo.`
+            : `Too many attempts. Wait ${seconds} seconds before trying again.`
+        );
+        return;
+      }
+
       // Clear existing hold
       if (hold) {
         setHold(null);
@@ -265,6 +297,20 @@ export function useBooking(options: UseBookingOptions) {
 
       setSelectedTime(time);
       setHolding(true);
+
+      // Track time slot click
+      trackEvent(BookingEvents.TIME_SLOT_CLICKED, {
+        time,
+        date: formatYYYYMMDD(selectedDate),
+      });
+
+      // Optimistic update: mark slot as unavailable immediately
+      const previousAvailability = availability;
+      setAvailability((prev) =>
+        prev?.map((slot) =>
+          slot.start === time ? { ...slot, available: false } : slot
+        ) ?? null
+      );
 
       const isoDate = formatYYYYMMDD(selectedDate);
       const result = await createHold({
@@ -280,6 +326,16 @@ export function useBooking(options: UseBookingOptions) {
         setHold(null);
         setSelectedTime(null);
         setAvailabilityError(result.message);
+
+        // Track hold failure
+        trackEvent(BookingEvents.HOLD_FAILED, {
+          time,
+          date: isoDate,
+          error: result.code || "unknown",
+        });
+
+        // Revert optimistic update on error
+        setAvailability(previousAvailability);
 
         // Refresh availability on error
         const refreshed = await fetchAvailability(isoDate, { force: true });
@@ -307,6 +363,16 @@ export function useBooking(options: UseBookingOptions) {
       });
       setHoldSecondsLeft(secondsLeft(expiresAt, new Date()));
       setStep(3);
+
+      // Track successful hold creation
+      trackEvent(BookingEvents.HOLD_CREATED, {
+        time,
+        date: isoDate,
+        expiresAt: expiresAtISO,
+      });
+
+      // Record successful hold attempt for rate limiting
+      holdRateLimiterRef.current.recordAttempt();
     },
     [selectedDate, locale, hold, fetchAvailability]
   );
@@ -328,6 +394,27 @@ export function useBooking(options: UseBookingOptions) {
     const { fullName, email, phone } = contactDraft;
     if (!fullName.trim() || !email.trim() || !phone.trim()) {
       return { ok: false, error: "Contact information required" };
+    }
+
+    // Rate limiting check for confirmations
+    const rateLimiter = confirmRateLimiterRef.current;
+    if (!rateLimiter.canProceed()) {
+      const remainingMs = rateLimiter.getRemainingTime();
+      const seconds = Math.ceil(remainingMs / 1000);
+      
+      // Track rate limit hit
+      trackEvent(BookingEvents.RATE_LIMIT_EXCEEDED, {
+        context: "booking_confirmation",
+        remainingSeconds: seconds,
+      });
+      
+      return {
+        ok: false,
+        error:
+          locale === "es"
+            ? `Demasiados intentos de confirmación. Espera ${seconds} segundos.`
+            : `Too many confirmation attempts. Wait ${seconds} seconds.`,
+      };
     }
 
     setConfirming(true);
@@ -352,6 +439,13 @@ export function useBooking(options: UseBookingOptions) {
     setConfirming(false);
 
     if (!result.ok) {
+      // Track booking failure
+      trackEvent(BookingEvents.BOOKING_FAILED, {
+        time: selectedTime,
+        date: selectedDate ? formatYYYYMMDD(selectedDate) : null,
+        error: result.code || "unknown",
+      });
+
       // If slot was taken, refresh availability
       if (result.code === "SLOT_TAKEN" && selectedDate) {
         const isoDate = formatYYYYMMDD(selectedDate);
@@ -366,6 +460,16 @@ export function useBooking(options: UseBookingOptions) {
 
     // Success! Clear draft and notify
     clearContactDraft();
+
+    // Track successful booking confirmation
+    trackEvent(BookingEvents.BOOKING_CONFIRMED, {
+      time: selectedTime,
+      date: selectedDate ? formatYYYYMMDD(selectedDate) : null,
+      hasROI: !!roiData,
+    });
+
+    // Record successful confirmation for rate limiting
+    confirmRateLimiterRef.current.recordAttempt();
 
     // Trigger callback
     onBookingComplete?.({
@@ -403,12 +507,23 @@ export function useBooking(options: UseBookingOptions) {
       setHoldSecondsLeft(left);
 
       if (left === 0) {
-        // Hold expired - clear state and refresh availability
+        // Hold expired - clear state, invalidate cache, and refresh availability
+        const previousHold = hold;
         setHold(null);
         setSelectedTime(null);
 
+        // Track hold expiration
+        trackEvent(BookingEvents.HOLD_EXPIRED, {
+          time: previousHold.time,
+          date: previousHold.date,
+        });
+
         if (selectedDate) {
           const isoDate = formatYYYYMMDD(selectedDate);
+          
+          // Invalidate cache for this date
+          availabilityCacheRef.current.delete(isoDate);
+          
           setAvailabilityLoading(true);
 
           void (async () => {

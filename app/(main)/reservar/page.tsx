@@ -9,6 +9,8 @@ import { useCalendlyData, useLastBooking } from "@/features/booking";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Icon } from "@/components/ui/icon";
+import { CalendarSkeleton } from "@/components/booking/CalendarSkeleton";
+import { TimeSlotsSkeleton } from "@/components/booking/TimeSlotsSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -176,18 +178,18 @@ export default function ReservarPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="how-surface-hero home-reflections ambient-section text-foreground pb-12 md:pb-16">
+      <section className="how-surface-hero home-reflections ambient-section text-foreground pb-8 md:pb-12">
         <div className="page-hero-content container relative z-10 mx-auto max-w-screen-xl px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-4">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-pink-600 dark:from-primary dark:via-gradient-purple dark:to-gradient-to flex items-center justify-center shadow-lg dark:glow-primary">
-                <Icon name="Calendar" className="w-8 h-8 text-white dark:text-black" />
+          <div className="max-w-4xl mx-auto text-center space-y-3 md:space-y-4">
+            <div className="flex items-center justify-center gap-3 mb-3 md:mb-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-pink-600 dark:from-primary dark:via-gradient-purple dark:to-gradient-to flex items-center justify-center shadow-lg dark:glow-primary">
+                <Icon name="Calendar" className="w-6 h-6 md:w-8 md:h-8 text-white dark:text-black" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
               {t("book.title")}
             </h1>
-            <p className="text-xl text-muted-foreground sm:text-2xl max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground sm:text-xl md:text-2xl max-w-3xl mx-auto">
               {t("book.description")}
             </p>
           </div>
@@ -195,11 +197,11 @@ export default function ReservarPage() {
       </section>
 
       {/* Booking Section */}
-      <section className="how-surface-steps home-reflections ambient-section py-12 md:py-16">
+      <section className="how-surface-steps home-reflections ambient-section py-6 md:py-12">
         <div className="container relative z-10 mx-auto max-w-screen-xl px-4">
           <div className="max-w-4xl mx-auto">
             {hasSubmittedBefore ? (
-              <div className="rounded-xl border border-blue-500/50 bg-card/80 backdrop-blur-sm p-8 text-center">
+              <div className="rounded-xl border border-blue-500/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 text-center">
                 <Icon name="CircleCheck" className="w-16 h-16 mx-auto mb-4 text-blue-500" />
                 <h2 className="text-2xl font-bold mb-2">{t("book.already_submitted.title")}</h2>
                 <p className="text-muted-foreground">
@@ -210,8 +212,8 @@ export default function ReservarPage() {
               <div className="rounded-xl border border-border bg-card/80 backdrop-blur-sm overflow-hidden">
                 {/* Step 1: Calendar */}
                 {booking.step === 1 && (
-                  <div className="p-8">
-                    <h2 className="text-2xl font-bold mb-6">{t("book.step1.title")}</h2>
+                  <div className="p-4 md:p-6 lg:p-8">
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">{t("book.step1.title")}</h2>
                     <Calendar
                       selected={booking.selectedDate ?? undefined}
                       onSelect={booking.handleDateSelect}
@@ -223,9 +225,9 @@ export default function ReservarPage() {
 
                 {/* Step 2: Time Slots */}
                 {booking.step === 2 && (
-                  <div className="p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl font-bold">{t("book.step2.title")}</h2>
+                  <div className="p-4 md:p-6 lg:p-8">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                      <h2 className="text-xl md:text-2xl font-bold">{t("book.step2.title")}</h2>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -248,9 +250,8 @@ export default function ReservarPage() {
                     )}
 
                     {booking.availabilityLoading ? (
-                      <div role="status" aria-live="polite" className="text-center py-12">
-                        <Icon name="Loader" className="w-8 h-8 animate-spin mx-auto mb-4" />
-                        <p className="text-muted-foreground" aria-hidden="true">{t("book.loading_slots")}</p>
+                      <div role="status" aria-live="polite">
+                        <TimeSlotsSkeleton />
                         <span className="sr-only">{t("book.loading_slots")}</span>
                       </div>
                     ) : booking.availabilityError ? (
@@ -262,7 +263,7 @@ export default function ReservarPage() {
                       <div 
                         role="listbox" 
                         aria-label={t("book.step2.title")}
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3"
                       >
                         {booking.availability.map((slot) => (
                           <Button
@@ -277,7 +278,7 @@ export default function ReservarPage() {
                             onClick={() => booking.handleTimeSelect(slot.start)}
                             aria-label={`${slot.start} ${t("book.step2.to")} ${slot.end}, ${slot.available ? t("book.step2.available") : t("book.step2.occupied")}`}
                             className={cn(
-                              "h-12",
+                              "h-11 md:h-12 text-sm",
                               !slot.available && "opacity-50 cursor-not-allowed"
                             )}
                           >
@@ -299,9 +300,9 @@ export default function ReservarPage() {
 
                 {/* Step 3: Redirecting to Contact */}
                 {booking.step === 3 && (
-                  <div className="p-8 text-center">
-                    <Icon name="Loader" className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-                    <h2 className="text-2xl font-bold mb-2">{t("book.redirecting.title")}</h2>
+                  <div className="p-6 md:p-8 text-center">
+                    <Icon name="Loader" className="w-10 h-10 md:w-12 md:h-12 animate-spin mx-auto mb-4 text-primary" />
+                    <h2 className="text-xl md:text-2xl font-bold mb-2">{t("book.redirecting.title")}</h2>
                     <p className="text-muted-foreground">
                       {t("book.redirecting.description")}
                     </p>
