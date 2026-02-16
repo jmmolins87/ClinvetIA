@@ -16,6 +16,10 @@ interface IconProps extends Omit<LucideProps, "ref"> {
   "aria-label"?: string;
 }
 
+function getSizeClass(size: number): string {
+  return `size-${size}`;
+}
+
 export function Icon({
   name,
   size = 20,
@@ -34,7 +38,7 @@ export function Icon({
 
   return (
     <IconComponent
-      className={cn("shrink-0", className)}
+      className={cn("shrink-0", getSizeClass(size), className)}
       size={size}
       strokeWidth={strokeWidth}
       aria-label={ariaLabel}

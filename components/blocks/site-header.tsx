@@ -131,12 +131,29 @@ export function SiteHeader({
 
   React.useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
       document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.documentElement.style.overflow = "hidden";
     } else {
+      const scrollY = document.body.style.top;
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.documentElement.style.overflow = "";
+      if (scrollY) {
+        window.scrollTo(0, parseFloat(scrollY.slice(1)) * -1);
+      }
     }
     return () => {
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.documentElement.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -281,8 +298,8 @@ export function SiteHeader({
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
-          <div className="fixed inset-x-0 top-0 h-[100dvh] w-full flex flex-col bg-background/70 supports-[backdrop-filter]:bg-background/55 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
-            <div className="flex-1 flex flex-col justify-center p-6 overflow-y-auto">
+          <div className="fixed inset-x-0 top-0 h-[100dvh] w-full flex flex-col bg-background/80 supports-[backdrop-filter]:bg-background/60 backdrop-blur-xl animate-in slide-in-from-top duration-300 overflow-hidden">
+            <div className="flex-1 flex flex-col justify-center p-6">
               <div className="mb-6 flex items-center justify-center">
                 <button
                   type="button"
@@ -314,7 +331,7 @@ export function SiteHeader({
                   );
                 })}
 
-                <div className="mx-auto mt-4 relative left-1/2 -translate-x-1/2 w-screen flex flex-col items-center justify-center gap-3">
+                <div className="mx-auto mt-4 flex flex-col items-center justify-center gap-3">
                   <SiteLanguageSwitcher
                     defaultLanguage={lang}
                     onChange={setLang}

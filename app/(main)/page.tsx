@@ -258,7 +258,7 @@ export default function Home() {
       <section
         id="problem-section"
         data-parallax-speed="0.4"
-        className="home-section home-reflections home-surface-problem home-shadow-problem flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.problem.eyebrow")}
       >
         <div
@@ -301,7 +301,7 @@ export default function Home() {
       <section
         id="system-section"
         data-parallax-speed="0.35"
-        className="home-section home-reflections home-surface-system home-shadow-system flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.features.title")}
       >
         <div
@@ -351,7 +351,7 @@ export default function Home() {
       <section
         id="flow-section"
         data-parallax-speed="0.35"
-        className="home-section home-reflections home-surface-flow home-shadow-flow flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.flow.title")}
       >
         <div
@@ -404,7 +404,7 @@ export default function Home() {
       <section
         id="benefits-section"
         data-parallax-speed="0.35"
-        className="home-section home-reflections home-surface-benefits home-shadow-benefits flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.benefits.title")}
       >
         <div
@@ -445,7 +445,7 @@ export default function Home() {
       <section
         id="scenarios-section"
         data-parallax-speed="0.4"
-        className="home-section home-reflections home-surface-scenarios home-shadow-scenarios flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.scenarios.title")}
       >
         <div
@@ -488,7 +488,7 @@ export default function Home() {
       <section
         id="roi-section"
         data-parallax-speed="0.35"
-        className="home-section home-reflections home-surface-roi home-shadow-roi flex"
+        className="home-section ambient-section flex"
         aria-label={t("home.kpi.title")}
       >
         <div
@@ -575,8 +575,7 @@ export default function Home() {
         demoHref="/reservar"
         roiLabel={t("home.final.ctaSecondary")}
         roiHref="/roi"
-        surfaceClassName="home-surface-final"
-        shadowClassName="home-shadow-final"
+        sectionClassName="ambient-section"
       />
       </div>
     </LenisProvider>

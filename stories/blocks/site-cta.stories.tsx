@@ -29,6 +29,7 @@ export const Default: Story = {
   args: {
     title: "Listo para empezar?",
     description: "Reserva una demo o calcula el impacto en tu ROI.",
+    icon: "Sparkles",
     roiHref: "/roi",
     demoHref: "/reservar",
     roiLabel: "ROI",
@@ -38,6 +39,7 @@ export const Default: Story = {
     codegen: (args: {
       title?: string;
       description?: string;
+      icon?: string;
       roiHref?: string;
       demoHref?: string;
       roiLabel?: string;
@@ -49,6 +51,7 @@ export function PageCta() {
     <SiteCta
       title={${JSON.stringify(args.title ?? "")}}
       description={${JSON.stringify(args.description ?? "")}}
+      icon={${JSON.stringify(args.icon ?? "Sparkles")}}
       roiHref={${JSON.stringify(args.roiHref ?? "/roi")}}
       demoHref={${JSON.stringify(args.demoHref ?? "/reservar")}}
       roiLabel={${JSON.stringify(args.roiLabel ?? "ROI")}}

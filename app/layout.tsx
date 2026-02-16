@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { PageTransition } from "@/components/providers/page-transition";
 import { SkipLinks } from "@/components/ui/skip-links";
 
 const geistSans = Geist({
@@ -38,7 +39,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SkipLinks />
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </ThemeProvider>
       </body>
     </html>

@@ -16,7 +16,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
     <div className="w-full">
       {/* Hero Section */}
       <section
-        className="how-surface-hero home-reflections ambient-section pb-16 text-foreground md:pb-24 lg:pb-32"
+        className="ambient-section pb-16 text-foreground md:pb-24 lg:pb-32"
         data-reveal
         data-parallax-speed="0.4"
       >
@@ -46,7 +46,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Steps Section */}
       <section
-        className="how-surface-steps home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -63,7 +63,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Data Needed Section */}
       <section
-        className="how-surface-data home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -80,7 +80,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Supervision Section */}
       <section
-        className="how-surface-supervision home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -97,7 +97,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Messaging Section */}
       <section
-        className="how-surface-messaging home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -131,7 +131,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Patient Experience Section */}
       <section
-        className="how-surface-patient home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -148,7 +148,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* FAQ Section */}
       <section
-        className="how-surface-faq home-reflections ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
         data-reveal
         data-parallax-speed="0.35"
       >
@@ -172,7 +172,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
         demoHref="/contacto"
         roiLabel={t("howItWorks.cta.secondary")}
         roiHref="/roi"
-        surfaceClassName="how-surface-cta home-reflections"
+        sectionClassName="ambient-section"
         parallaxSpeed={0.4}
       />
     </div>

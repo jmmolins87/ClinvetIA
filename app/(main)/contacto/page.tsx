@@ -302,7 +302,7 @@ function ContactoContent() {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="how-surface-hero home-reflections ambient-section pb-16 text-foreground md:pb-24">
+      <section className="ambient-section pb-16 text-foreground md:pb-24">
         <div className="page-hero-content container mx-auto max-w-screen-xl px-4">
           <div className="max-w-4xl mx-auto text-center space-y-4">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -326,7 +326,7 @@ function ContactoContent() {
       </section>
 
       {/* Main Content */}
-      <section className="how-surface-steps home-reflections ambient-section py-16 md:py-24">
+      <section className="ambient-section py-16 md:py-24">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column: Booking Summary + ROI */}

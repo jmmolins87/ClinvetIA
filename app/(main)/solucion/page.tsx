@@ -67,7 +67,7 @@ export default function SolucionPage(): React.JSX.Element {
   return (
     <div className="w-full">
       <section
-        className="ambient-section solution-surface-hero relative overflow-hidden text-foreground"
+        className="ambient-section relative overflow-hidden text-foreground"
         aria-label={t("solution.hero.title")}
       >
         <HeroBackground className="absolute inset-0" />
@@ -113,7 +113,7 @@ export default function SolucionPage(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="ambient-section solution-surface-what text-foreground" aria-label={t("solution.what.title")}>
+      <section className="ambient-section text-foreground" aria-label={t("solution.what.title")}>
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
@@ -143,7 +143,7 @@ export default function SolucionPage(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="ambient-section solution-surface-day text-foreground" aria-label={t("solution.day.title")}>
+      <section className="ambient-section text-foreground" aria-label={t("solution.day.title")}>
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -168,7 +168,7 @@ export default function SolucionPage(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="ambient-section solution-surface-how text-foreground" aria-label={t("solution.how.title")}>
+      <section className="ambient-section text-foreground" aria-label={t("solution.how.title")}>
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -193,7 +193,7 @@ export default function SolucionPage(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="ambient-section solution-surface-flow text-foreground" aria-label={t("solution.flow.title")}>
+      <section className="ambient-section text-foreground" aria-label={t("solution.flow.title")}>
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -217,7 +217,7 @@ export default function SolucionPage(): React.JSX.Element {
       </section>
 
       <section
-        className="ambient-section solution-surface-guardrails text-foreground"
+        className="ambient-section text-foreground"
         aria-label={t("solution.guardrails.title")}
       >
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
@@ -253,7 +253,7 @@ export default function SolucionPage(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="ambient-section solution-surface-fit text-foreground" aria-label={t("solution.fit.title")}>
+      <section className="ambient-section text-foreground" aria-label={t("solution.fit.title")}>
         <div className="mx-auto w-full max-w-screen-2xl px-4 py-14 md:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -305,8 +305,7 @@ export default function SolucionPage(): React.JSX.Element {
         demoHref="/reservar"
         roiLabel={t("home.final.ctaSecondary")}
         roiHref="/roi"
-        surfaceClassName="home-surface-final"
-        shadowClassName="home-shadow-final"
+        sectionClassName="ambient-section"
       />
     </div>
   );

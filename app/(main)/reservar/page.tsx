@@ -178,7 +178,7 @@ export default function ReservarPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="how-surface-hero home-reflections ambient-section text-foreground pb-8 md:pb-12">
+      <section className="ambient-section text-foreground pb-8 md:pb-12">
         <div className="page-hero-content container relative z-10 mx-auto max-w-screen-xl px-4">
           <div className="max-w-4xl mx-auto text-center space-y-3 md:space-y-4">
             <div className="flex items-center justify-center gap-3 mb-3 md:mb-4">
@@ -197,7 +197,7 @@ export default function ReservarPage() {
       </section>
 
       {/* Booking Section */}
-      <section className="how-surface-steps home-reflections ambient-section py-6 md:py-12">
+      <section className="ambient-section py-6 md:py-12">
         <div className="container relative z-10 mx-auto max-w-screen-xl px-4">
           <div className="max-w-4xl mx-auto">
             {hasSubmittedBefore ? (

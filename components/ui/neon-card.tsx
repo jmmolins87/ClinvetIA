@@ -12,7 +12,7 @@ const NeonCard = React.forwardRef<HTMLDivElement, NeonCardProps>(
       <div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-300",
+          "relative overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-lg transition-all duration-300",
           hover && "card-elevation hover:border-primary",
           glow && "dark:hover:glow-sm",
           className

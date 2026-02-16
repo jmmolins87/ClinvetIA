@@ -45,7 +45,13 @@ export function ScrollDownButton({
         if (lenisRef.current) {
           lenisRef.current.scrollTo(el, { offset: 64 });
         } else {
-          el.scrollIntoView({ behavior, block: "start" });
+          const elementPosition = el.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.scrollY - (window.innerHeight / 2) + (el.clientHeight / 2);
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior,
+          });
         }
         return;
       }

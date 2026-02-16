@@ -40,7 +40,7 @@ export function SectionCtaFooter({
         typeof parallaxSpeed === "number" ? String(parallaxSpeed) : undefined
       }
       className={cn(
-        "home-section home-reflections flex flex-col",
+        "home-section flex flex-col",
         "final-cta-section",
         surfaceClassName,
         shadowClassName,

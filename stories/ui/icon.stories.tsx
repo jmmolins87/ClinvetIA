@@ -33,6 +33,19 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex items-center gap-8">
+      {[16, 20, 24, 32, 48, 64].map((size) => (
+        <div key={size} className="flex flex-col items-center gap-2">
+          <Icon name="Star" size={size} className="text-primary" />
+          <span className="text-xs text-muted-foreground">{size}px</span>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
 export const AllIcons: Story = {
   args: {
     size: 20
