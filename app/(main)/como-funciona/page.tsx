@@ -16,7 +16,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
     <div className="w-full">
       {/* Hero Section */}
       <section
-        className="ambient-section pb-16 text-foreground md:pb-24 lg:pb-32"
+        className="ambient-section pb-16 text-foreground md:pb-10"
         data-reveal
         data-parallax-speed="0.4"
       >
@@ -46,7 +46,7 @@ export default function ComoFuncionaPage(): React.JSX.Element {
 
       {/* Steps Section */}
       <section
-        className="ambient-section py-16 text-foreground md:py-24 lg:py-32"
+        className="ambient-section py-16 text-foreground md:py-10"
         data-reveal
         data-parallax-speed="0.35"
       >

@@ -338,7 +338,7 @@ export default function Home() {
               <div className="absolute left-1/2 top-0 z-10 w-fit -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-primary px-6 py-2.5 text-sm font-semibold leading-none text-primary-foreground shadow-sm dark:glow-primary md:px-8 md:text-base">
                 {t("home.features.stat")}
               </div>
-              <NeonCardHeader className="pt-10 text-center md:pt-12">
+              <NeonCardHeader className="pt-10 text-center">
                 <NeonCardDescription className="text-base text-foreground/80 md:text-lg">
                   {t("home.features.statNote")}
                 </NeonCardDescription>

@@ -42,11 +42,14 @@ export function ScrollDownButton({
         const el = document.getElementById(targetId);
         if (!el) return;
 
+        const isMobile = window.innerWidth < 768;
+        const offset = isMobile ? 56 : 24;
+
         if (lenisRef.current) {
-          lenisRef.current.scrollTo(el, { offset: 64 });
+          lenisRef.current.scrollTo(el, { offset });
         } else {
           const elementPosition = el.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.scrollY - (window.innerHeight / 2) + (el.clientHeight / 2);
+          const offsetPosition = elementPosition + window.scrollY - offset;
 
           window.scrollTo({
             top: offsetPosition,

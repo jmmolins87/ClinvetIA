@@ -117,7 +117,7 @@ export default function EscenariosPage() {
                           </p>
                         </div>
 
-                        <div className="grid gap-3 md:grid-cols-2">
+                        <div className="grid gap-3 md:grid-cols-2 mt-4">
                           <div className="rounded-xl border border-green-500/60 bg-green-500/10 p-4">
                             <p className="text-sm font-semibold text-green-400 mb-2 flex items-center gap-2">
                               <Icon name="Lightbulb" />

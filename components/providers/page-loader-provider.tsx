@@ -13,10 +13,10 @@ export function PageLoaderProvider({ children }: { children: React.ReactNode }) 
     return <>{children}</>;
   }
 
-  return <PageLoader>{children}</PageLoader>;
+  return <PageLoader key={pathname} pathname={pathname}>{children}</PageLoader>;
 }
 
-function PageLoader({ children }: { children: React.ReactNode }) {
+function PageLoader({ children, pathname }: { children: React.ReactNode; pathname: string }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const rafRef = React.useRef<number | null>(null);
   const timerRef = React.useRef<number | null>(null);

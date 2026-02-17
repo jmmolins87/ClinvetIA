@@ -42,6 +42,7 @@ export function SectionCtaFooter({
       className={cn(
         "home-section flex flex-col",
         "final-cta-section",
+        "overflow-hidden",
         surfaceClassName,
         shadowClassName,
         sectionClassName,
