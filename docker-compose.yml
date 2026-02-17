@@ -1,0 +1,63 @@
+# ClinvetIA — Docker Compose (desarrollo local)
+#
+# Servicios:
+#   mongo          → MongoDB 7  (puerto 27017)
+#   mongo-express  → UI web     (puerto 8081)
+#
+# Comandos rápidos (via pnpm):
+#   pnpm db:up      → levantar
+#   pnpm db:down    → apagar
+#   pnpm db:reset   → borrar datos y reiniciar
+#   pnpm db:logs    → logs de MongoDB en tiempo real
+#   pnpm db:shell   → abrir mongosh
+#   pnpm db:status  → estado de contenedores
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: clinvetia-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-clinvetia_dev}
+      MONGO_INITDB_DATABASE: clinvetia
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - clinvetia-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: clinvetia-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASS:-clinvetia_dev}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS:-clinvetia_dev}@mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASS:-clinvetia_ui}
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - clinvetia-net
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  clinvetia-net:
+    driver: bridge

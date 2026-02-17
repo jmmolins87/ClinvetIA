@@ -12,7 +12,13 @@
     "test:coverage": "vitest run --coverage",
     "test:single": "vitest run",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:logs": "docker compose logs -f mongo",
+    "db:shell": "docker compose exec mongo mongosh -u admin -p clinvetia_dev --authenticationDatabase admin clinvetia",
+    "db:status": "docker compose ps"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

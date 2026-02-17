@@ -69,7 +69,7 @@ export const BookingRepository = {
       return booking;
     } catch (error) {
       logger.error(
-        { error, date: data.date, time: data.time },
+        { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, date: data.date, time: data.time },
         "Failed to create hold in DB"
       );
       throw error;
