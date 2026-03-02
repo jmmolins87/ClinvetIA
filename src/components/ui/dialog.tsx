@@ -51,6 +51,7 @@ const DialogContent = React.forwardRef<
         "shadow-[inset_0_1px_0_rgba(var(--white-rgb),0.10),0_25px_60px_rgba(var(--black-rgb),0.70)]",
         "grid gap-4 p-4 md:p-6",
         "rounded-2xl md:sm:rounded-2xl",
+        "ui-overlay-lock-scroll",
         "duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

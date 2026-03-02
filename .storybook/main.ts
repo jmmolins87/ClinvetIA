@@ -118,10 +118,13 @@ export function notFound()     { throw new Error("[Storybook] notFound called");
           "@radix-ui/react-slot",
           "@radix-ui/react-switch",
           "@radix-ui/react-dialog",
+          "@radix-ui/react-popover",
           "@radix-ui/react-tabs",
           "@radix-ui/react-toast",
           "@radix-ui/react-dropdown-menu",
           "@radix-ui/react-slider",
+          "react-day-picker",
+          "date-fns",
         ],
       },
     });

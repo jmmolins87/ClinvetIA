@@ -16,6 +16,7 @@ import {
   CUSTOMER_DELIVERY_EMAIL,
 } from "@/lib/booking-communication"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
+import { expireOverdueBookings } from "@/lib/booking-expiration"
 
 const updateBookingSchema = z.discriminatedUnion("action", [
   z.object({
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
   }
 
   await dbConnect()
+  await expireOverdueBookings()
   const bookings = await Booking.find({}).sort({ createdAt: -1 }).lean()
   const bookingIds = bookings.map((b) => String(b._id))
   const contacts = bookingIds.length

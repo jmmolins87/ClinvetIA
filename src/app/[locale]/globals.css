@@ -660,6 +660,12 @@ html {
   height: auto;
 }
 
+html:has(.ui-overlay-lock-scroll[data-state="open"]),
+body:has(.ui-overlay-lock-scroll[data-state="open"]) {
+  overflow: hidden !important;
+  height: 100dvh;
+}
+
 [class*="text-xs"],
 [class*="text-sm"],
 [class*="text-[8px]"],

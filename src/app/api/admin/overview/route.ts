@@ -5,6 +5,7 @@ import { Booking } from "@/models/Booking"
 import { Contact } from "@/models/Contact"
 import { dbConnect } from "@/lib/db"
 import { buildGoogleMeetLink } from "@/lib/booking-communication"
+import { expireOverdueBookings } from "@/lib/booking-expiration"
 
 type ROINode = {
   monthlyPatients?: number | null
@@ -85,6 +86,7 @@ export async function GET(req: Request) {
   }
 
   await dbConnect()
+  await expireOverdueBookings()
 
   const { labels, dates } = buildSeriesLabels(days)
   const startSeriesDate = new Date(dates[0])

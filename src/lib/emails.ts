@@ -484,6 +484,10 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;")
 }
 
+function brandNameInlineHtml() {
+  return `<span style="background:linear-gradient(90deg,#43e97b 0%,#f093fb 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700;">ClinvetIA</span>`
+}
+
 export function customerReplyEmail(params: {
   brandName: string
   customerName: string
@@ -493,7 +497,10 @@ export function customerReplyEmail(params: {
   message: string
   meetingLink?: string | null
 }) {
-  const safeMessage = escapeHtml(params.message).replaceAll("\n", "<br />")
+  const safeMessage = escapeHtml(params.message)
+    .replaceAll("\n", "<br />")
+    .replace(/ClinvetIA/gi, brandNameInlineHtml())
+    .replace(/Clinvetia/gi, brandNameInlineHtml())
   return `<!doctype html>
 <html lang="es">
   <head>
@@ -508,7 +515,7 @@ export function customerReplyEmail(params: {
           <p style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:#8b98a5;">${params.brandName} · atención al cliente</p>
           <h1 style="margin:0;font-size:24px;line-height:1.2;color:#ffffff;">${escapeHtml(params.subject)}</h1>
           <p style="margin:10px 0 0;color:#b6c2cf;font-size:14px;line-height:1.5;">
-            Hola ${escapeHtml(params.customerName || params.customerEmail)}, te respondemos desde el equipo de ${params.brandName}.
+            Hola ${escapeHtml(params.customerName || params.customerEmail)}, te respondemos desde el equipo de ${brandNameInlineHtml()}.
           </p>
         </div>
 
@@ -538,7 +545,7 @@ export function customerReplyEmail(params: {
         </div>
 
         <div style="padding:14px 24px;border-top:1px solid #1f2937;background:#0b1220;color:#8b98a5;font-size:11px;text-align:center;">
-          ${params.brandName} · ${escapeHtml(params.supportEmail)}
+          ${brandNameInlineHtml()} · ${escapeHtml(params.supportEmail)}
         </div>
       </div>
     </div>
