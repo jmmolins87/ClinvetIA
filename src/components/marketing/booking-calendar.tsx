@@ -121,34 +121,34 @@ function CalendarGrid({ year, month, selected, dayAvailability, onSelect, onPrev
   while (cells.length % 7 !== 0) cells.push(null)
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-2">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
           onClick={onPrev}
-          className="h-8 w-8 text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
+          className="h-7 w-7 text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
           aria-label="Mes anterior"
         >
           <Icon icon={ChevronLeft} size="sm" />
         </Button>
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-xs font-semibold text-foreground">
           {MONTHS[month]} {year}
         </span>
         <Button
           variant="ghost"
           size="icon"
           onClick={onNext}
-          className="h-8 w-8 text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
+          className="h-7 w-7 text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
           aria-label="Mes siguiente"
         >
           <Icon icon={ChevronRight} size="sm" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-px">
+      <div className="grid grid-cols-7 gap-0.5">
         {WEEK_DAYS.map((d) => (
-          <div key={d} className="py-1.5 text-center text-base font-semibold uppercase tracking-wider text-muted-foreground">
+          <div key={d} className="py-0.5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {d}
           </div>
         ))}
@@ -176,11 +176,11 @@ function CalendarGrid({ year, month, selected, dayAvailability, onSelect, onPrev
               key={day}
               disabled={disabled}
               onClick={() => onSelect(date)}
-              className={cn(
-                "relative flex h-9 w-full items-center justify-center rounded-lg text-sm font-medium",
-                "transition-all duration-150",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                disabled ? "cursor-not-allowed border border-white/10 bg-white/8 text-muted-foreground/70" : "cursor-pointer",
+                          className={cn(
+                            "relative flex aspect-square min-h-[1.6rem] w-full items-center justify-center rounded-[6px] text-[10px] font-medium lg:max-h-[50px]",
+                            "transition-all duration-150",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            disabled ? "cursor-not-allowed border border-white/10 bg-white/8 text-muted-foreground/70" : "cursor-pointer",
                 !disabled && !isSelected && "hover:bg-primary/15 hover:text-primary",
                 isToday && !isSelected && "border border-primary/40 text-primary",
                 isSelected && "bg-primary text-primary-foreground shadow-[0_0_16px_rgba(var(--primary-rgb),0.5)]",
@@ -191,7 +191,7 @@ function CalendarGrid({ year, month, selected, dayAvailability, onSelect, onPrev
               {day}
               <span
                 className={cn(
-                  "absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full",
+                  "absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full",
                   dayState === "available" && "bg-primary/70 ring-1 ring-primary/70",
                   dayState === "selected" && "bg-primary ring-1 ring-primary",
                   dayState === "unavailable" && "bg-white/45 ring-1 ring-white/60",
@@ -230,7 +230,7 @@ function TimeSlotPicker({ date, slots, unavailable, selected, onSelect }: TimeSl
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-1.5">
       {slots.map((slot) => {
         const isUnavailable = unavailable.has(slot) || isPastTime(slot)
         const isSelected = selected === slot
@@ -242,7 +242,7 @@ function TimeSlotPicker({ date, slots, unavailable, selected, onSelect }: TimeSl
             disabled={isUnavailable}
             onClick={() => onSelect(slot)}
             className={cn(
-              "flex h-auto items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all duration-150",
+              "flex h-8 items-center justify-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all duration-150",
               !isUnavailable && !isSelected && "border-white/10 bg-white/5 hover:border-primary/50 hover:bg-primary/10 hover:text-primary",
               isSelected && "border-primary/60 bg-primary/15 text-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.25)] hover:bg-primary/20",
               isUnavailable && "opacity-30 border-white/5 bg-white/2"
@@ -794,8 +794,8 @@ export function BookingCalendar({ className, onBooked, embedded = false }: Booki
             </div>
           </div>
 
-          <div className={cn("hidden gap-6 lg:grid lg:grid-cols-[1fr_360px]", embedded && "lg:hidden", className)}>
-            <GlassCard className="p-6 space-y-6">
+      <div className={cn("hidden items-start justify-center gap-6 lg:grid lg:grid-cols-[minmax(620px,760px)_360px]", embedded && "lg:hidden", className)}>
+            <GlassCard className="self-start p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-base font-semibold uppercase tracking-widest text-muted-foreground">
@@ -836,7 +836,7 @@ export function BookingCalendar({ className, onBooked, embedded = false }: Booki
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-3">
                 <CalendarGrid
                   year={year}
                   month={month}
@@ -846,21 +846,20 @@ export function BookingCalendar({ className, onBooked, embedded = false }: Booki
                   onPrev={handlePrevMonth}
                   onNext={handleNextMonth}
                 />
-              </div>
-
-              <div className="flex flex-wrap gap-4 text-base text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-primary/40 ring-1 ring-primary/60" />
-                  Disponible
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-                  Seleccionado
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-white/45 ring-1 ring-white/60" />
-                  No disponible
-                </span>
+                <div className="flex flex-wrap items-center gap-5 pb-1 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 rounded-full bg-primary/40 ring-1 ring-primary/60" />
+                    Disponible
+                  </span>
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    Seleccionado
+                  </span>
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/45 ring-1 ring-white/60" />
+                    No disponible
+                  </span>
+                </div>
               </div>
             </GlassCard>
 
@@ -897,7 +896,7 @@ export function BookingCalendar({ className, onBooked, embedded = false }: Booki
                     exit={{ opacity: 0, x: -10 }}
                     className="flex flex-1 flex-col gap-4"
                   >
-                    <GlassCard className="flex-1 p-5 space-y-4">
+                    <GlassCard className="p-5 space-y-4 lg:sticky lg:top-24">
                       {selectedDate ? (
                         <>
                           <div>
@@ -909,9 +908,9 @@ export function BookingCalendar({ className, onBooked, embedded = false }: Booki
                             </p>
                           </div>
                           {isLoadingAvailability ? (
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-1.5">
                               {Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="h-10 rounded-xl border border-white/10 bg-white/5 animate-pulse" />
+                                <div key={i} className="h-8 rounded-lg border border-white/10 bg-white/5 animate-pulse" />
                               ))}
                             </div>
                           ) : availabilityError ? (

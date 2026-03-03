@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/db"
 import { Booking } from "@/models/Booking"
 import { Contact } from "@/models/Contact"
 import { verifyRecaptchaToken } from "@/lib/recaptcha-server"
+import { isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
 
 interface BookingLeanView {
   _id: { toString(): string }
@@ -62,6 +63,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Para nuevos clientes, la demo disponible es de 30 minutos." },
         { status: 403 }
+      )
+    }
+
+    if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
+      return NextResponse.json(
+        { error: "Slot unavailable" },
+        { status: 409 }
       )
     }
 

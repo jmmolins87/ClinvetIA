@@ -17,6 +17,7 @@ import {
 } from "@/lib/booking-communication"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
 import { expireOverdueBookings } from "@/lib/booking-expiration"
+import { isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
 
 const updateBookingSchema = z.discriminatedUnion("action", [
   z.object({
@@ -223,6 +224,10 @@ export async function POST(req: Request) {
         })
       }
     } else {
+      if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
+
       const date = new Date(parsed.date)
       const [hour, min] = parsed.time.split(":").map(Number)
       const demoDateTime = new Date(date)

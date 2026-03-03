@@ -9,13 +9,7 @@ import { leadSummaryEmail } from "@/lib/emails"
 import { buildICS } from "@/lib/ics"
 import { appendBookingEmailEvent, buildGoogleMeetLink } from "@/lib/booking-communication"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
-
-const TIME_SLOTS = [
-  "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "12:00", "12:30",
-  "15:00", "15:30", "16:00", "16:30",
-  "17:00", "17:30",
-]
+import { DEMO_BOOKABLE_TIME_SLOTS, isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
 
 type ChatSlot = {
   date: string
@@ -37,6 +31,8 @@ type ChatState = {
   qualificationStage?: number
   leadContext?: string | null
 }
+
+type ChatLocale = "es" | "en"
 
 const schema = z.object({
   message: z.string().trim().min(1).max(1200),
@@ -73,14 +69,15 @@ const schema = z.object({
     .optional(),
   sessionToken: z.string().optional().nullable(),
   bookingToken: z.string().optional().nullable(),
+  locale: z.enum(["es", "en"]).optional(),
 })
 
 function isAffirmative(text: string) {
-  return /\b(si|sí|correcto|ok|vale|perfecto|confirmo|claro|exacto)\b/i.test(text)
+  return /\b(si|sí|correcto|ok|vale|perfecto|confirmo|claro|exacto|yes|yep|yeah|confirm|sure)\b/i.test(text)
 }
 
 function isNegative(text: string) {
-  return /\b(no|incorrecto|mal|cambiar|otro|equivocado)\b/i.test(text)
+  return /\b(no|incorrecto|mal|cambiar|otro|equivocado|wrong|incorrect|change|different|nope)\b/i.test(text)
 }
 
 function extractEmail(text: string) {
@@ -112,22 +109,30 @@ function extractCity(text: string) {
 }
 
 function isObjection(text: string) {
-  return /\b(no me interesa|no ahora|despues|después|déjame pensarlo|dejame pensarlo|estoy ocupado|ocupada|no tengo tiempo|enviame info|envíame info|prefiero no|ahora no)\b/i.test(
+  return /\b(no me interesa|no ahora|despues|después|déjame pensarlo|dejame pensarlo|estoy ocupado|ocupada|no tengo tiempo|enviame info|envíame info|prefiero no|ahora no|not interested|not now|later|let me think|busy|i don't have time|send me info|prefer not now)\b/i.test(
     text,
   )
 }
 
-function objectionReply(attempt: number) {
+function objectionReply(attempt: number, locale: ChatLocale) {
   if (attempt <= 1) {
-    return "Te entiendo 😊 Una rápida: qué te frustra más hoy de la captación o del seguimiento en tu clínica?"
+    return locale === "en"
+      ? "I understand 😊 Quick one: what frustrates you most today about lead capture or follow-up in your clinic?"
+      : "Te entiendo 😊 Una rápida: qué te frustra más hoy de la captación o del seguimiento en tu clínica?"
   }
   if (attempt === 2) {
-    return "Lo respeto. Muchos nos dijeron eso al inicio. Cómo gestionáis ahora los leads y el seguimiento?"
+    return locale === "en"
+      ? "I respect that. Many told us the same at first. How are you managing leads and follow-up now?"
+      : "Lo respeto. Muchos nos dijeron eso al inicio. Cómo gestionáis ahora los leads y el seguimiento?"
   }
   if (attempt === 3) {
-    return "Totalmente. Si hoy pudieras mejorar solo una cosa de la atención al cliente, cuál sería?"
+    return locale === "en"
+      ? "Totally. If you could improve just one thing in client care today, what would it be?"
+      : "Totalmente. Si hoy pudieras mejorar solo una cosa de la atención al cliente, cuál sería?"
   }
-  return "Sin compromiso, solo por curiosidad: cuál es tu meta de crecimiento para los próximos 3-6 meses en tu clínica? 📊"
+  return locale === "en"
+    ? "No pressure, just curious: what's your growth goal for the next 3-6 months in your clinic? 📊"
+    : "Sin compromiso, solo por curiosidad: cuál es tu meta de crecimiento para los próximos 3-6 meses en tu clínica? 📊"
 }
 
 function extractSlotChoice(text: string, length: number) {
@@ -140,13 +145,13 @@ function extractSlotChoice(text: string, length: number) {
 }
 
 function isServiceQuestion(text: string) {
-  return /\b(que es|qué es|explica|explicame|explícame|como funciona|cómo funciona|agente|agentes|ia|inteligencia artificial|veterinaria|veterinarias|servicio|solucion|solución)\b/i.test(
+  return /\b(que es|qué es|explica|explicame|explícame|como funciona|cómo funciona|agente|agentes|ia|inteligencia artificial|veterinaria|veterinarias|servicio|solucion|solución|what is|explain|how it works|agent|agents|ai|artificial intelligence|veterinary|service|solution)\b/i.test(
     text,
   )
 }
 
 function isGreeting(text: string) {
-  return /\b(hola|buenas|hey|hello|buenos dias|buenas tardes|buenas noches)\b/i.test(text)
+  return /\b(hola|buenas|hey|hello|hi|good morning|good afternoon|good evening|buenos dias|buenas tardes|buenas noches)\b/i.test(text)
 }
 
 function shortContext(text: string) {
@@ -166,7 +171,7 @@ const CHAT_SYSTEM_PROMPT = [
   "No inventes precios ni promesas no confirmadas.",
 ].join(" ")
 
-async function generateConversationalReply(userMessage: string) {
+async function generateConversationalReply(userMessage: string, locale: ChatLocale) {
   const geminiApiKey = process.env.GEMINI_API_KEY
   const geminiPreferredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash"
   const geminiModels = Array.from(new Set([geminiPreferredModel, "gemini-2.0-flash", "gemini-2.0-flash-lite"]))
@@ -183,7 +188,7 @@ async function generateConversationalReply(userMessage: string) {
           },
           body: JSON.stringify({
             systemInstruction: {
-              parts: [{ text: CHAT_SYSTEM_PROMPT }],
+              parts: [{ text: `${CHAT_SYSTEM_PROMPT} ${locale === "en" ? "Respond only in English." : "Responde solo en español."}` }],
             },
             contents: [
               {
@@ -235,7 +240,7 @@ async function generateConversationalReply(userMessage: string) {
         body: JSON.stringify({
           model,
           input: [
-            { role: "system", content: CHAT_SYSTEM_PROMPT },
+            { role: "system", content: `${CHAT_SYSTEM_PROMPT} ${locale === "en" ? "Respond only in English." : "Responde solo en español."}` },
             { role: "user", content: userMessage },
           ],
           max_output_tokens: 220,
@@ -268,13 +273,13 @@ async function generateConversationalReply(userMessage: string) {
   return null
 }
 
-function formatDateLabel(date: Date, time: string) {
-  const label = date.toLocaleDateString("es-ES", {
+function formatDateLabel(date: Date, time: string, locale: ChatLocale = "es") {
+  const label = date.toLocaleDateString(locale === "en" ? "en-US" : "es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
   })
-  return `${label} a las ${time}`
+  return locale === "en" ? `${label} at ${time}` : `${label} a las ${time}`
 }
 
 async function findActiveBooking(params: { sessionToken?: string | null; bookingToken?: string | null }) {
@@ -314,7 +319,7 @@ function hasCompleteRoi(session: {
   )
 }
 
-async function buildSlots(limit = 3) {
+async function buildSlots(limit = 3, locale: ChatLocale = "es") {
   const results: ChatSlot[] = []
   let dayOffset = 0
   while (results.length < limit && dayOffset < 30) {
@@ -337,13 +342,13 @@ async function buildSlots(limit = 3) {
       .lean()
 
     const unavailable = new Set(bookings.map((b) => String(b.time)))
-    for (const time of TIME_SLOTS) {
+    for (const time of DEMO_BOOKABLE_TIME_SLOTS) {
       if (unavailable.has(time)) continue
       const key = new Date(date)
       results.push({
         date: key.toISOString().slice(0, 10),
         time,
-        label: formatDateLabel(key, time),
+        label: formatDateLabel(key, time, locale),
       })
       if (results.length >= limit) break
     }
@@ -489,6 +494,10 @@ async function sendBookingSummaryEmailFromChat(params: {
 }
 
 async function rescheduleBooking(bookingId: string, slot: ChatSlot) {
+  if (!isValidDemoTimeSlot(slot.time) || !isBookableDemoTimeSlot(slot.time)) {
+    return false
+  }
+
   const date = new Date(`${slot.date}T00:00:00.000Z`)
   const [hour, min] = slot.time.split(":").map(Number)
   const demoDateTime = new Date(date)
@@ -535,11 +544,13 @@ export async function POST(req: Request) {
     const parsed = schema.parse(body)
     await dbConnect()
 
+    const locale: ChatLocale = parsed.locale === "en" ? "en" : "es"
+    const t = (es: string, en: string) => (locale === "en" ? en : es)
     const message = parsed.message.trim()
     const lower = message.toLowerCase()
-    const wantsBooking = /\b(reservar|reserva|demo|cita|agendar)\b/i.test(lower)
-    const wantsReschedule = /\b(reagendar|reprogramar|cambiar hora|cambiar cita)\b/i.test(lower)
-    const wantsCancel = /\b(cancelar|cancela|anular|anula)\b/i.test(lower)
+    const wantsBooking = /\b(reservar|reserva|demo|cita|agendar|book|booking|appointment|schedule)\b/i.test(lower)
+    const wantsReschedule = /\b(reagendar|reprogramar|cambiar hora|cambiar cita|reschedule|change time|change appointment)\b/i.test(lower)
+    const wantsCancel = /\b(cancelar|cancela|anular|anula|cancel|cancellation)\b/i.test(lower)
     const webBookingUrl = `${(process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "").replace(/\/+$/, "")}/demo`
     const rawSessionToken = typeof parsed.sessionToken === "string" ? parsed.sessionToken.trim() : ""
     const sessionToken = rawSessionToken.length > 0 ? rawSessionToken : null
@@ -585,8 +596,10 @@ export async function POST(req: Request) {
 
     if (current.step === "idle" && wantsBooking && !hasValidRoiSession) {
       return NextResponse.json({
-        reply:
+        reply: t(
           "Antes de reservar, hagamos primero tu cálculo ROI para entender mejor tu clínica. Te abro la calculadora.",
+          "Before booking, let's do your ROI calculation first so we can better understand your clinic. I'll open the calculator.",
+        ),
         openRoiCalculator: true,
         state: { intent: "none", step: "idle" },
       })
@@ -594,8 +607,10 @@ export async function POST(req: Request) {
 
     if (current.intent === "book" && current.step !== "idle" && !hasValidRoiSession) {
       return NextResponse.json({
-        reply:
+        reply: t(
           "Para seguir con la reserva, primero necesito tu ROI. Te abro la calculadora.",
+          "To continue with booking, I need your ROI first. I'll open the calculator.",
+        ),
         openRoiCalculator: true,
         state: { intent: "none", step: "idle" },
       })
@@ -603,16 +618,20 @@ export async function POST(req: Request) {
 
     if (current.intent === "book" && current.step !== "idle") {
       return NextResponse.json({
-        reply:
+        reply: t(
           "Para reservar una cita nueva necesitamos tus datos de contacto completos. Haz la reserva desde la web y yo me encargo de reagendar o cancelar cuando lo necesites.",
+          "To book a new appointment we need your full contact details. Please book through the website and I can handle rescheduling or cancellation whenever you need.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
       })
     }
 
     if (isBookingFlowStep && !hasValidRoiSession) {
       return NextResponse.json({
-        reply:
+        reply: t(
           "Nos falta el ROI para continuar con la reserva. Te abro la calculadora ahora.",
+          "We still need the ROI to continue with booking. I'll open the calculator now.",
+        ),
         openRoiCalculator: true,
         state: { intent: "none", step: "idle" },
       })
@@ -620,22 +639,30 @@ export async function POST(req: Request) {
 
     if (isBookingFlowStep && !hasBookingIntent) {
       return NextResponse.json({
-        reply: "He perdido el contexto de la reserva. Si quieres, empezamos de nuevo y te propongo horarios.",
+        reply: t(
+          "He perdido el contexto de la reserva. Si quieres, empezamos de nuevo y te propongo horarios.",
+          "I lost the booking context. If you want, we can restart and I'll suggest available slots.",
+        ),
         state: { intent: "none", step: "idle" },
       })
     }
 
-    if (current.step === "idle" && /\b(clinvetia|clinvetia\.com|que es clinvetia|quien sois|quienes sois)\b/i.test(lower)) {
+    if (current.step === "idle" && /\b(clinvetia|clinvetia\.com|que es clinvetia|quien sois|quienes sois|what is clinvetia|who are you)\b/i.test(lower)) {
       return NextResponse.json({
-        reply:
+        reply: t(
           "ClinvetIA desarrolla agentes para clinicas veterinarias que organizan citas y mejoran la atencion al cliente. Si te va bien, te propongo ahora mismo tres horarios y te reservo cita en un minuto.",
+          "ClinvetIA builds agents for veterinary clinics that organize appointments and improve client support. If you want, I can suggest three slots right now and book you in under a minute.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0, qualificationStage: 1 },
       })
     }
 
     if (current.step === "idle" && isGreeting(lower) && !wantsBooking && !wantsReschedule && !wantsCancel) {
       return NextResponse.json({
-        reply: "Hola 😊 Soy el agente de ClinvetIA. Me cuentas un poco de tu clínica y cómo captáis nuevos clientes?",
+        reply: t(
+          "Hola 😊 Soy el agente de ClinvetIA. Me cuentas un poco de tu clínica y cómo captáis nuevos clientes?",
+          "Hi 😊 I'm ClinvetIA's agent. Can you tell me a bit about your clinic and how you currently attract new clients?",
+        ),
         state: { ...current, step: "idle", qualificationStage: 1, objectionAttempts: 0 },
       })
     }
@@ -650,31 +677,46 @@ export async function POST(req: Request) {
     ) {
       if ((current.qualificationStage || 0) <= 1) {
         return NextResponse.json({
-          reply: `Ah, interesante lo que me cuentas de "${shortContext(message)}". Cómo estáis gestionando ahora la captación y seguimiento?`,
+          reply: t(
+            `Ah, interesante lo que me cuentas de "${shortContext(message)}". Cómo estáis gestionando ahora la captación y seguimiento?`,
+            `Interesting what you shared about "${shortContext(message)}". How are you handling lead capture and follow-up now?`,
+          ),
           state: { ...current, step: "idle", qualificationStage: 2, leadContext: shortContext(message), objectionAttempts: 0 },
         })
       }
       if ((current.qualificationStage || 0) === 2) {
         return NextResponse.json({
-          reply: "Ya veo. Os está dando los resultados que esperabais o se os escapan oportunidades?",
+          reply: t(
+            "Ya veo. Os está dando los resultados que esperabais o se os escapan oportunidades?",
+            "Got it. Is it giving you the results you expected, or are opportunities still slipping through?",
+          ),
           state: { ...current, step: "idle", qualificationStage: 3, objectionAttempts: 0 },
         })
       }
       if ((current.qualificationStage || 0) === 3) {
         return NextResponse.json({
-          reply: "Entiendo. Qué meta de crecimiento tenéis para los próximos 3-6 meses?",
+          reply: t(
+            "Entiendo. Qué meta de crecimiento tenéis para los próximos 3-6 meses?",
+            "Understood. What's your growth target for the next 3-6 months?",
+          ),
           state: { ...current, step: "idle", qualificationStage: 4, objectionAttempts: 0 },
         })
       }
       if ((current.qualificationStage || 0) === 4) {
         return NextResponse.json({
-          reply: "Tiene sentido. Si quieres, te paso el enlace para reservar consultoría y verlo con tu caso. Te lo comparto?",
+          reply: t(
+            "Tiene sentido. Si quieres, te paso el enlace para reservar consultoría y verlo con tu caso. Te lo comparto?",
+            "Makes sense. If you want, I can share the link to book a consult and review your case. Should I send it?",
+          ),
           state: { ...current, step: "idle", qualificationStage: 5, objectionAttempts: 0 },
         })
       }
       if ((current.qualificationStage || 0) >= 5 && isAffirmative(lower)) {
         return NextResponse.json({
-          reply: `Genial 🚀 Reserva aquí: ${webBookingUrl}. En cuanto tengas ID de cita, yo te ayudo a reagendar o cancelar cuando lo necesites.`,
+          reply: t(
+            `Genial 🚀 Reserva aquí: ${webBookingUrl}. En cuanto tengas ID de cita, yo te ayudo a reagendar o cancelar cuando lo necesites.`,
+            `Great 🚀 Book here: ${webBookingUrl}. As soon as you have your booking ID, I can help you reschedule or cancel anytime.`,
+          ),
           state: { ...current, step: "idle", qualificationStage: 6, objectionAttempts: 0 },
         })
       }
@@ -684,7 +726,7 @@ export async function POST(req: Request) {
       const attempt = Math.min(4, (current.objectionAttempts || 0) + 1)
       if (attempt < 4) {
         return NextResponse.json({
-          reply: objectionReply(attempt),
+          reply: objectionReply(attempt, locale),
           state: {
             ...current,
             step: "idle",
@@ -693,7 +735,10 @@ export async function POST(req: Request) {
         })
       }
       return NextResponse.json({
-        reply: `${objectionReply(attempt)} Si te encaja, lo vemos en una consultoría breve y sin coste.`,
+        reply:
+          locale === "en"
+            ? `${objectionReply(attempt, locale)} If you're open to it, we can review it in a short free consult.`
+            : `${objectionReply(attempt, locale)} Si te encaja, lo vemos en una consultoría breve y sin coste.`,
         state: {
           ...current,
           step: "idle",
@@ -704,11 +749,12 @@ export async function POST(req: Request) {
     }
 
     if (current.step === "idle" && isServiceQuestion(lower)) {
-      const aiReply = await generateConversationalReply(message)
+      const aiReply = await generateConversationalReply(message, locale)
       return NextResponse.json({
-        reply:
-          aiReply?.text ||
+        reply: aiReply?.text || t(
           "Buena pregunta. Nuestros agentes atienden mensajes de clientes, priorizan casos y organizan citas para que tu equipo tenga menos carga operativa. Si quieres, te lo explico con un ejemplo real de clinica.",
+          "Great question. Our agents handle client messages, prioritize cases, and organize appointments so your team has less operational load. If you want, I can explain with a real clinic example.",
+        ),
         provider: aiReply?.provider || "fallback",
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
       })
@@ -718,19 +764,28 @@ export async function POST(req: Request) {
       const city = extractCity(message)
       if (!city) {
         return NextResponse.json({
-          reply: "Para ajustar horario, dime ciudad y país donde estás.",
+          reply: t(
+            "Para ajustar horario, dime ciudad y país donde estás.",
+            "To adjust the schedule, tell me your city and country.",
+          ),
           state: current,
         })
       }
-      const slots = await buildSlots(3)
+      const slots = await buildSlots(3, locale)
       if (!slots.length) {
         return NextResponse.json({
-          reply: "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+          reply: t(
+            "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+            "I don't have available slots right now. Please try again in a few minutes.",
+          ),
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
       return NextResponse.json({
-        reply: `Vale, te dejo tres opciones para ${city}:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nCuál te encaja mejor?`,
+        reply: t(
+          `Vale, te dejo tres opciones para ${city}:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nCuál te encaja mejor?`,
+          `Great, here are three options for ${city}:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nWhich one works best for you?`,
+        ),
         openCalendar: true,
         state: {
           ...current,
@@ -749,7 +804,10 @@ export async function POST(req: Request) {
       const bookingTokenFromText = extractBookingToken(message)
       if (!bookingIdFromText && !bookingTokenFromText) {
         return NextResponse.json({
-          reply: "No detecto un identificador de cita válido. Envíame el ID de cita o el token que recibiste por correo.",
+          reply: t(
+            "No detecto un identificador de cita válido. Envíame el ID de cita o el token que recibiste por correo.",
+            "I can't detect a valid booking identifier. Send me the booking ID or the token you received by email.",
+          ),
           state: current,
         })
       }
@@ -767,19 +825,28 @@ export async function POST(req: Request) {
       const bookingById = Array.isArray(bookingByIdRaw) ? bookingByIdRaw[0] : bookingByIdRaw
       if (!bookingById) {
         return NextResponse.json({
-          reply: "No encuentro una cita activa con ese identificador. Revísalo y lo intentamos de nuevo.",
+          reply: t(
+            "No encuentro una cita activa con ese identificador. Revísalo y lo intentamos de nuevo.",
+            "I can't find an active booking with that identifier. Check it and we'll try again.",
+          ),
           state: current,
         })
       }
-      const slots = await buildSlots(3)
+      const slots = await buildSlots(3, locale)
       if (!slots.length) {
         return NextResponse.json({
-          reply: "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+          reply: t(
+            "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+            "I don't have available slots right now. Please try again in a few minutes.",
+          ),
           state: { intent: "none", step: "idle" },
         })
       }
       return NextResponse.json({
-        reply: `Ya tengo tu cita ${String(bookingById._id)}. Te propongo 3 horarios:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nElige 1, 2 o 3.`,
+        reply: t(
+          `Ya tengo tu cita ${String(bookingById._id)}. Te propongo 3 horarios:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nElige 1, 2 o 3.`,
+          `I found your booking ${String(bookingById._id)}. Here are 3 time options:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nChoose 1, 2, or 3.`,
+        ),
         state: {
           intent: "reschedule",
           step: "await_slot",
@@ -798,19 +865,28 @@ export async function POST(req: Request) {
       const slotIndex = extractSlotChoice(lower, current.proposedSlots?.length || 0)
       if (slotIndex === null) {
         return NextResponse.json({
-          reply: "Elige una opcion escribiendo 1, 2 o 3 para seguir.",
+          reply: t(
+            "Elige una opcion escribiendo 1, 2 o 3 para seguir.",
+            "Choose an option by typing 1, 2, or 3 to continue.",
+          ),
           state: current,
         })
       }
       const selectedSlot = current.proposedSlots?.[slotIndex] || null
       if (!selectedSlot) {
         return NextResponse.json({
-          reply: "Ese horario ya no esta disponible. Te paso opciones nuevas.",
-          state: { ...current, proposedSlots: await buildSlots(3) },
+          reply: t(
+            "Ese horario ya no esta disponible. Te paso opciones nuevas.",
+            "That slot is no longer available. I'll send new options.",
+          ),
+          state: { ...current, proposedSlots: await buildSlots(3, locale) },
         })
       }
       return NextResponse.json({
-        reply: `Genial, te dejo ${selectedSlot.label}. Pásame tu email para enviarte confirmación.`,
+        reply: t(
+          `Genial, te dejo ${selectedSlot.label}. Pásame tu email para enviarte confirmación.`,
+          `Great, I'll set ${selectedSlot.label}. Send me your email so I can send confirmation.`,
+        ),
         state: {
           ...current,
           selectedSlot,
@@ -824,12 +900,18 @@ export async function POST(req: Request) {
       const email = extractEmail(message)
       if (!email) {
         return NextResponse.json({
-          reply: "No veo un email valido. Escribelo completo, por ejemplo nombre@clinica.com.",
+          reply: t(
+            "No veo un email valido. Escribelo completo, por ejemplo nombre@clinica.com.",
+            "I can't see a valid email. Write it fully, for example name@clinic.com.",
+          ),
           state: current,
         })
       }
       return NextResponse.json({
-        reply: `Me confirmas si este email está bien: ${email}`,
+        reply: t(
+          `Me confirmas si este email está bien: ${email}`,
+          `Can you confirm this email is correct: ${email}`,
+        ),
         state: {
           ...current,
           email,
@@ -841,7 +923,10 @@ export async function POST(req: Request) {
     if (current.step === "await_email_confirm") {
       if (isNegative(lower)) {
         return NextResponse.json({
-          reply: "Dale, pásame el email correcto y seguimos.",
+          reply: t(
+            "Dale, pásame el email correcto y seguimos.",
+            "Got it, send me the correct email and we'll continue.",
+          ),
           state: {
             ...current,
             email: null,
@@ -851,12 +936,18 @@ export async function POST(req: Request) {
       }
       if (!isAffirmative(lower)) {
         return NextResponse.json({
-          reply: "Responde si o no para confirmar el email.",
+          reply: t(
+            "Responde si o no para confirmar el email.",
+            "Reply yes or no to confirm the email.",
+          ),
           state: current,
         })
       }
       return NextResponse.json({
-        reply: "Ahora pásame tu teléfono de contacto.",
+        reply: t(
+          "Ahora pásame tu teléfono de contacto.",
+          "Now send me your contact phone number.",
+        ),
         state: {
           ...current,
           step: "await_phone",
@@ -869,12 +960,18 @@ export async function POST(req: Request) {
       const phone = extractPhone(message)
       if (!phone) {
         return NextResponse.json({
-          reply: "No detecto un telefono valido. Enviamelo con prefijo si aplica.",
+          reply: t(
+            "No detecto un telefono valido. Enviamelo con prefijo si aplica.",
+            "I can't detect a valid phone number. Send it with country code if needed.",
+          ),
           state: current,
         })
       }
       return NextResponse.json({
-        reply: `Me confirmas este teléfono: ${phone}`,
+        reply: t(
+          `Me confirmas este teléfono: ${phone}`,
+          `Can you confirm this phone number: ${phone}`,
+        ),
         state: {
           ...current,
           phone,
@@ -886,7 +983,10 @@ export async function POST(req: Request) {
     if (current.step === "await_phone_confirm") {
       if (isNegative(lower)) {
         return NextResponse.json({
-          reply: "Dale, pasame el telefono correcto.",
+          reply: t(
+            "Dale, pasame el telefono correcto.",
+            "Got it, send me the correct phone number.",
+          ),
           state: {
             ...current,
             phone: null,
@@ -896,15 +996,21 @@ export async function POST(req: Request) {
       }
       if (!isAffirmative(lower)) {
         return NextResponse.json({
-          reply: "Responde si o no para confirmar el telefono.",
+          reply: t(
+            "Responde si o no para confirmar el telefono.",
+            "Reply yes or no to confirm the phone number.",
+          ),
           state: current,
         })
       }
 
       if (!current.selectedSlot) {
-        const slots = await buildSlots(3)
+        const slots = await buildSlots(3, locale)
         return NextResponse.json({
-          reply: "Se perdio el horario seleccionado. Te paso opciones nuevas.",
+          reply: t(
+            "Se perdio el horario seleccionado. Te paso opciones nuevas.",
+            "The selected slot was lost. I'll send new options.",
+          ),
           state: {
             ...current,
             proposedSlots: slots,
@@ -929,15 +1035,21 @@ export async function POST(req: Request) {
             : activeBooking
         if (!targetBooking) {
           return NextResponse.json({
-            reply: `No encuentro una cita activa con ese ID. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo aquí con cambios.`,
+            reply: t(
+              `No encuentro una cita activa con ese ID. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo aquí con cambios.`,
+              `I can't find an active booking with that ID. If you want a new one, create it from ${webBookingUrl} and then I can help you with changes here.`,
+            ),
             state: { intent: "none", step: "idle" },
           })
         }
         const ok = await rescheduleBooking(String(targetBooking._id), current.selectedSlot)
         if (!ok) {
-          const slots = await buildSlots(3)
+          const slots = await buildSlots(3, locale)
           return NextResponse.json({
-            reply: "Ese horario ya no esta libre. Te dejo tres nuevas opciones.",
+            reply: t(
+              "Ese horario ya no esta libre. Te dejo tres nuevas opciones.",
+              "That slot is no longer available. Here are three new options.",
+            ),
             state: {
               ...current,
               proposedSlots: slots,
@@ -963,8 +1075,14 @@ export async function POST(req: Request) {
         }
         return NextResponse.json({
           reply: emailDelivered
-            ? `Listo, tu cita ${String(targetBooking._id)} quedó reagendada para ${current.selectedSlot.label}. Te he enviado el correo actualizado. ¿Necesitas algo más?`
-            : `Listo, tu cita ${String(targetBooking._id)} quedó reagendada para ${current.selectedSlot.label}. ¿Necesitas algo más?`,
+            ? t(
+                `Listo, tu cita ${String(targetBooking._id)} quedó reagendada para ${current.selectedSlot.label}. Te he enviado el correo actualizado. ¿Necesitas algo más?`,
+                `Done, your booking ${String(targetBooking._id)} was rescheduled to ${current.selectedSlot.label}. I sent your updated confirmation email. Do you need anything else?`,
+              )
+            : t(
+                `Listo, tu cita ${String(targetBooking._id)} quedó reagendada para ${current.selectedSlot.label}. ¿Necesitas algo más?`,
+                `Done, your booking ${String(targetBooking._id)} was rescheduled to ${current.selectedSlot.label}. Do you need anything else?`,
+              ),
           state: { intent: "none", step: "await_more_help", objectionAttempts: 0 },
           booking: {
             bookingId: String(targetBooking._id),
@@ -977,8 +1095,10 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.json({
-        reply:
+        reply: t(
           "Gracias. Para crear citas nuevas necesitamos cerrar tus datos en el formulario web. Yo me quedo disponible para reagendar o cancelar cualquier cita existente.",
+          "Thanks. To create new bookings we need to complete your details in the web form. I'm available here to reschedule or cancel any existing booking.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
       })
     }
@@ -986,20 +1106,29 @@ export async function POST(req: Request) {
     if (current.step === "await_more_help") {
       if (isNegative(lower)) {
         return NextResponse.json({
-          reply: "Gracias por tu tiempo. Cuando quieras, aquí me tienes. Que tengas un gran día.",
+          reply: t(
+            "Gracias por tu tiempo. Cuando quieras, aquí me tienes. Que tengas un gran día.",
+            "Thanks for your time. I'm here whenever you need me. Have a great day.",
+          ),
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
       return NextResponse.json({
-        reply: "Cuéntame qué necesitas y te ayudo.",
+        reply: t(
+          "Cuéntame qué necesitas y te ayudo.",
+          "Tell me what you need and I'll help you.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
       })
     }
 
-    if (/\b(cancelar|cancela|anular|anula)\b/i.test(lower)) {
+    if (/\b(cancelar|cancela|anular|anula|cancel|cancellation)\b/i.test(lower)) {
       if (!activeBooking) {
         return NextResponse.json({
-          reply: `No veo una cita activa para cancelar. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo con cambios.`,
+          reply: t(
+            `No veo una cita activa para cancelar. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo con cambios.`,
+            `I don't see an active booking to cancel. If you want a new one, create it from ${webBookingUrl} and then I can help you with changes.`,
+          ),
           state: { intent: "none", step: "idle" },
         })
       }
@@ -1010,18 +1139,24 @@ export async function POST(req: Request) {
       })
       await Booking.updateOne({ _id: activeBooking._id }, { $set: { status: "cancelled" } })
       return NextResponse.json({
-        reply: "He cancelado tu cita activa. Si quieres, te propongo nuevos horarios ahora.",
+        reply: t(
+          "He cancelado tu cita activa. Si quieres, te propongo nuevos horarios ahora.",
+          "I canceled your active booking. If you want, I can suggest new slots now.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
         booking: null,
       })
     }
 
-    if (/\b(reagendar|reprogramar|cambiar hora|cambiar cita)\b/i.test(lower)) {
+    if (/\b(reagendar|reprogramar|cambiar hora|cambiar cita|reschedule|change time|change appointment)\b/i.test(lower)) {
       const bookingIdInMessage = extractBookingId(message)
       const bookingTokenInMessage = extractBookingToken(message)
       if (!bookingIdInMessage && !bookingTokenInMessage) {
         return NextResponse.json({
-          reply: "Claro. Para reagendar necesito el ID de cita o el token de reserva que te llegó por correo.",
+          reply: t(
+            "Claro. Para reagendar necesito el ID de cita o el token de reserva que te llegó por correo.",
+            "Sure. To reschedule, I need the booking ID or booking token you received by email.",
+          ),
           state: {
             intent: "reschedule",
             step: "await_booking_id",
@@ -1049,7 +1184,10 @@ export async function POST(req: Request) {
       const targetBooking = Array.isArray(targetBookingRaw) ? targetBookingRaw[0] : targetBookingRaw
       if (!targetBooking) {
         return NextResponse.json({
-          reply: "No encuentro una cita activa con ese identificador. Revísalo y te ayudo a intentarlo de nuevo.",
+          reply: t(
+            "No encuentro una cita activa con ese identificador. Revísalo y te ayudo a intentarlo de nuevo.",
+            "I can't find an active booking with that identifier. Check it and I'll help you try again.",
+          ),
           state: {
             intent: "reschedule",
             step: "await_booking_id",
@@ -1063,15 +1201,21 @@ export async function POST(req: Request) {
           },
         })
       }
-      const slots = await buildSlots(3)
+      const slots = await buildSlots(3, locale)
       if (!slots.length) {
         return NextResponse.json({
-          reply: "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+          reply: t(
+            "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
+            "I don't have available slots right now. Please try again in a few minutes.",
+          ),
           state: { intent: "none", step: "idle" },
         })
       }
       return NextResponse.json({
-        reply: `Ya tengo tu cita ${String(targetBooking._id)}. Te propongo estas opciones:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nEscribe 1, 2 o 3.`,
+        reply: t(
+          `Ya tengo tu cita ${String(targetBooking._id)}. Te propongo estas opciones:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nEscribe 1, 2 o 3.`,
+          `I found your booking ${String(targetBooking._id)}. Here are your options:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nType 1, 2, or 3.`,
+        ),
         state: {
           intent: "reschedule",
           step: "await_slot",
@@ -1089,24 +1233,30 @@ export async function POST(req: Request) {
     if (wantsBooking) {
       if (activeBooking) {
         const currentDate = new Date(activeBooking.date)
-        const label = formatDateLabel(currentDate, String(activeBooking.time))
+        const label = formatDateLabel(currentDate, String(activeBooking.time), locale)
         return NextResponse.json({
-          reply: `Ya tienes una cita activa para ${label}. ID de cita: ${String(activeBooking._id)}. Si quieres la puedo reagendar o cancelar.`,
+          reply: t(
+            `Ya tienes una cita activa para ${label}. ID de cita: ${String(activeBooking._id)}. Si quieres la puedo reagendar o cancelar.`,
+            `You already have an active booking for ${label}. Booking ID: ${String(activeBooking._id)}. I can reschedule or cancel it if you want.`,
+          ),
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
       return NextResponse.json({
-        reply:
+        reply: t(
           "Para reservar una cita nueva, hazlo desde el flujo web de ClinvetIA para completar tus datos. Cuando quieras, yo te ayudo a reagendar o cancelar con tu ID de cita.",
+          "To book a new appointment, use ClinvetIA's web flow to complete your details. Whenever you want, I can help you reschedule or cancel using your booking ID.",
+        ),
         state: { intent: "none", step: "idle", objectionAttempts: 0 },
       })
     }
 
-    const fallbackAiReply = await generateConversationalReply(message)
+    const fallbackAiReply = await generateConversationalReply(message, locale)
     return NextResponse.json({
-      reply:
-        fallbackAiReply?.text ||
+      reply: fallbackAiReply?.text || t(
         "Te ayudo con lo que necesites: puedo explicarte cómo funcionan nuestros agentes o ayudarte con tu cita. Qué prefieres?",
+        "I can help with whatever you need: I can explain how our agents work or help with your booking. Which do you prefer?",
+      ),
       provider: fallbackAiReply?.provider || "fallback",
       state: { intent: "none", step: "idle", objectionAttempts: 0 },
     })

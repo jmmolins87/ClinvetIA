@@ -135,8 +135,8 @@ export function Footer() {
     <footer
       aria-label={t("Pie de página de Clinvetia")}
       className={cn(
-        "border-t border-white/10",
-        "bg-white dark:bg-black/40 backdrop-blur-sm",
+        "border-t border-border/60",
+        "bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/65",
         "py-14",
       )}
     >
@@ -166,7 +166,7 @@ export function Footer() {
             <SkeletonWrapper as="span" wrapperClassName="inline-grid" className="h-[1.2em] w-[12em] rounded-md">
               <TranslatableText text="Hecho con" />{" "}
               <span aria-label="amor" className="text-destructive">♥</span>{" "}
-              <TranslatableText text="para veterinarias." />
+              <TranslatableText text="para clínicas veterinarias." />
             </SkeletonWrapper>
           </p>
         </div>

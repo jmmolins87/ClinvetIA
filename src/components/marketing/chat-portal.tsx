@@ -31,6 +31,7 @@ import { createSession } from "@/lib/api"
 import { getRecaptchaToken } from "@/lib/recaptcha-client"
 import { useROIStore } from "@/store/roi-store"
 import { BookingCalendar } from "@/components/marketing/booking-calendar"
+import { useTranslationSkeleton } from "@/components/providers/translation-skeleton"
 
 type ChatMessage = {
   role: "assistant" | "user"
@@ -68,9 +69,14 @@ type ChatApiResponse = {
     | null
 }
 
-const INITIAL_MESSAGE: ChatMessage = {
-  role: "assistant",
-  content: "Hola, te ayudo a reservar, reagendar o cancelar tu cita. Dime que necesitas.",
+function getInitialMessage(locale: "es" | "en"): ChatMessage {
+  return {
+    role: "assistant",
+    content:
+      locale === "en"
+        ? "Hi, I can help you book, reschedule, or cancel your appointment. Tell me what you need. I can also answer questions about what ClinvetIA is."
+        : "Hola, te ayudo a reservar, reagendar o cancelar tu cita. Dime qué necesitas. También puedo resolver dudas sobre qué es ClinvetIA.",
+  }
 }
 
 function RoiDialog({
@@ -160,6 +166,7 @@ function ChatPanel({
   isOnline,
   showTyping,
   canClose,
+  locale,
 }: {
   messages: ChatMessage[]
   input: string
@@ -172,6 +179,7 @@ function ChatPanel({
   isOnline: boolean
   showTyping: boolean
   canClose: boolean
+  locale: "es" | "en"
 }) {
   const messagesScrollAreaRef = useRef<HTMLDivElement | null>(null)
 
@@ -192,7 +200,7 @@ function ChatPanel({
           <div>
             <SheetTitle className="text-xl">Chat ClinvetIA</SheetTitle>
             <SheetDescription className="text-sm">
-              Gestión de tus citas sin perder el tiempo.
+              {locale === "en" ? "Manage your appointments without wasting time." : "Gestión de tus citas sin perder el tiempo."}
             </SheetDescription>
             <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
               <span
@@ -201,7 +209,7 @@ function ChatPanel({
                   isOnline ? "bg-success shadow-[0_0_10px_rgba(var(--success-rgb),0.7)]" : "bg-destructive shadow-[0_0_10px_rgba(var(--destructive-rgb),0.7)]",
                 )}
               />
-              {isOnline ? "En línea" : "Offline"}
+              {isOnline ? (locale === "en" ? "Online" : "En línea") : "Offline"}
             </div>
           </div>
           {onClose ? (
@@ -260,10 +268,9 @@ function ChatPanel({
                 <div className="h-[56px] w-[56px] overflow-hidden rounded-full border border-primary/40 bg-primary/15">
                   <video
                     className="h-full w-full object-cover"
-                    autoPlay
                     muted
-                    loop
                     playsInline
+                    preload="metadata"
                   >
                     <source src="/videos/avatar/avatar-dog.webm" type="video/webm" />
                     <source src="/videos/avatar/avatar-dog.mp4" type="video/mp4" />
@@ -288,10 +295,9 @@ function ChatPanel({
               <div className="h-[56px] w-[56px] overflow-hidden rounded-full border border-primary/40 bg-primary/15">
                 <video
                   className="h-full w-full object-cover"
-                  autoPlay
                   muted
-                  loop
                   playsInline
+                  preload="metadata"
                 >
                   <source src="/videos/avatar/avatar-dog.webm" type="video/webm" />
                   <source src="/videos/avatar/avatar-dog.mp4" type="video/mp4" />
@@ -299,7 +305,7 @@ function ChatPanel({
                 </video>
               </div>
               <div className="rounded-2xl border border-[rgba(var(--white-rgb),0.10)] bg-[rgba(var(--white-rgb),0.05)] px-4 py-3 text-sm text-muted-foreground">
-                escribiendo...
+                {locale === "en" ? "typing..." : "escribiendo..."}
               </div>
             </div>
           )}
@@ -315,7 +321,7 @@ function ChatPanel({
             onKeyDown={onInputKeyDown}
             rows={1}
             className="min-h-14 max-h-none flex-1 resize-none overflow-hidden rounded-xl border border-[rgba(var(--white-rgb),0.10)] bg-[rgba(var(--white-rgb),0.05)] px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-primary/40"
-            placeholder="Escribe tu mensaje..."
+            placeholder={locale === "en" ? "Write your message..." : "Escribe tu mensaje..."}
             disabled={isSending}
           />
           <Button size="icon" className="h-11 w-11 rounded-xl" type="submit" disabled={isSending || !input.trim()}>
@@ -328,11 +334,12 @@ function ChatPanel({
 }
 
 export function ChatPortal() {
+  const { locale } = useTranslationSkeleton()
   const router = useRouter()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(true)
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE])
+  const [messages, setMessages] = useState<ChatMessage[]>([getInitialMessage(locale)])
   const [chatState, setChatState] = useState<ChatState>({ intent: "none", step: "idle" })
   const [input, setInput] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -370,6 +377,15 @@ export function ChatPortal() {
     window.addEventListener("clinvetia:open-chat", handleOpenChat)
     return () => window.removeEventListener("clinvetia:open-chat", handleOpenChat)
   }, [])
+
+  useEffect(() => {
+    const localizedInitial = getInitialMessage(locale).content
+    setMessages((prev) => {
+      if (prev.length !== 1) return prev
+      if (prev[0]?.role !== "assistant") return prev
+      return [{ role: "assistant", content: localizedInitial }]
+    })
+  }, [locale])
 
   useEffect(() => {
     const updateOnline = () => setIsOnline(window.navigator.onLine)
@@ -467,6 +483,7 @@ export function ChatPortal() {
           state: chatState,
           sessionToken: liveSessionToken,
           bookingToken: liveBookingToken,
+          locale,
         }),
       })
       const data = (await res.json()) as ChatApiResponse & { error?: string }
@@ -512,7 +529,7 @@ export function ChatPortal() {
       const initialDelayMs = 5000 + Math.floor(Math.random() * 5001)
       await new Promise((resolve) => setTimeout(resolve, initialDelayMs))
       setShowTyping(true)
-      const fallbackText = error instanceof Error ? error.message : "Ha ocurrido un error"
+      const fallbackText = error instanceof Error ? error.message : locale === "en" ? "An error occurred" : "Ha ocurrido un error"
       const typingDurationMs = Math.min(9000, Math.max(1500, Math.floor(fallbackText.length * 24)))
       await new Promise((resolve) => setTimeout(resolve, typingDurationMs))
       setShowTyping(false)
@@ -559,7 +576,10 @@ export function ChatPortal() {
         ...prev,
         {
           role: "assistant",
-          content: "Perfecto, ya tengo tu ROI. Te abro el calendario para que elijas día y hora.",
+          content:
+            locale === "en"
+              ? "Perfect, I already have your ROI. I'll open the calendar so you can choose day and time."
+              : "Perfecto, ya tengo tu ROI. Te abro el calendario para que elijas día y hora.",
         },
       ])
       setChatState({ intent: "book", step: "await_slot" })
@@ -569,7 +589,7 @@ export function ChatPortal() {
         ...prev,
         {
           role: "assistant",
-          content: error instanceof Error ? error.message : "No se pudo guardar el ROI",
+          content: error instanceof Error ? error.message : locale === "en" ? "Could not save ROI" : "No se pudo guardar el ROI",
         },
       ])
     } finally {
@@ -655,6 +675,7 @@ export function ChatPortal() {
                 isOnline={isOnline}
                 showTyping={showTyping}
                 canClose
+                locale={locale}
               />
             </div>
           </SheetContent>
@@ -693,6 +714,7 @@ export function ChatPortal() {
                 isOnline={isOnline}
                 showTyping={showTyping}
                 canClose
+                locale={locale}
               />
             </div>
           </DialogContent>

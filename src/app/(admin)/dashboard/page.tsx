@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -219,6 +219,48 @@ function DonutStatus({
   )
 }
 
+function TableOverflowHint({ children }: { children: ReactNode }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [showRightHint, setShowRightHint] = useState(false)
+
+  const resolveScrollElement = useCallback(() => {
+    return containerRef.current?.querySelector("[data-table-scroll]") as HTMLDivElement | null
+  }, [])
+
+  const updateHint = useCallback(() => {
+    const el = resolveScrollElement()
+    if (!el) return
+    const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft
+    setShowRightHint(remaining > 2)
+  }, [resolveScrollElement])
+
+  useEffect(() => {
+    const el = resolveScrollElement()
+    updateHint()
+    if (el) {
+      el.addEventListener("scroll", updateHint, { passive: true })
+    }
+    window.addEventListener("resize", updateHint)
+    return () => {
+      if (el) {
+        el.removeEventListener("scroll", updateHint)
+      }
+      window.removeEventListener("resize", updateHint)
+    }
+  }, [resolveScrollElement, updateHint])
+
+  return (
+    <div ref={containerRef} className="relative mt-4 w-full overflow-hidden rounded-xl">
+        {children}
+      {showRightHint && (
+        <>
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-xl bg-gradient-to-l from-primary/25 via-primary/10 to-transparent sm:hidden" />
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -376,7 +418,7 @@ export default function AdminDashboardPage() {
   const chartMax = Math.max(...bookingTrend, ...contactTrend, 1)
 
   return (
-    <div className="space-y-7">
+    <div className="w-full space-y-7 overflow-x-hidden">
       <Dialog
         open={Boolean(emailTarget)}
         onOpenChange={(open) => {
@@ -455,8 +497,8 @@ export default function AdminDashboardPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <GlassCard className="relative p-5 md:p-6">
+      <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <GlassCard className="relative w-full min-w-0 p-5 md:p-6">
           <div className="relative flex flex-col gap-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
@@ -494,7 +536,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid w-full gap-4 sm:grid-cols-2">
-              <GlassCard className="border-white/10 p-4 min-w-0">
+              <GlassCard className="border-white/10 bg-background/70 backdrop-blur-none shadow-none p-4 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground">Total citas</span>
                   <Icon icon={CalendarDays} size="sm" variant="primary" className="text-primary drop-shadow-[0_0_12px_rgba(var(--primary-rgb),0.85)]" />
@@ -505,7 +547,7 @@ export default function AdminDashboardPage() {
                 <div className="mt-1 text-xs text-muted-foreground">Base de operaciones</div>
               </GlassCard>
 
-              <GlassCard className="border-white/10 p-4 min-w-0">
+              <GlassCard className="border-white/10 bg-background/70 backdrop-blur-none shadow-none p-4 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground">Aceptación</span>
                   <Icon icon={TrendingUp} size="sm" variant="success" className="text-success drop-shadow-[0_0_12px_rgba(var(--success-rgb),0.85)]" />
@@ -516,7 +558,7 @@ export default function AdminDashboardPage() {
                 <div className="mt-1 text-xs text-muted-foreground">Confirmadas / total</div>
               </GlassCard>
 
-              <GlassCard className="border-warning/20 bg-warning/5 p-4 min-w-0">
+              <GlassCard className="border-warning/20 bg-warning/5 backdrop-blur-none shadow-none p-4 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-wider text-warning">Pendientes</span>
                   <Icon icon={Clock3} size="sm" variant="warning" className="text-warning drop-shadow-[0_0_12px_rgba(var(--warning-rgb),0.85)]" />
@@ -527,7 +569,7 @@ export default function AdminDashboardPage() {
                 <div className="mt-1 text-xs text-muted-foreground">Requieren decisión</div>
               </GlassCard>
 
-              <GlassCard className="border-secondary/20 bg-secondary/5 p-4 min-w-0">
+              <GlassCard className="border-secondary/20 bg-secondary/5 backdrop-blur-none shadow-none p-4 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-wider text-secondary">Leads</span>
                   <Icon icon={Inbox} size="sm" variant="secondary" className="text-secondary drop-shadow-[0_0_12px_rgba(var(--secondary-rgb),0.85)]" />
@@ -541,7 +583,7 @@ export default function AdminDashboardPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="p-5 md:p-6">
+        <GlassCard className="w-full min-w-0 p-5 md:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Icon icon={Activity} size="sm" variant="accent" />
@@ -564,8 +606,8 @@ export default function AdminDashboardPage() {
         </GlassCard>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr_1fr]">
-        <GlassCard className="p-5">
+      <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[1.2fr_1fr_1fr]">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr] sm:items-center">
             <div className="flex min-w-0 items-center gap-2">
               <Icon icon={CalendarClock} size="default" variant="primary" />
@@ -683,7 +725,7 @@ export default function AdminDashboardPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="p-5">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon icon={Users} size="sm" variant="primary" />
@@ -822,14 +864,14 @@ export default function AdminDashboardPage() {
         </GlassCard>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <GlassCard className="p-5">
+      <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-base font-semibold">Tabla rápida de operación</h3>
             <Badge variant="outline" className="w-fit">Acción sugerida</Badge>
           </div>
-          <div className="mt-4">
-              <Table>
+          <TableOverflowHint>
+              <Table className="min-w-[720px] md:min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Bloque</TableHead>
@@ -891,10 +933,10 @@ export default function AdminDashboardPage() {
                 ))}
               </TableBody>
               </Table>
-          </div>
+          </TableOverflowHint>
         </GlassCard>
 
-        <GlassCard className="p-5">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-base font-semibold">Accesos rápidos</h3>
             <Badge variant="accent" className="w-fit">Gestión</Badge>
@@ -936,14 +978,14 @@ export default function AdminDashboardPage() {
         </GlassCard>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <GlassCard className="p-5">
+      <div className="grid w-full min-w-0 gap-6 xl:grid-cols-2">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-base font-semibold">Tabla de estadísticas (citas)</h3>
             <Badge variant="outline" className="w-fit">Estados</Badge>
           </div>
-          <div className="mt-4">
-              <Table>
+          <TableOverflowHint>
+              <Table className="min-w-[720px] md:min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Métrica</TableHead>
@@ -987,16 +1029,16 @@ export default function AdminDashboardPage() {
                 </TableRow>
               </TableFooter>
               </Table>
-          </div>
+          </TableOverflowHint>
         </GlassCard>
 
-        <GlassCard className="p-5">
+        <GlassCard className="w-full min-w-0 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-base font-semibold">Tabla de estadísticas (actividad)</h3>
             <Badge variant="accent" className="w-fit">Resumen</Badge>
           </div>
-          <div className="mt-4">
-              <Table>
+          <TableOverflowHint>
+              <Table className="min-w-[720px] md:min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Indicador</TableHead>
@@ -1052,7 +1094,7 @@ export default function AdminDashboardPage() {
             ))}
               </TableBody>
               </Table>
-          </div>
+          </TableOverflowHint>
         </GlassCard>
       </div>
     </div>

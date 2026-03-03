@@ -11,7 +11,6 @@ import {
   Info,
   PercentCircle,
   ReceiptText,
-  TrendingDown,
   TrendingUp,
   Users,
   type LucideIcon,
@@ -45,7 +44,14 @@ const fadeUp = {
   transition: { duration: 0.5 },
 } as const
 
-const CLINVETIA_MONTHLY_COST = 297
+const CONVERSION_IMPROVEMENTS = [
+  { label: "Captación", pct: 4 },
+  { label: "Atención IA", pct: 8 },
+  { label: "Seguimiento", pct: 7 },
+  { label: "Fidelización", pct: 5 },
+] as const
+
+const RECOVERY_RATE = CONVERSION_IMPROVEMENTS.reduce((acc, item) => acc + item.pct, 0) / 100
 
 function formatEur(n: number) {
   return n.toLocaleString("es-ES") + "€"
@@ -74,13 +80,18 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
   const [isCalculating, setIsCalculating] = useState(false)
   const [isCreatingSession, setIsCreatingSession] = useState(false)
   const [createSessionError, setCreateSessionError] = useState<string | null>(null)
+  const [monthlyAdsSpend, setMonthlyAdsSpend] = useState(1000)
 
   useEffect(() => {
     setMounted(true)
     setHasAcceptedDialog(false)
     setAccessToken(null)
     storage.remove("local", "roi_access_token")
-  }, [setHasAcceptedDialog, setAccessToken])
+    setMonthlyPatients(100)
+    setAverageTicket(500)
+    setConversionLoss(20)
+    setMonthlyAdsSpend(1000)
+  }, [setAccessToken, setAverageTicket, setConversionLoss, setHasAcceptedDialog, setMonthlyPatients])
 
   const calculatingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -91,25 +102,57 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
     calculatingTimeoutRef.current = setTimeout(() => { setIsCalculating(false) }, 1000)
   }
 
-  const ingresosBrutos = monthlyPatients * averageTicket
-  const perdidaMensual = Math.round(monthlyPatients * (conversionLoss / 100) * averageTicket)
-  const recuperacionEstimada = Math.round(perdidaMensual * 0.7)
-  const beneficioNeto = recuperacionEstimada - CLINVETIA_MONTHLY_COST
-  const roi = Math.round(((beneficioNeto) / CLINVETIA_MONTHLY_COST) * 100)
-  const paybackDays = beneficioNeto > 0 ? Math.ceil((CLINVETIA_MONTHLY_COST / (beneficioNeto / 30))) : null
-  const isPositive = roi > 0
+  const monthlyLeads = monthlyPatients
+  const currentConversion = conversionLoss
+  const convertedLeads = monthlyLeads * (currentConversion / 100)
+  const nonConvertedLeads = monthlyLeads - convertedLeads
+  const extraConvertedLeadsRaw = nonConvertedLeads * RECOVERY_RATE
+  const extraConvertedLeadsRounded = Math.round(extraConvertedLeadsRaw)
+  const newConvertedLeadsRaw = convertedLeads + extraConvertedLeadsRaw
+  const newConversion = monthlyLeads > 0 ? (newConvertedLeadsRaw / monthlyLeads) * 100 : 0
+
+  const revenueWithoutAI = Math.round(convertedLeads * averageTicket)
+  const revenueWithAI = Math.round(newConvertedLeadsRaw * averageTicket)
+  const extraMonthlyRevenue = Math.max(0, revenueWithAI - revenueWithoutAI)
+
+  const landingSetup = averageTicket <= 500 ? 1000 : averageTicket <= 2000 ? 1500 : 5000
+  const setterAiSetup = monthlyLeads <= 1000 ? 500 : monthlyLeads <= 2500 ? 1000 : 1600
+  const followupSetup = monthlyLeads <= 1000 ? 300 : monthlyLeads <= 2500 ? 600 : 1000
+  const adsSetup = 1500
+  const setupInitial = Math.max(0, landingSetup + setterAiSetup + followupSetup + adsSetup - 100)
+
+  const leadOverageBlocks = Math.max(0, Math.ceil((monthlyLeads - 1000) / 500))
+  const setterAiMonthly = 250 + leadOverageBlocks * 100
+  const followupMonthly = 250 + leadOverageBlocks * 100
+  const adsMonthly = monthlyAdsSpend < 1000 ? 700 : monthlyAdsSpend > 3000 ? 2500 : 1000
+  const monthlyInvestment = setterAiMonthly + followupMonthly + adsMonthly + 150
+
+  const roi3m = Math.round((((extraMonthlyRevenue * 3) - (setupInitial + monthlyInvestment * 3)) / (setupInitial + monthlyInvestment * 3)) * 100)
+  const roi6m = Math.round((((extraMonthlyRevenue * 6) - (setupInitial + monthlyInvestment * 6)) / (setupInitial + monthlyInvestment * 6)) * 100)
+  const roi12m = Math.round((((extraMonthlyRevenue * 12) - (setupInitial + monthlyInvestment * 12)) / (setupInitial + monthlyInvestment * 12)) * 100)
+  const roi = roi12m
+  const isPositive = roi12m > 0
 
   const SLIDERS = [
-    { label: "Pacientes / mes", icon: Users, value: monthlyPatients, setter: setMonthlyPatients, min: 0, max: 1000, step: 10, display: `${monthlyPatients}`, color: "primary" as const, hint: "Consultas gestionadas al mes." },
-    { label: "Ticket Medio", icon: ReceiptText, value: averageTicket, setter: setAverageTicket, min: 0, max: 200, step: 5, display: `${averageTicket}€`, color: "secondary" as const, hint: "Ingreso medio por visita." },
-    { label: "% Pérdida de conversión", icon: PercentCircle, value: conversionLoss, setter: setConversionLoss, min: 0, max: 60, step: 1, display: `${conversionLoss}%`, color: "destructive" as const, hint: "% consultas perdidas." },
+    { label: "Leads mensuales", icon: Users, value: monthlyLeads, setter: setMonthlyPatients, min: 100, max: 5000, step: 50, display: `${monthlyLeads}`, color: "primary" as const, hint: "Cantidad de leads" },
+    { label: "Gasto en Ads mensual", icon: TrendingUp, value: monthlyAdsSpend, setter: setMonthlyAdsSpend, min: 500, max: 5000, step: 50, display: `${monthlyAdsSpend}€`, color: "accent" as const, hint: "Inversión en anuncios" },
+    { label: "Ticket promedio cliente", icon: ReceiptText, value: averageTicket, setter: setAverageTicket, min: 100, max: 5000, step: 50, display: `${averageTicket}€`, color: "secondary" as const, hint: "Afecta el precio de landing page" },
+    { label: "Conversión actual (%)", icon: PercentCircle, value: currentConversion, setter: setConversionLoss, min: 5, max: 60, step: 1, display: `${currentConversion}%`, color: "destructive" as const, hint: "Conversión sin automatización IA" },
   ] as const
 
   const METRICS = [
-    { label: "Pérdida mensual", value: `-${formatEur(perdidaMensual)}`, icon: TrendingDown, variant: "destructive" as const },
-    { label: "Recuperable", value: `+${formatEur(recuperacionEstimada)}`, icon: TrendingUp, variant: "success" as const },
-    { label: "Beneficio neto", value: beneficioNeto >= 0 ? `+${formatEur(beneficioNeto)}` : `-${formatEur(Math.abs(beneficioNeto))}`, icon: Euro, variant: beneficioNeto >= 0 ? "primary" as const : "destructive" as const },
-    { label: "Payback", value: paybackDays ? `${paybackDays} días` : "—", icon: Calculator, variant: "muted" as const },
+    { label: "Setup inicial", value: formatEur(setupInitial), icon: Calculator, variant: "muted" as const },
+    { label: "Mensual", value: formatEur(monthlyInvestment), icon: Euro, variant: "muted" as const },
+    { label: "ROI 3 meses", value: `${roi3m}%`, icon: TrendingUp, variant: roi3m >= 0 ? "success" as const : "destructive" as const },
+    { label: "ROI 6 meses", value: `${roi6m}%`, icon: TrendingUp, variant: roi6m >= 0 ? "success" as const : "destructive" as const },
+    { label: "ROI 12 meses", value: `${roi12m}%`, icon: TrendingUp, variant: roi12m >= 0 ? "primary" as const : "destructive" as const },
+  ] as const
+
+  const SERVICE_FEES = [
+    { title: "Landing Page", setup: `${formatEur(landingSetup)} setup`, monthly: "—", note: "Premium: <=500€ = 1000€, 500-2000€ = 1500€, >2000€ = 5000€" },
+    { title: "Setter de IA", setup: `${formatEur(setterAiSetup)} setup`, monthly: `${formatEur(setterAiMonthly)}/mes`, note: "Base: 1000 leads = 250€/mes, +500 leads = +100€/mes" },
+    { title: "Setter de Seguimiento", setup: `${formatEur(followupSetup)} setup`, monthly: `${formatEur(followupMonthly)}/mes`, note: "Base: 1000 leads = 250€/mes, +500 leads = +100€/mes" },
+    { title: "Pack Anuncios Setup", setup: `${formatEur(adsSetup)} setup`, monthly: `${formatEur(adsMonthly)}/mes`, note: "Setup 1500€ + mensual: <1k=700€, ~2k=1000€, >3k=2500€" },
   ] as const
 
   return (
@@ -117,9 +160,9 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
       {trigger ? <div className="mb-8 flex justify-center">{trigger}</div> : null}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="container mx-auto px-4 text-center">
-          <motion.div {...fadeUp} transition={{ delay: 0.1 }}><Badge variant="default" className="mb-6">Calculadora de rentabilidad</Badge></motion.div>
-          <motion.h1 {...fadeUp} transition={{ delay: 0.2 }} className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">¿Cuánto dinero pierdes <span className="text-gradient-primary">cada mes</span>?</motion.h1>
-          <motion.p {...fadeUp} transition={{ delay: 0.3 }} className="mx-auto max-w-2xl text-lg text-muted-foreground">Ajusta los valores a tu clínica y descubre el ROI real que obtendrías con <BrandName />.</motion.p>
+          <motion.div {...fadeUp} transition={{ delay: 0.1 }}><Badge variant="default" className="mb-6">Calculadora ROI - Genérico</Badge></motion.div>
+          <motion.h1 {...fadeUp} transition={{ delay: 0.2 }} className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">Calcula el retorno de inversión para <span className="text-gradient-primary">clínicas veterinarias</span></motion.h1>
+          <motion.p {...fadeUp} transition={{ delay: 0.3 }} className="mx-auto max-w-3xl text-lg text-muted-foreground">Ajusta los parámetros y proyecta cuánto ingreso extra puedes recuperar con captación, atención IA, seguimiento y fidelización.</motion.p>
         </div>
       </section>
 
@@ -133,20 +176,39 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
                 ))}
               </GlassCard>
 
+              <GlassCard className="p-5 space-y-4">
+                <p className="text-base font-medium text-muted-foreground">Referencia de servicios y fees</p>
+                <div className="space-y-3">
+                  {SERVICE_FEES.map((item) => (
+                    <div key={item.title} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                        <p className="text-sm text-primary">{item.setup}</p>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-3">
+                        <p className="text-xs text-muted-foreground">{item.note}</p>
+                        <p className="text-xs font-semibold text-secondary whitespace-nowrap">{item.monthly}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+
               {mounted && (
                 <GlassCard className="p-5 space-y-4">
                   <div className="flex items-center gap-2">
                     <Icon icon={Info} size="sm" className="text-muted-foreground" />
-                    <p className="text-base font-medium text-muted-foreground">Cómo se calcula el ROI</p>
+                    <p className="text-base font-medium text-muted-foreground">Modelo de referencia</p>
                   </div>
                   <div className="space-y-3">
-                    <FormulaRow label="Ingresos brutos" formula={`${monthlyPatients} pac × ${averageTicket}€`} result={formatEur(ingresosBrutos)} color="text-foreground" isCalculating={isCalculating} />
-                    <FormulaRow label="Pérdida mensual" formula={`${monthlyPatients} × ${conversionLoss}% × ${averageTicket}€`} result={`-${formatEur(perdidaMensual)}`} color="text-destructive" isCalculating={isCalculating} />
-                    <FormulaRow label="Recuperación (70%)" formula={`${formatEur(perdidaMensual)} × 0.70`} result={`+${formatEur(recuperacionEstimada)}`} color="text-success" isCalculating={isCalculating} />
-                    <div className="border-t border-white/10 pt-3"><FormulaRow label="Coste mensual" formula="Tarifa plana" result={`-${formatEur(CLINVETIA_MONTHLY_COST)}`} color="text-muted-foreground" /></div>
-                    <div className="border-t border-white/10 pt-3">
-                      <FormulaRow label="Beneficio neto" formula="Recuperado − Coste" result={beneficioNeto >= 0 ? `+${formatEur(beneficioNeto)}` : `-${formatEur(Math.abs(beneficioNeto))}`} color={beneficioNeto >= 0 ? "text-primary font-semibold" : "text-destructive font-semibold"} isCalculating={isCalculating} />
-                    </div>
+                    <FormulaRow label="Leads no convertidos" formula={`${monthlyLeads} - ${(convertedLeads).toFixed(0)}`} result={`${Math.round(nonConvertedLeads)}`} color="text-muted-foreground" isCalculating={isCalculating} />
+                    <FormulaRow label="Mejora total" formula={`${CONVERSION_IMPROVEMENTS.map((item) => `${item.label} +${item.pct}%`).join(" · ")}`} result={`+${Math.round(RECOVERY_RATE * 100)}% de leads perdidos`} color="text-primary" isCalculating={isCalculating} />
+                    <FormulaRow label="Leads extra convertidos" formula={`${Math.round(nonConvertedLeads)} × ${Math.round(RECOVERY_RATE * 100)}%`} result={`${extraConvertedLeadsRounded}`} color="text-success" isCalculating={isCalculating} />
+                    <FormulaRow label="Nueva conversión" formula={`${newConvertedLeadsRaw.toFixed(1)} / ${monthlyLeads}`} result={`${newConversion.toFixed(1)}%`} color="text-success" isCalculating={isCalculating} />
+                    <div className="border-t border-white/10 pt-3" />
+                    <FormulaRow label="SIN automatización IA" formula={`${Math.round(convertedLeads)} ventas`} result={formatEur(revenueWithoutAI)} color="text-muted-foreground" isCalculating={isCalculating} />
+                    <FormulaRow label="CON automatización IA" formula={`${newConvertedLeadsRaw.toFixed(1)} ventas`} result={formatEur(revenueWithAI)} color="text-primary font-semibold" isCalculating={isCalculating} />
+                    <FormulaRow label="Ingresos extra mensuales" formula={`+${extraConvertedLeadsRounded} ventas/mes`} result={`+${formatEur(extraMonthlyRevenue)}`} color="text-success font-semibold" isCalculating={isCalculating} />
                   </div>
                 </GlassCard>
               )}
@@ -156,15 +218,15 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
               {mounted && (
                 <>
                   <GlassCard className="p-6 text-center space-y-2">
-                    <p className="text-base text-muted-foreground font-medium">Tu ROI con ClinvetIA</p>
+                    <p className="text-base text-muted-foreground font-medium">Ingresos extra mensuales</p>
                     <AnimatePresence mode="wait">
                       {isCalculating ? (
                         <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center h-[3.75rem]"><Spinner size="lg" variant="primary" /></motion.div>
                       ) : (
-                        <motion.p key={roi} initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`text-6xl font-bold tabular-nums ${isPositive ? "text-success drop-shadow-[0_0_20px_rgba(var(--success-rgb),0.5)]" : "text-destructive"}`}>{roi > 0 ? "+" : ""}{roi}%</motion.p>
+                        <motion.p key={extraMonthlyRevenue} initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl font-bold tabular-nums text-success drop-shadow-[0_0_20px_rgba(var(--success-rgb),0.5)]">+{formatEur(extraMonthlyRevenue)}</motion.p>
                       )}
                     </AnimatePresence>
-                    <p className="text-base text-muted-foreground">{isCalculating ? "Calculando..." : isPositive ? "ROI positivo — muy rentable" : "Ajusta los valores"}</p>
+                    <p className="text-base text-muted-foreground">{isCalculating ? "Calculando..." : `(${extraConvertedLeadsRounded} ventas extra cada mes)`}</p>
                   </GlassCard>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -174,15 +236,15 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
                   </div>
 
                   <GlassCard className={cn("p-4 bg-gradient-to-br border-success/30", isPositive ? "from-success/10 via-background to-primary/5" : "from-background/60")}>
-                    <p className="text-base text-center">Por <span className="font-bold">1€</span> invertido, recuperas {isCalculating ? <Spinner size="sm" variant="default" className="inline-flex align-middle" /> : <span className={cn("font-bold", isPositive ? "text-success" : "")}>{(roi / 100 + 1).toFixed(1)}€</span>}</p>
+                    <p className="text-base text-center">De {Math.round(nonConvertedLeads)} leads no convertidos, convertirás <span className="font-bold text-success">{extraConvertedLeadsRounded}</span> más. Nueva conversión: <span className="font-bold text-success">{newConversion.toFixed(1)}%</span></p>
                   </GlassCard>
                 </>
               )}
 
               <GlassCard className="p-5 space-y-4">
-                <p className="text-lg font-medium">¿Quieres ver estos números en tu clínica?</p>
-                <p className="text-base text-muted-foreground leading-relaxed">Analizamos tu caso concreto en una llamada de 30 min. Recibirás tu proyección real sin compromiso.</p>
-                <div className="mt-3 border-t border-white/10 pt-4 text-center font-semibold text-success">Demo gratuita</div>
+                <p className="text-lg font-medium">Inversión estimada</p>
+                <p className="text-base text-muted-foreground leading-relaxed">Setup inicial: <span className="font-semibold text-foreground">{formatEur(setupInitial)}</span> · Mensual: <span className="font-semibold text-foreground">{formatEur(monthlyInvestment)}/mes</span></p>
+                <div className="mt-3 border-t border-white/10 pt-4 text-center font-semibold text-success">ROI 3m: {roi3m}% · ROI 6m: {roi6m}% · ROI 12m: {roi12m}%</div>
               </GlassCard>
 
               <Button size="lg" className="w-full gap-2" onClick={() => setShowSkipDialog(true)}>
@@ -228,11 +290,11 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
   )
 }
 
-type SliderColor = "primary" | "secondary" | "destructive"
+type SliderColor = "primary" | "secondary" | "destructive" | "accent"
 
 function SliderField({ label, icon: IconComponent, value, onChange, min, max, step, display, color, hint }: { label: string, icon: LucideIcon, value: number, onChange: (v: number) => void, min: number, max: number, step: number, display: string, color: SliderColor, hint?: string }) {
-  const colorMap = { primary: "text-primary", secondary: "text-neon-pink", destructive: "text-destructive" }
-  const dotMap = { primary: "bg-primary", secondary: "bg-neon-pink", destructive: "bg-destructive" }
+  const colorMap = { primary: "text-primary", secondary: "text-neon-pink", destructive: "text-destructive", accent: "text-accent" }
+  const dotMap = { primary: "bg-primary", secondary: "bg-neon-pink", destructive: "bg-destructive", accent: "bg-accent" }
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -293,7 +355,7 @@ function ResultDialog({ open, onOpenChange, data, onConfirm, isSubmitting, error
           <DialogDescription className="text-center text-base">Obtendrás un feedback personalizado mucho más exacto.</DialogDescription>
         </DialogHeader>
         <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 space-y-2 text-base">
-          {[{ l: "Pacientes/mes", v: data.monthlyPatients }, { l: "Ticket medio", v: `${data.averageTicket}€` }, { l: "Pérdida", v: `${data.conversionLoss}%` }].map(i => (
+          {[{ l: "Leads/mes", v: data.monthlyPatients }, { l: "Ticket medio", v: `${data.averageTicket}€` }, { l: "Conversión actual", v: `${data.conversionLoss}%` }].map(i => (
             <div key={i.l} className="flex justify-between"><span>{i.l}:</span><span className="font-semibold">{i.v}</span></div>
           ))}
           <div className="border-t border-primary/20 pt-2 mt-2 flex justify-between"><span>ROI proyectado:</span><span className="font-bold text-success">{data.roi}%</span></div>

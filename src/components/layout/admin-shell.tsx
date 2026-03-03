@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { BarChart3, CalendarDays, FileClock, Inbox, LayoutGrid, LogOut, Mail, Menu, Settings, Users } from "lucide-react"
+import { BarChart3, CalendarDays, FileClock, Inbox, LayoutGrid, LogOut, Mail, Menu, Settings, Users, X } from "lucide-react"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { BrandName } from "@/components/ui/brand-name"
 import { Button } from "@/components/ui/button"
@@ -53,8 +53,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [editTouched, setEditTouched] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editLoading, setEditLoading] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showMobileNavHint, setShowMobileNavHint] = useState(false)
+  const mobileNavScrollRef = useRef<HTMLDivElement | null>(null)
   const isDashboard = pathname === "/admin/dashboard"
   const editableRoles = useMemo(() => (admin ? allowedCreatableRoles(admin.role) : []), [admin])
+
+  const updateMobileNavHint = useCallback(() => {
+    const el = mobileNavScrollRef.current
+    if (!el) return
+    const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft
+    setShowMobileNavHint(remaining > 2)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -94,6 +104,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
   }, [router])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    updateMobileNavHint()
+    const el = mobileNavScrollRef.current
+    if (el) {
+      el.addEventListener("scroll", updateMobileNavHint, { passive: true })
+    }
+    window.addEventListener("resize", updateMobileNavHint)
+    return () => {
+      if (el) {
+        el.removeEventListener("scroll", updateMobileNavHint)
+      }
+      window.removeEventListener("resize", updateMobileNavHint)
+    }
+  }, [pathname, updateMobileNavHint])
 
   const handleLogout = async () => {
     if (loggingOut) return
@@ -219,59 +248,72 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <div className="truncate text-sm font-semibold">Centro de operaciones Clinvetia</div>
               </div>
               <div className="flex items-center">
-                <Sheet>
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 -mr-1">
                       <Icon icon={Menu} size="sm" />
                       <span className="sr-only">Abrir navegación</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="border-white/10 bg-background/95 backdrop-blur-xl">
-                    <SheetHeader className="pr-8">
-                      <SheetTitle>Panel de Clinvetia</SheetTitle>
+                  <SheetContent side="left" className="w-screen max-w-none border-0 bg-background/95 p-0 backdrop-blur-3xl [&>button]:hidden">
+                    <SheetHeader className="flex h-16 flex-row items-center justify-between border-b border-white/5 px-6 text-left">
+                      <SheetTitle className="text-xl">
+                        Panel de <BrandName />
+                      </SheetTitle>
                       <SheetDescription>
-                        Navegación interna y accesos rápidos de gestión.
+                        Navegación interna
                       </SheetDescription>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 shrink-0"
+                        onClick={() => setMobileMenuOpen(false)}
+                        aria-label="Cerrar navegación"
+                      >
+                        <Icon icon={X} size="sm" variant="muted" />
+                      </Button>
                     </SheetHeader>
 
-                    <ContentScroll className="mt-6 space-y-5">
-                      <div className="space-y-2">
+                    <ContentScroll className="h-[calc(100dvh-4rem)] px-8 py-6">
+                      <div className="space-y-6 pt-4">
                         {navItems.map((item) => {
                           const active = pathname === item.href
                           return (
                             <Link
                               key={item.href}
                               href={item.href}
+                              onClick={() => setMobileMenuOpen(false)}
                               className={cn(
-                                "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
+                                "flex items-center justify-between text-4xl font-bold tracking-tight transition-colors",
                                 active
-                                  ? "border-primary/40 bg-primary/10 text-foreground"
-                                  : "border-white/10 bg-white/5 text-muted-foreground hover:text-foreground"
+                                  ? "text-primary"
+                                  : "text-foreground/60 hover:text-primary"
                               )}
                             >
-                              <Icon icon={item.icon} size="sm" variant={active ? "primary" : "muted"} />
-                              <span className="font-medium">{item.label}</span>
+                              <span>{item.label}</span>
+                              {active && <span className="h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]" />}
                             </Link>
                           )
                         })}
                       </div>
 
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                      <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4">
                         <div className="mb-2 flex items-center gap-2">
                           <Icon icon={CalendarDays} size="sm" variant="primary" />
                           <span className="text-sm font-medium">Gestión rápida</span>
                         </div>
                         <div className="grid gap-2">
                           <Button variant="ghost" size="sm" className="justify-start border border-primary/20 hover:bg-primary/10" asChild>
-                            <Link href="/admin/bookings">Gestionar citas</Link>
+                            <Link href="/admin/bookings" onClick={() => setMobileMenuOpen(false)}>Gestionar citas</Link>
                           </Button>
                           <Button variant="ghost" size="sm" className="justify-start border border-warning/20 hover:bg-warning/10 hover:text-warning" asChild>
-                            <Link href="/admin/contacts">Gestionar leads</Link>
+                            <Link href="/admin/contacts" onClick={() => setMobileMenuOpen(false)}>Gestionar leads</Link>
                           </Button>
                         </div>
                       </div>
 
-                      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                         <div className="mb-2 flex items-center gap-2">
                           <Icon icon={Settings} size="sm" variant="accent" />
                           <span className="text-sm font-medium">Configuración</span>
@@ -286,7 +328,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                               variant="ghost"
                               size="sm"
                               className="justify-start border border-white/10 !w-full"
-                              onClick={() => (isDashboard ? setEditOpen(true) : router.push("/admin/users"))}
+                              onClick={() => {
+                                setMobileMenuOpen(false)
+                                if (isDashboard) {
+                                  setEditOpen(true)
+                                } else {
+                                  router.push("/admin/users")
+                                }
+                              }}
                             >
                               Gestionar usuarios
                             </Button>
@@ -309,8 +358,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            <div className="mt-3 -mx-1 overflow-x-auto">
-              <div className="flex min-w-max gap-2 px-1 pb-1">
+            <div className="relative mt-3 -mx-1 overflow-hidden rounded-xl">
+              <div ref={mobileNavScrollRef} className="overflow-x-auto">
+                <div className="flex min-w-max gap-2 px-1 pb-1">
                 {navItems.map((item) => {
                   const active = pathname === item.href
                   return (
@@ -329,7 +379,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     </Link>
                   )
                 })}
+                </div>
               </div>
+              {showMobileNavHint && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-primary/25 via-primary/10 to-transparent lg:hidden" />
+              )}
             </div>
           </GlassCard>
         </div>

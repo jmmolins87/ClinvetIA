@@ -254,8 +254,8 @@ export function BookingWizard({
   }
 
   return (
-    <GlassCard className={cn("p-5 md:p-6", className)}>
-      <div className="space-y-5">
+    <GlassCard className={cn("p-4 md:p-5", className)}>
+      <div className="space-y-4">
         <div className="space-y-2">
           <Badge variant="accent" className="w-fit">
             <Icon icon={CalendarDays} size="xs" />
@@ -268,7 +268,7 @@ export function BookingWizard({
         </div>
 
         {showDurationSelector && (
-          <div className="grid grid-cols-3 gap-3 pb-6">
+          <div className="grid grid-cols-3 gap-2 pb-2">
             {durationOptions.map((option) => (
               <Button
                 key={option.value}
@@ -290,7 +290,7 @@ export function BookingWizard({
           </div>
         )}
 
-        <div className="relative mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -299,22 +299,22 @@ export function BookingWizard({
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: direction > 0 ? -56 : 56, opacity: 0 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="p-4 md:p-5"
+              className="p-3 md:p-4"
             >
               {step === "date" && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={handlePrevMonth}
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       aria-label="Mes anterior"
                     >
                       <Icon icon={ChevronLeft} size="sm" />
                     </Button>
-                    <div className="text-sm font-semibold text-foreground">
+                    <div className="text-xs font-semibold text-foreground">
                       {MONTHS[month]} {year}
                     </div>
                     <Button
@@ -322,16 +322,16 @@ export function BookingWizard({
                       variant="ghost"
                       size="icon"
                       onClick={handleNextMonth}
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       aria-label="Mes siguiente"
                     >
                       <Icon icon={ChevronRight} size="sm" />
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-0.5">
                     {WEEK_DAYS.map((d) => (
-                      <div key={d} className="py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <div key={d} className="py-0.5 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {d}
                       </div>
                     ))}
@@ -348,7 +348,7 @@ export function BookingWizard({
                           disabled={disabled}
                           onClick={() => handleDateSelect(date)}
                           className={cn(
-                            "relative flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-all",
+                            "relative flex h-8 items-center justify-center rounded-md text-xs font-medium transition-all",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             disabled ? "cursor-not-allowed opacity-30" : "cursor-pointer",
                             !disabled && !isSelected && "hover:bg-primary/10 hover:text-primary",
@@ -386,13 +386,13 @@ export function BookingWizard({
                   </div>
 
                   {isLoadingAvailability ? (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-1.5">
                       {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="h-10 rounded-xl border border-white/10 bg-white/5 animate-pulse" />
+                        <div key={i} className="h-8 rounded-lg border border-white/10 bg-white/5 animate-pulse" />
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                       {slots.map((slot) => {
                         const blockedByAvailability = unavailable.has(slot)
                         const blockedByTime = selectedDate ? isPastTimeSlot(selectedDate, slot) : false
@@ -407,7 +407,7 @@ export function BookingWizard({
                             onClick={() => handleTimeSelect(slot)}
                             variant={isSelected ? "accent" : "ghost"}
                             className={cn(
-                              "h-10 w-full justify-center rounded-xl border px-3 text-sm font-semibold",
+                              "h-8 w-full justify-center rounded-lg border px-2.5 text-xs font-semibold",
                               !isUnavailable && !isSelected && "border-white/10 bg-white/5 hover:border-accent/30 hover:bg-accent/10",
                               isSelected && "border-accent/60 bg-accent/20 text-accent shadow-[0_0_14px_rgba(var(--accent-rgb),0.2)]",
                               isUnavailable && "border-white/5 bg-white/5 opacity-35"

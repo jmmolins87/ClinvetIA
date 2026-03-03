@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { dbConnect } from "@/lib/db"
 import { Booking } from "@/models/Booking"
+import { DEMO_BLOCKED_TIME_SLOTS, DEMO_TIME_SLOTS } from "@/lib/demo-schedule"
 
 const querySchema = z.object({
   date: z
@@ -9,20 +10,13 @@ const querySchema = z.object({
     .optional(),
 })
 
-const TIME_SLOTS = [
-  "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "12:00", "12:30",
-  "15:00", "15:30", "16:00", "16:30",
-  "17:00", "17:30",
-]
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const parsed = querySchema.parse({ date: searchParams.get("date") || undefined })
 
     if (!parsed.date) {
-      return NextResponse.json({ slots: TIME_SLOTS, unavailable: [] })
+      return NextResponse.json({ slots: DEMO_TIME_SLOTS, unavailable: DEMO_BLOCKED_TIME_SLOTS })
     }
 
     const date = parsed.date.includes("T")
@@ -44,9 +38,9 @@ export async function GET(req: Request) {
       .select("time")
       .lean()
 
-    const unavailable = bookings.map((b) => b.time)
+    const unavailable = Array.from(new Set([...bookings.map((b) => b.time), ...DEMO_BLOCKED_TIME_SLOTS]))
 
-    return NextResponse.json({ slots: TIME_SLOTS, unavailable })
+    return NextResponse.json({ slots: DEMO_TIME_SLOTS, unavailable })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid query" }, { status: 400 })
