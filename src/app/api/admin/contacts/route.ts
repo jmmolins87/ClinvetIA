@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
-import { DEMO_CONTACTS } from "@/lib/admin-demo-data"
 import { Contact } from "@/models/Contact"
 import { Booking } from "@/models/Booking"
 import { dbConnect } from "@/lib/db"
 import { canManageRole, isAdminRole, type AdminRole } from "@/lib/admin-roles"
 import { clearRoiForLeadContext } from "@/lib/roi-cleanup"
+import { listDemoContactsWithBookings } from "@/lib/admin-demo-bookings-state"
 
 export async function GET(req: Request) {
   const auth = await requireAdmin(req)
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   }
 
   if (auth.data.admin.role === "demo") {
-    return NextResponse.json({ contacts: DEMO_CONTACTS })
+    return NextResponse.json({ contacts: listDemoContactsWithBookings() })
   }
 
   await dbConnect()

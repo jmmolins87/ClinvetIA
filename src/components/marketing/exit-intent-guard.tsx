@@ -19,7 +19,6 @@ import { storage } from "@/lib/storage"
 export function ExitIntentGuard() {
   const pathname = usePathname()
   const { hasAcceptedDialog, accessToken } = useROIStore()
-  const [showExitDialog, setShowExitDialog] = useState(false)
   const [pendingUrl, setPendingUrl] = useState<string | null>(null)
   const [hasLocalAccessToken, setHasLocalAccessToken] = useState(false)
   const hasInteractedRef = useRef(false)
@@ -38,7 +37,6 @@ export function ExitIntentGuard() {
   }, [hasAcceptedDialog, accessToken, pathname])
 
   const handleCloseDialog = useCallback(() => {
-    setShowExitDialog(false)
     setPendingUrl(null)
   }, [])
 
@@ -49,22 +47,18 @@ export function ExitIntentGuard() {
       hasInteractedRef.current = true
     }
 
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (hasAcceptedRef.current) return
-      if (!hasInteractedRef.current) return
-      if (e.clientY <= 0) {
-        setShowExitDialog(true)
-      }
-    }
-
     const handleInternalClick = (e: MouseEvent) => {
       if (hasAcceptedRef.current) return
       if (!hasInteractedRef.current) return
+      if (e.defaultPrevented) return
+      if (e.button !== 0) return
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
 
       const target = e.target as HTMLElement
       const link = target.closest("a")
 
       if (link && link.href) {
+        if (link.target === "_blank" || link.hasAttribute("download")) return
         try {
           const url = new URL(link.href)
           const isExternal = url.origin !== window.location.origin
@@ -74,7 +68,6 @@ export function ExitIntentGuard() {
             e.preventDefault()
             e.stopPropagation()
             setPendingUrl(link.href)
-            setShowExitDialog(true)
           }
         } catch {
           // Ignorar URLs inválidas
@@ -82,37 +75,22 @@ export function ExitIntentGuard() {
       }
     }
 
-    const handlePopState = () => {
-      if (hasAcceptedRef.current) return
-      if (!hasInteractedRef.current) return
-      const destination = window.location.href
-      setPendingUrl(destination)
-      setShowExitDialog(true)
-      window.history.pushState(null, "", "/calculadora")
-    }
-
     document.addEventListener("pointerdown", markInteracted, true)
     document.addEventListener("keydown", markInteracted, true)
     document.addEventListener("mousemove", markInteracted, { once: true })
-    document.addEventListener("mouseleave", handleMouseLeave)
     document.addEventListener("click", handleInternalClick, true) // Capture phase
-    window.addEventListener("popstate", handlePopState)
 
     return () => {
       document.removeEventListener("pointerdown", markInteracted, true)
       document.removeEventListener("keydown", markInteracted, true)
       document.removeEventListener("mousemove", markInteracted)
-      document.removeEventListener("mouseleave", handleMouseLeave)
       document.removeEventListener("click", handleInternalClick, true)
-      window.removeEventListener("popstate", handlePopState)
     }
   }, [isCalculatorPage, hasLocalAccessToken])
 
   const handleConfirmExit = () => {
     if (pendingUrl) {
       window.location.href = pendingUrl
-    } else {
-      setShowExitDialog(false)
     }
   }
 
@@ -120,7 +98,7 @@ export function ExitIntentGuard() {
   if (!isCalculatorPage || hasAcceptedDialog || hasLocalAccessToken) return null
 
   return (
-    <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+    <Dialog open={Boolean(pendingUrl)} onOpenChange={(open) => { if (!open) handleCloseDialog() }}>
       <DialogContent className="sm:max-w-md [&>button]:hidden">
         <DialogHeader className="space-y-4">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-warning/10 border border-warning/30 text-warning">

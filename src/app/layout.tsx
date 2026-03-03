@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   category: "software",
   keywords: [
     "software veterinario",
+    "agencia marketing veterinaria",
     "ia veterinaria",
     "automatización clínica veterinaria",
     "agenda veterinaria",
@@ -65,6 +66,9 @@ export const metadata: Metadata = {
     apple: [{ url: "/logo.png", type: "image/png" }],
   },
   manifest: "/manifest.webmanifest",
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
 };
 
 export default function RootLayout({

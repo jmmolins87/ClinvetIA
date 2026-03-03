@@ -267,7 +267,7 @@ function ChatPanel({
               {message.role === "assistant" && (
                 <div className="h-[56px] w-[56px] overflow-hidden rounded-full border border-primary/40 bg-primary/15">
                   <video
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover object-[50%_28%]"
                     muted
                     playsInline
                     preload="metadata"
@@ -294,7 +294,7 @@ function ChatPanel({
             <div className="flex items-start gap-3">
               <div className="h-[56px] w-[56px] overflow-hidden rounded-full border border-primary/40 bg-primary/15">
                 <video
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover object-[50%_28%]"
                   muted
                   playsInline
                   preload="metadata"
@@ -641,7 +641,7 @@ export function ChatPortal() {
                 <span className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--white-rgb),0.10),transparent_55%)]" />
                 <div className="absolute inset-3 rounded-[18px] overflow-hidden">
                   <video
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover object-[50%_28%]"
                     autoPlay
                     muted
                     loop

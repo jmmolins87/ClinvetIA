@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
+import { Input } from "@/components/ui/input"
 import { Trash2 } from "lucide-react"
 import {
   Dialog,
@@ -49,6 +50,7 @@ export default function AdminContactsPage() {
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; nombre: string } | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const listRef = useRef<HTMLDivElement | null>(null)
   const itemRef = useRef<HTMLDivElement | null>(null)
@@ -93,13 +95,21 @@ export default function AdminContactsPage() {
     load()
   }, [load])
 
+  const filteredContacts = contacts.filter((contact) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    if (!normalizedQuery) return true
+    return [contact.clinica, contact.nombre, contact.email]
+      .filter((value): value is string => Boolean(value))
+      .some((value) => value.toLowerCase().includes(normalizedQuery))
+  })
+
   useEffect(() => {
     setPage(1)
-  }, [contacts.length, pageSize])
+  }, [filteredContacts.length, pageSize, searchQuery])
 
-  const totalPages = Math.max(1, Math.ceil(contacts.length / pageSize))
+  const totalPages = Math.max(1, Math.ceil(filteredContacts.length / pageSize))
   const pageSafe = Math.min(page, totalPages)
-  const pagedContacts = contacts.slice((pageSafe - 1) * pageSize, pageSafe * pageSize)
+  const pagedContacts = filteredContacts.slice((pageSafe - 1) * pageSize, pageSafe * pageSize)
   const canDelete = role === "superadmin" || role === "admin"
 
   useEffect(() => {
@@ -173,6 +183,14 @@ export default function AdminContactsPage() {
       </Dialog>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-semibold">Contactos</h2>
+        <div className="w-full sm:w-auto sm:min-w-[320px]">
+          <Input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Buscar por clínica, persona o email"
+            className="glass"
+          />
+        </div>
       </div>
 
       <GlassCard className="p-6 space-y-5">
@@ -184,6 +202,9 @@ export default function AdminContactsPage() {
         )}
         {!loading && contacts.length === 0 && (
           <div className="text-sm text-muted-foreground">Sin contactos</div>
+        )}
+        {!loading && contacts.length > 0 && filteredContacts.length === 0 && (
+          <div className="text-sm text-muted-foreground">Sin resultados para la búsqueda</div>
         )}
         {!loading && (
           <div ref={listRef} className="space-y-4 mb-4">
@@ -272,13 +293,13 @@ export default function AdminContactsPage() {
             ))}
           </div>
         )}
-        {!loading && contacts.length > 0 && (
+        {!loading && filteredContacts.length > 0 && (
           <div
             ref={footerRef}
             className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-muted-foreground"
           >
             <span>
-              Página {pageSafe} de {totalPages} · {contacts.length} contactos
+              Página {pageSafe} de {totalPages} · {filteredContacts.length} contactos
             </span>
             <div className="flex items-center gap-2">
               <Button

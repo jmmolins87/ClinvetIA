@@ -1,6 +1,13 @@
 import type { MetadataRoute } from "next"
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://clinvetia.com"
+const host = (() => {
+  try {
+    return new URL(appUrl).hostname
+  } catch {
+    return "clinvetia.com"
+  }
+})()
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -12,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${appUrl}/sitemap.xml`,
-    host: appUrl,
+    host,
   }
 }

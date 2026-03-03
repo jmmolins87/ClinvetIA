@@ -16,7 +16,9 @@ const FOOTER_COLUMNS = [
       { href: "/solucion",      label: "Solución"       },
       { href: "/escenarios",    label: "Escenarios"     },
       { href: "/como-funciona", label: "Cómo funciona"  },
+      { href: "/agencia-marketing-veterinaria", label: "Agencia marketing veterinaria" },
       { href: "/calculadora",   label: "Calculadora ROI"},
+      { href: "/faqs",          label: "FAQs"            },
     ],
   },
   {

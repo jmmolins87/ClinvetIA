@@ -389,8 +389,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex flex-1 min-h-0 items-start gap-5 md:gap-6">
-        <aside className="hidden w-[280px] shrink-0 self-start lg:sticky lg:top-6 lg:block lg:h-[calc(100vh-3rem)]">
-          <div className="h-full overflow-y-auto">
+        <aside className="hidden w-[280px] shrink-0 self-start lg:sticky lg:top-6 lg:block">
+          <div>
               <GlassCard className="flex flex-col p-5">
             <div className="space-y-4 border-b border-white/10 pb-5">
               <div className="space-y-2.5">

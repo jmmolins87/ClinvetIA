@@ -2,11 +2,16 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import { AdminAudit } from "@/models/AdminAudit"
 import { dbConnect } from "@/lib/db"
+import { DEMO_AUDIT_EVENTS } from "@/lib/admin-demo-data"
 
 export async function GET(req: Request) {
   const auth = await requireAdmin(req)
   if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (auth.data.admin.role === "demo") {
+    return NextResponse.json({ audit: DEMO_AUDIT_EVENTS })
   }
 
   await dbConnect()

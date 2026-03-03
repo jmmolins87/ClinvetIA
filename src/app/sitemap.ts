@@ -10,6 +10,8 @@ const routes = [
   "/solucion",
   "/como-funciona",
   "/escenarios",
+  "/agencia-marketing-veterinaria",
+  "/faqs",
   "/privacy",
   "/terms",
   "/security",
@@ -25,4 +27,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : path === "/demo" || path === "/calculadora" || path === "/contacto" ? 0.9 : 0.7,
   }))
 }
-

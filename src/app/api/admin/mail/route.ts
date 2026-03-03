@@ -28,8 +28,8 @@ function normalizeEmail(value: string | undefined | null) {
 
 function matchesConversationParticipant(
   message: {
-    from: { email: string }
-    to: Array<{ email: string }>
+    from: { readonly email: string }
+    to: ReadonlyArray<{ readonly email: string }>
   },
   participantEmail: string,
   mailboxEmail: string

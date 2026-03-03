@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
-import { DEMO_BOOKINGS, DEMO_CONTACTS, DEMO_OVERVIEW } from "@/lib/admin-demo-data"
 import { Booking } from "@/models/Booking"
 import { Contact } from "@/models/Contact"
 import { dbConnect } from "@/lib/db"
 import { buildGoogleMeetLink } from "@/lib/booking-communication"
 import { expireOverdueBookings } from "@/lib/booking-expiration"
+import { listDemoBookings, listDemoContactsWithBookings } from "@/lib/admin-demo-bookings-state"
 
 type ROINode = {
   monthlyPatients?: number | null
@@ -49,34 +49,48 @@ export async function GET(req: Request) {
   }
 
   if (role === "demo") {
-    const { labels } = buildSeriesLabels(days)
-    const bookingsSeries = labels.map((_, index) => {
-      const base = days === 30 ? 4 : 2
-      return base + ((index * 3) % (days === 30 ? 7 : 4))
+    const demoBookings = listDemoBookings()
+    const demoContacts = listDemoContactsWithBookings()
+    const demoStatusCounts = demoBookings.reduce(
+      (acc: Record<string, number>, booking) => {
+        acc[booking.status] = (acc[booking.status] ?? 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    const { labels, dates } = buildSeriesLabels(days)
+    const bookingsSeries = dates.map((date) => {
+      const key = date.toISOString().slice(0, 10)
+      return demoBookings.filter((item) => new Date(item.createdAt || item.date).toISOString().slice(0, 10) === key).length
     })
-    const contactsSeries = labels.map((_, index) => {
-      const base = days === 30 ? 2 : 1
-      return base + ((index * 2) % 3)
+    const contactsSeries = dates.map((date) => {
+      const key = date.toISOString().slice(0, 10)
+      return demoContacts.filter((item) => new Date(item.createdAt).toISOString().slice(0, 10) === key).length
     })
 
     return NextResponse.json({
       mode: "demo",
       rangeDays: days,
       kpis: {
-        ...DEMO_OVERVIEW,
-        totalContacts: DEMO_CONTACTS.length,
+        totalBookings: demoBookings.length,
+        totalContacts: demoContacts.length,
+        confirmedBookings: demoStatusCounts.confirmed || 0,
+        pendingBookings: demoStatusCounts.pending || 0,
+        expiredBookings: demoStatusCounts.expired || 0,
+        cancelledBookings: demoStatusCounts.cancelled || 0,
       },
-      recentBookings: DEMO_BOOKINGS.map((booking) => {
-        const contact = DEMO_CONTACTS.find((item) => item.booking?.id === booking.id)
+      recentBookings: demoBookings.slice(0, 5).map((booking) => {
+        const contact = demoContacts.find((item) => item.booking?.id === booking.id)
         return {
           ...booking,
           mensaje: contact?.mensaje || "",
           roi: contact?.roi || null,
           googleMeetLink: buildGoogleMeetLink(booking.id),
-          emailEvents: [],
+          emailEvents: booking.emailEvents || [],
         }
       }),
-      recentContacts: DEMO_CONTACTS,
+      recentContacts: demoContacts.slice(0, 5),
       charts: {
         labels,
         bookings: bookingsSeries,

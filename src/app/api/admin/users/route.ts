@@ -9,6 +9,7 @@ import { ADMIN_ROLES, canManageRole, isAdminRole, type AdminRole } from "@/lib/a
 import { AdminUserActionToken } from "@/models/AdminUserActionToken"
 import { sendBrevoEmail } from "@/lib/brevo"
 import { adminUserInviteEmail } from "@/lib/emails"
+import { DEMO_ADMIN_USERS } from "@/lib/admin-demo-data"
 
 const userSchema = z.object({
   email: z.string().email(),
@@ -24,15 +25,7 @@ export async function GET(req: Request) {
 
   if (auth.data.admin.role === "demo") {
     return NextResponse.json({
-      users: [
-        {
-          email: auth.data.admin.email,
-          name: auth.data.admin.name,
-          role: "demo",
-          status: "active",
-          createdAt: new Date().toISOString(),
-        },
-      ],
+      users: DEMO_ADMIN_USERS,
     })
   }
 

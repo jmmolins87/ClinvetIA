@@ -10,6 +10,7 @@ import { sendBrevoEmail } from "@/lib/brevo"
 import { adminUserInviteEmail, adminUserResetPasswordEmail } from "@/lib/emails"
 import { hashPassword } from "@/lib/auth"
 import { recordAdminAudit } from "@/lib/admin-audit"
+import { DEMO_PENDING_USER_ACTIONS } from "@/lib/admin-demo-data"
 
 interface AdminTargetUserRoleView {
   _id: { toString(): string }
@@ -39,6 +40,10 @@ export async function GET(req: Request) {
   const auth = await requireAdmin(req)
   if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (auth.data.admin.role === "demo") {
+    return NextResponse.json({ actions: DEMO_PENDING_USER_ACTIONS })
   }
 
   await dbConnect()

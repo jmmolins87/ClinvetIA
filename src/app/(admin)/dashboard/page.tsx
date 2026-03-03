@@ -7,6 +7,8 @@ import {
   Activity,
   CalendarClock,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   CircleX,
   Clock3,
@@ -98,6 +100,8 @@ type OverviewResponse = {
     contacts: number[]
   }
 }
+
+type RecentBooking = OverviewResponse["recentBookings"][number]
 
 function statusBadgeVariant(status: string): "primary" | "warning" | "destructive" | "outline" | "secondary" | "accent" {
   if (status === "confirmed") return "primary"
@@ -261,6 +265,100 @@ function TableOverflowHint({ children }: { children: ReactNode }) {
   )
 }
 
+function RecentBookingCard({ booking }: { booking: RecentBooking }) {
+  const meetLink = booking.googleMeetLink || `https://meet.google.com/new#booking-${booking.id}`
+
+  return (
+    <div
+      className={
+        booking.status === "expired"
+          ? "rounded-xl border border-destructive/20 bg-destructive/5 p-3"
+          : booking.status === "pending"
+            ? "rounded-xl border border-warning/20 bg-warning/5 p-3"
+            : booking.status === "confirmed"
+              ? "rounded-xl border border-primary/20 bg-primary/5 p-3"
+              : booking.status === "cancelled"
+                ? "rounded-xl border border-secondary/20 bg-secondary/5 p-3"
+                : "rounded-xl border border-white/10 bg-white/5 p-3"
+      }
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-sm font-medium">
+            {new Date(booking.date).toLocaleDateString("es-ES")} · {booking.time}
+          </div>
+          <div className="text-xs text-muted-foreground">{booking.duration} min · ID {booking.id.slice(-6)}</div>
+        </div>
+        <Badge variant={statusBadgeVariant(booking.status)}>{statusLabel(booking.status)}</Badge>
+      </div>
+
+      <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+        <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+          <div className="text-[11px] uppercase tracking-wider">Datos del usuario</div>
+          <div className="mt-1">
+            <div>{booking.nombre || "Sin nombre"}</div>
+            <div className="break-all">{booking.email || "Sin email"}</div>
+            <div>{booking.telefono || "Sin teléfono"}{booking.clinica ? ` · ${booking.clinica}` : ""}</div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+          <div className="text-[11px] uppercase tracking-wider">Resumen de demo</div>
+          <div className="mt-1">
+            <div>
+              {new Date(booking.date).toLocaleDateString("es-ES")} · {booking.time} · {booking.duration} min
+            </div>
+            <a
+              href={meetLink}
+              target="_blank"
+              rel="noreferrer"
+              className="break-all text-primary underline-offset-2 hover:underline"
+            >
+              {meetLink}
+            </a>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+          <div className="text-[11px] uppercase tracking-wider">Resumen ROI</div>
+          <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1">
+            <span>Pacientes/mes: {booking.roi?.monthlyPatients ?? "-"}</span>
+            <span>Ticket: {booking.roi?.averageTicket ?? "-"}{typeof booking.roi?.averageTicket === "number" ? "€" : ""}</span>
+            <span>Pérdida: {booking.roi?.conversionLoss ?? "-"}{typeof booking.roi?.conversionLoss === "number" ? "%" : ""}</span>
+            <span>ROI: {booking.roi?.roi ?? "-"}{typeof booking.roi?.roi === "number" ? "%" : ""}</span>
+          </div>
+        </div>
+
+        {booking.mensaje && (
+          <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2 whitespace-pre-wrap">
+            {booking.mensaje}
+          </div>
+        )}
+
+        {booking.emailEvents && booking.emailEvents.length > 0 && (
+          <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wider">Correos enviados</div>
+            <div className="mt-1 space-y-1">
+              {booking.emailEvents
+                .slice()
+                .reverse()
+                .slice(0, 3)
+                .map((event, index) => (
+                  <div key={`${booking.id}-mail-${index}`}>
+                    <span className={event.status === "sent" ? "text-primary" : "text-destructive"}>
+                      {event.status === "sent" ? "Enviado" : "Error"}
+                    </span>{" "}
+                    · {event.subject} · {new Date(event.sentAt).toLocaleString("es-ES")}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -273,6 +371,7 @@ export default function AdminDashboardPage() {
   const [emailMailbox, setEmailMailbox] = useState<"shared" | "self">("self")
   const [canUseSharedMailbox, setCanUseSharedMailbox] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
+  const [desktopBookingIndex, setDesktopBookingIndex] = useState(0)
 
   const openEmailDialog = (target: { nombre: string; email: string }) => {
     setEmailTarget(target)
@@ -398,6 +497,17 @@ export default function AdminDashboardPage() {
   }
 
   const ratio = kpis.totalBookings > 0 ? Math.round((kpis.confirmedBookings / kpis.totalBookings) * 100) : 0
+  const recentBookings = data?.recentBookings ?? []
+  const totalRecentBookings = recentBookings.length
+
+  useEffect(() => {
+    if (totalRecentBookings === 0) {
+      setDesktopBookingIndex(0)
+      return
+    }
+    setDesktopBookingIndex((current) => Math.min(current, totalRecentBookings - 1))
+  }, [totalRecentBookings])
+
   const workloadBars = [
     { value: kpis.pendingBookings, tone: "warning" as const },
     { value: kpis.confirmedBookings, tone: "primary" as const },
@@ -627,101 +737,48 @@ export default function AdminDashboardPage() {
                 <span>Cargando citas...</span>
               </div>
             )}
-            {!loading && (data?.recentBookings.length ?? 0) === 0 && (
+            {!loading && totalRecentBookings === 0 && (
               <div className="text-sm text-muted-foreground">Sin reservas</div>
             )}
-            {!loading && data?.recentBookings.map((booking) => {
-              const meetLink = booking.googleMeetLink || `https://meet.google.com/new#booking-${booking.id}`
-              return (
-              <div
-                key={booking.id}
-                className={
-                  booking.status === "expired"
-                    ? "rounded-xl border border-destructive/20 bg-destructive/5 p-3"
-                    : booking.status === "pending"
-                      ? "rounded-xl border border-warning/20 bg-warning/5 p-3"
-                      : booking.status === "confirmed"
-                        ? "rounded-xl border border-primary/20 bg-primary/5 p-3"
-                        : booking.status === "cancelled"
-                          ? "rounded-xl border border-secondary/20 bg-secondary/5 p-3"
-                          : "rounded-xl border border-white/10 bg-white/5 p-3"
-                }
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="text-sm font-medium">
-                      {new Date(booking.date).toLocaleDateString("es-ES")} · {booking.time}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{booking.duration} min · ID {booking.id.slice(-6)}</div>
-                  </div>
-                  <Badge variant={statusBadgeVariant(booking.status)}>{statusLabel(booking.status)}</Badge>
+            {!loading && totalRecentBookings > 0 && (
+              <>
+                <div className="space-y-4 md:hidden">
+                  {recentBookings.map((booking) => (
+                    <RecentBookingCard key={booking.id} booking={booking} />
+                  ))}
                 </div>
-
-                <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                  <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
-                    <div className="text-[11px] uppercase tracking-wider">Datos del usuario</div>
-                    <div className="mt-1">
-                      <div>{booking.nombre || "Sin nombre"}</div>
-                      <div className="break-all">{booking.email || "Sin email"}</div>
-                      <div>{booking.telefono || "Sin teléfono"}{booking.clinica ? ` · ${booking.clinica}` : ""}</div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
-                    <div className="text-[11px] uppercase tracking-wider">Resumen de demo</div>
-                    <div className="mt-1">
-                      <div>
-                        {new Date(booking.date).toLocaleDateString("es-ES")} · {booking.time} · {booking.duration} min
-                      </div>
-                      <a
-                        href={meetLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="break-all text-primary underline-offset-2 hover:underline"
+                <div className="group relative hidden md:block">
+                  <RecentBookingCard booking={recentBookings[desktopBookingIndex]} />
+                  {totalRecentBookings > 1 && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setDesktopBookingIndex((current) => (current - 1 + totalRecentBookings) % totalRecentBookings)}
+                        className="absolute left-3 top-1/2 h-8 w-8 -translate-y-1/2 opacity-0 shadow-neon-primary transition-opacity duration-200 group-hover:opacity-100"
+                        aria-label="Cita anterior"
                       >
-                        {meetLink}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
-                    <div className="text-[11px] uppercase tracking-wider">Resumen ROI</div>
-                    <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1">
-                      <span>Pacientes/mes: {booking.roi?.monthlyPatients ?? "-"}</span>
-                      <span>Ticket: {booking.roi?.averageTicket ?? "-"}{typeof booking.roi?.averageTicket === "number" ? "€" : ""}</span>
-                      <span>Pérdida: {booking.roi?.conversionLoss ?? "-"}{typeof booking.roi?.conversionLoss === "number" ? "%" : ""}</span>
-                      <span>ROI: {booking.roi?.roi ?? "-"}{typeof booking.roi?.roi === "number" ? "%" : ""}</span>
-                    </div>
-                  </div>
-
-                  {booking.mensaje && (
-                    <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2 whitespace-pre-wrap">
-                      {booking.mensaje}
-                    </div>
-                  )}
-
-                  {booking.emailEvents && booking.emailEvents.length > 0 && (
-                    <div className="rounded-lg border border-white/10 bg-background/40 px-3 py-2">
-                      <div className="text-[11px] uppercase tracking-wider">Correos enviados</div>
-                      <div className="mt-1 space-y-1">
-                        {booking.emailEvents
-                          .slice()
-                          .reverse()
-                          .slice(0, 3)
-                          .map((event, index) => (
-                            <div key={`${booking.id}-mail-${index}`}>
-                              <span className={event.status === "sent" ? "text-primary" : "text-destructive"}>
-                                {event.status === "sent" ? "Enviado" : "Error"}
-                              </span>{" "}
-                              · {event.subject} · {new Date(event.sentAt).toLocaleString("es-ES")}
-                            </div>
-                          ))}
+                        <Icon icon={ChevronLeft} size="xs" variant="default" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setDesktopBookingIndex((current) => (current + 1) % totalRecentBookings)}
+                        className="absolute right-3 top-1/2 h-8 w-8 -translate-y-1/2 opacity-0 shadow-neon-primary transition-opacity duration-200 group-hover:opacity-100"
+                        aria-label="Siguiente cita"
+                      >
+                        <Icon icon={ChevronRight} size="xs" variant="default" />
+                      </Button>
+                      <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-background/70 px-2 py-0.5 text-[10px] text-muted-foreground">
+                        {desktopBookingIndex + 1}/{totalRecentBookings}
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
-              </div>
-            )})}
+              </>
+            )}
           </div>
         </GlassCard>
 

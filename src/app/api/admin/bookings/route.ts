@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAdmin } from "@/lib/admin-auth"
-import { DEMO_BOOKINGS } from "@/lib/admin-demo-data"
 import { Booking } from "@/models/Booking"
 import { Contact } from "@/models/Contact"
 import { dbConnect } from "@/lib/db"
@@ -18,6 +17,14 @@ import {
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
 import { expireOverdueBookings } from "@/lib/booking-expiration"
 import { isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
+import {
+  createDemoBooking,
+  deleteDemoBooking,
+  getDemoBookingById,
+  listDemoBookings,
+  rescheduleDemoBooking,
+  updateDemoBookingStatus,
+} from "@/lib/admin-demo-bookings-state"
 
 const updateBookingSchema = z.discriminatedUnion("action", [
   z.object({
@@ -36,6 +43,12 @@ const updateBookingSchema = z.discriminatedUnion("action", [
     action: z.literal("delete"),
     id: z.string().min(1),
   }),
+  z.object({
+    action: z.literal("create"),
+    date: z.string().datetime(),
+    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    duration: z.number().int().min(15).max(120),
+  }),
 ])
 
 export async function GET(req: Request) {
@@ -45,7 +58,7 @@ export async function GET(req: Request) {
   }
 
   if (auth.data.admin.role === "demo") {
-    return NextResponse.json({ bookings: DEMO_BOOKINGS })
+    return NextResponse.json({ bookings: listDemoBookings() })
   }
 
   await dbConnect()
@@ -102,7 +115,8 @@ export async function POST(req: Request) {
   if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!isSuperAdmin(auth.data.admin.role)) {
+  const isDemo = auth.data.admin.role === "demo"
+  if (!isSuperAdmin(auth.data.admin.role) && !isDemo) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -110,7 +124,63 @@ export async function POST(req: Request) {
     const body = await req.json()
     const parsed = updateBookingSchema.parse(body)
 
+    if (isDemo) {
+      if (parsed.action === "create") {
+        if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
+          return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+        }
+        const created = createDemoBooking({
+          date: parsed.date,
+          time: parsed.time,
+          duration: parsed.duration,
+        })
+        return NextResponse.json({ ok: true, booking: created })
+      }
+
+      if (parsed.action === "delete") {
+        const booking = getDemoBookingById(parsed.id)
+        if (!booking) {
+          return NextResponse.json({ error: "Booking not found" }, { status: 404 })
+        }
+        if (!["cancelled", "expired"].includes(booking.status)) {
+          return NextResponse.json(
+            { error: "Solo se pueden eliminar citas canceladas o expiradas" },
+            { status: 409 }
+          )
+        }
+        deleteDemoBooking(parsed.id)
+        return NextResponse.json({ ok: true })
+      }
+
+      if (parsed.action === "status") {
+        const updated = updateDemoBookingStatus(parsed.id, parsed.status)
+        if (!updated) {
+          return NextResponse.json({ error: "Booking not found" }, { status: 404 })
+        }
+        return NextResponse.json({ ok: true, booking: updated })
+      }
+
+      if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
+      const result = rescheduleDemoBooking(parsed.id, {
+        date: parsed.date,
+        time: parsed.time,
+        duration: parsed.duration,
+      })
+      if (result.conflict) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
+      if (!result.booking) {
+        return NextResponse.json({ error: "Booking not found" }, { status: 404 })
+      }
+      return NextResponse.json({ ok: true, booking: result.booking })
+    }
+
     await dbConnect()
+    if (parsed.action === "create") {
+      return NextResponse.json({ error: "Unsupported action" }, { status: 400 })
+    }
     const booking = await Booking.findById(parsed.id)
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 })

@@ -58,8 +58,10 @@ export default function AdminBookingsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "cancelled" | "expired">("all")
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "tomorrow" | "week">("all")
+  const [searchQuery, setSearchQuery] = useState("")
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [rescheduleBooking, setRescheduleBooking] = useState<BookingRow | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
   const [cancelDialogBooking, setCancelDialogBooking] = useState<BookingRow | null>(null)
   const [cancelEmailSubject, setCancelEmailSubject] = useState("")
   const [cancelEmailMessage, setCancelEmailMessage] = useState("")
@@ -165,7 +167,7 @@ export default function AdminBookingsPage() {
     const formattedDate = new Date(booking.date).toLocaleDateString("es-ES")
     const customerName = booking.nombre?.trim() || "equipo"
     setCancelDialogBooking(booking)
-    setCancelEmailMailbox("shared")
+    setCancelEmailMailbox(mode === "demo" ? "self" : "shared")
     setCancelEmailSubject("Actualización de tu cita demo en Clinvetia")
     setCancelEmailMessage(
       `Hola ${customerName},\n\nTu cita demo del ${formattedDate} a las ${booking.time} ha sido cancelada.\n\nMotivo de la cancelación:\n\n\nSi lo prefieres, podemos ayudarte a reagendar una nueva fecha.\n\nUn saludo,\nEquipo Clinvetia`
@@ -174,6 +176,37 @@ export default function AdminBookingsPage() {
 
   const submitCancellationWithEmail = async () => {
     if (!cancelDialogBooking) return
+    if (mode === "demo") {
+      setUpdatingId(cancelDialogBooking.id)
+      setIsCancellingWithEmail(true)
+      try {
+        const statusRes = await fetch("/api/admin/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "status", id: cancelDialogBooking.id, status: "cancelled" }),
+        })
+        if (!statusRes.ok) {
+          const payload = await statusRes.json().catch(() => null)
+          throw new Error(payload?.error || "No se pudo cancelar la cita")
+        }
+        await loadBookings()
+        setCancelDialogBooking(null)
+        toast({
+          title: "Cita cancelada",
+          description: "Modo demo: la cita quedó cancelada correctamente.",
+        })
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: "No se pudo cancelar la cita",
+          description: err instanceof Error ? err.message : "No se pudo cancelar la cita",
+        })
+      } finally {
+        setUpdatingId(null)
+        setIsCancellingWithEmail(false)
+      }
+      return
+    }
     if (!cancelDialogBooking.email) {
       toast({
         variant: "destructive",
@@ -305,12 +338,19 @@ export default function AdminBookingsPage() {
             ? bookingDate >= tomorrow && bookingDate < dayAfterTomorrow
             : bookingDate >= today && bookingDate < weekEnd
 
-    return statusOk && dateOk
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    const searchOk =
+      normalizedQuery.length === 0 ||
+      [booking.clinica, booking.nombre, booking.email]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLowerCase().includes(normalizedQuery))
+
+    return statusOk && dateOk && searchOk
   })
 
   useEffect(() => {
     setPage(1)
-  }, [statusFilter, dateFilter])
+  }, [statusFilter, dateFilter, searchQuery])
 
   const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize))
   const pageSafe = Math.min(page, totalPages)
@@ -386,6 +426,46 @@ export default function AdminBookingsPage() {
       setUpdatingId(null)
     }
   }
+
+  const submitCreate = async (payload: BookingWizardSubmitPayload) => {
+    setUpdatingId("create-demo-booking")
+    try {
+      const res = await fetch("/api/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create",
+          date: payload.date.toISOString(),
+          time: payload.time,
+          duration: payload.duration,
+        }),
+      })
+
+      if (!res.ok) {
+        const responsePayload = await res.json().catch(() => null)
+        throw new Error(responsePayload?.error || "No se pudo crear la cita")
+      }
+
+      await loadBookings()
+      setCreateOpen(false)
+      toast({
+        title: "Cita creada",
+        description: "La nueva cita demo se ha añadido correctamente.",
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo crear la cita"
+      toast({
+        variant: "destructive",
+        title: "No se pudo crear la cita",
+        description: message,
+      })
+      throw new Error(message)
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const canOperate = mode === "superadmin" || mode === "demo"
 
   return (
     <div className="space-y-7">
@@ -466,6 +546,41 @@ export default function AdminBookingsPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nueva cita</DialogTitle>
+            <DialogDescription>
+              Selecciona fecha y hora para añadir una nueva cita demo.
+            </DialogDescription>
+          </DialogHeader>
+          <BookingWizard
+            className="border-white/10 bg-transparent p-0 shadow-none"
+            title="Añadir cita"
+            subtitle="Elige día, hora y duración para registrar una nueva cita"
+            confirmCtaLabel="Crear cita"
+            confirmingLabel="Creando..."
+            initialStep="date"
+            loadAvailability={async (date) => {
+              const res = await fetch(`/api/availability?date=${encodeURIComponent(date.toISOString().slice(0, 10))}`, { cache: "no-store" })
+              if (!res.ok) {
+                const responsePayload = await res.json().catch(() => null)
+                throw new Error(responsePayload?.error || "No se pudieron cargar los horarios")
+              }
+              const data = await res.json()
+              return { slots: data.slots || [], unavailable: data.unavailable || [] }
+            }}
+            onSubmit={submitCreate}
+          />
+
+          <DialogFooter className="sm:[&>*]:flex-none">
+            <Button variant="ghost" onClick={() => setCreateOpen(false)} className="w-auto">
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog
         open={Boolean(cancelDialogBooking)}
         onOpenChange={(open) => {
@@ -478,7 +593,9 @@ export default function AdminBookingsPage() {
           <DialogHeader>
             <DialogTitle>Cancelar cita y notificar al cliente</DialogTitle>
             <DialogDescription>
-              Redacta un correo personalizado explicando el motivo de la cancelación. Al confirmar, se enviará el correo y la cita pasará a cancelada.
+              {mode === "demo"
+                ? "Modo demo: al confirmar, la cita pasará a cancelada sin envío real de correo."
+                : "Redacta un correo personalizado explicando el motivo de la cancelación. Al confirmar, se enviará el correo y la cita pasará a cancelada."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -520,6 +637,10 @@ export default function AdminBookingsPage() {
               <p className="text-xs text-muted-foreground">
                 Se enviará a: <span className="font-medium text-foreground">{cancelDialogBooking.email}</span>
               </p>
+            ) : mode === "demo" ? (
+              <p className="text-xs text-muted-foreground">
+                Modo demo: se cancelará sin envío de correo real.
+              </p>
             ) : (
               <p className="text-xs text-destructive">
                 Esta cita no tiene email asociado. No se puede enviar notificación.
@@ -539,7 +660,7 @@ export default function AdminBookingsPage() {
               variant="destructive"
               className="w-full sm:flex-1"
               onClick={submitCancellationWithEmail}
-              disabled={isCancellingWithEmail || !cancelDialogBooking?.email}
+              disabled={isCancellingWithEmail || (mode !== "demo" && !cancelDialogBooking?.email)}
             >
               {isCancellingWithEmail ? "Enviando y cancelando..." : "Enviar y cancelar cita"}
             </Button>
@@ -549,7 +670,14 @@ export default function AdminBookingsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-semibold">Reservas</h2>
-        {mode && <Badge variant={mode === "superadmin" ? "primary" : "secondary"}>{mode}</Badge>}
+        <div className="flex items-center gap-2">
+          {mode === "demo" && (
+            <Button type="button" size="sm" variant="accent" className="!w-auto px-3" onClick={() => setCreateOpen(true)}>
+              Añadir cita
+            </Button>
+          )}
+          {mode && <Badge variant={mode === "superadmin" ? "primary" : "secondary"}>{mode}</Badge>}
+        </div>
       </div>
 
 
@@ -611,6 +739,15 @@ export default function AdminBookingsPage() {
                 </Toggle>
               ))}
             </div>
+
+            <div className="max-w-md">
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Buscar por clínica, persona o email"
+                className="glass"
+              />
+            </div>
           </div>
         )}
 
@@ -623,7 +760,7 @@ export default function AdminBookingsPage() {
           </div>
         )}
         {!loading && filteredBookings.length === 0 && (
-          <div className="text-sm text-muted-foreground">Sin reservas para los filtros seleccionados</div>
+          <div className="text-sm text-muted-foreground">Sin reservas para los filtros/búsqueda seleccionados</div>
         )}
         {!loading && (
           <div ref={listRef} className="space-y-5 mb-4">
@@ -680,7 +817,7 @@ export default function AdminBookingsPage() {
                     <div className="flex h-full flex-col justify-between gap-4 xl:min-w-[250px]">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          {(booking.status === "cancelled" || booking.status === "expired") && mode === "superadmin" ? (
+                          {(booking.status === "cancelled" || booking.status === "expired") && canOperate ? (
                             <Button
                               type="button"
                               variant="ghost"
@@ -711,7 +848,7 @@ export default function AdminBookingsPage() {
                       </div>
                       <div className="border-t border-white/10 sm:hidden" />
 
-                      {mode === "superadmin" && (
+                      {canOperate && (
                         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center xl:flex-nowrap xl:justify-end">
                           {booking.status !== "expired" && (
                             <Button
@@ -751,7 +888,7 @@ export default function AdminBookingsPage() {
                         </div>
                       )}
 
-                      {mode !== "superadmin" && <div />}
+                      {!canOperate && <div />}
                     </div>
                   </div>
                 </div>
