@@ -141,10 +141,10 @@ export async function GET(req: Request) {
       },
       mailboxes: {
         self: demoSelf,
-        shared: null,
+        shared: canAccessShared ? getSharedMailboxEmail() : null,
       },
       capabilities: {
-        canAccessShared: false,
+        canAccessShared,
       },
       adminRole: auth.data.admin.role,
       isSuperAdmin: isSuperAdmin(auth.data.admin.role),

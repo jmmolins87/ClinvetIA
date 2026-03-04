@@ -33,9 +33,24 @@ type ChatState = {
 }
 
 type ChatLocale = "es" | "en"
+type ChatHistoryMessage = {
+  role: "assistant" | "user"
+  content: string
+  timestamp?: string | Date
+}
 
 const schema = z.object({
   message: z.string().trim().min(1).max(1200),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["assistant", "user"]),
+        content: z.string().trim().min(1).max(400),
+        timestamp: z.string().datetime().optional(),
+      }),
+    )
+    .max(12)
+    .optional(),
   state: z
     .object({
       intent: z.enum(["book", "reschedule", "cancel", "none"]).optional(),
@@ -73,11 +88,11 @@ const schema = z.object({
 })
 
 function isAffirmative(text: string) {
-  return /\b(si|sí|correcto|ok|vale|perfecto|confirmo|claro|exacto|yes|yep|yeah|confirm|sure)\b/i.test(text)
+  return /\b(si|sí|correcto|ok|okey|vale|perfecto|confirmo|claro|exacto|de acuerdo|yes|yep|yeah|confirm|sure|correct)\b/i.test(text)
 }
 
 function isNegative(text: string) {
-  return /\b(no|incorrecto|mal|cambiar|otro|equivocado|wrong|incorrect|change|different|nope)\b/i.test(text)
+  return /\b(no|incorrecto|mal|cambiar|otro|equivocado|para nada|wrong|incorrect|change|different|nope|nah)\b/i.test(text)
 }
 
 function extractEmail(text: string) {
@@ -86,10 +101,16 @@ function extractEmail(text: string) {
 }
 
 function extractPhone(text: string) {
-  const cleaned = text.replace(/[^\d+]/g, "")
-  const digits = cleaned.replace(/[^\d]/g, "")
-  if (digits.length < 9) return null
-  return cleaned
+  const candidates = text.match(/(?:\+?\d[\d\s().-]{7,}\d)/g) || []
+  for (const candidate of candidates) {
+    const compact = candidate.trim().replace(/[().\s-]+/g, "")
+    const hasPlus = compact.startsWith("+")
+    const digits = compact.replace(/[^\d]/g, "")
+    if (digits.length >= 9 && digits.length <= 15) {
+      return hasPlus ? `+${digits}` : digits
+    }
+  }
+  return null
 }
 
 function extractBookingId(text: string) {
@@ -103,8 +124,14 @@ function extractBookingToken(text: string) {
 }
 
 function extractCity(text: string) {
-  const compact = text.replace(/\s+/g, " ").trim()
+  const compact = text
+    .replace(/\b(estoy en|soy de|desde|vivo en|me encuentro en|in|from|based in)\b/gi, "")
+    .replace(/[.,;:!?]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
   if (compact.length < 2) return null
+  if (/\d{3,}/.test(compact)) return null
+  if (compact.split(" ").length > 5) return null
   return compact.slice(0, 80)
 }
 
@@ -135,11 +162,59 @@ function objectionReply(attempt: number, locale: ChatLocale) {
     : "Sin compromiso, solo por curiosidad: cuál es tu meta de crecimiento para los próximos 3-6 meses en tu clínica? 📊"
 }
 
-function extractSlotChoice(text: string, length: number) {
+function normalizeText(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+}
+
+function extractMentionedTime(text: string) {
+  const timeWithMinutes = text.match(/\b([01]?\d|2[0-3])[:h.]([0-5]\d)\s*(am|pm)?\b/i)
+  if (timeWithMinutes) {
+    let hour = Number(timeWithMinutes[1])
+    const minute = Number(timeWithMinutes[2])
+    const meridiem = (timeWithMinutes[3] || "").toLowerCase()
+    if (meridiem === "pm" && hour < 12) hour += 12
+    if (meridiem === "am" && hour === 12) hour = 0
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+  }
+  const hourOnly = text.match(/\b([1-9]|1[0-2])\s*(am|pm)\b/i)
+  if (hourOnly) {
+    let hour = Number(hourOnly[1])
+    const meridiem = (hourOnly[2] || "").toLowerCase()
+    if (meridiem === "pm" && hour < 12) hour += 12
+    if (meridiem === "am" && hour === 12) hour = 0
+    return `${String(hour).padStart(2, "0")}:00`
+  }
+  return null
+}
+
+function extractSlotChoice(text: string, slots: ChatSlot[]) {
+  const length = slots.length
   const oneBased = text.match(/\b([1-9])\b/)
   if (oneBased) {
     const index = Number(oneBased[1]) - 1
     if (index >= 0 && index < length) return index
+  }
+  const normalized = normalizeText(text)
+  const ordinalMap: Array<{ pattern: RegExp; index: number }> = [
+    { pattern: /\b(primera|primer|uno|first)\b/i, index: 0 },
+    { pattern: /\b(segunda|segundo|dos|second)\b/i, index: 1 },
+    { pattern: /\b(tercera|tercer|tres|third)\b/i, index: 2 },
+  ]
+  for (const item of ordinalMap) {
+    if (item.index < length && item.pattern.test(normalized)) return item.index
+  }
+  const mentionedTime = extractMentionedTime(normalized)
+  if (mentionedTime) {
+    const byTime = slots.findIndex((slot) => slot.time === mentionedTime)
+    if (byTime >= 0) return byTime
+  }
+  const isoDate = normalized.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0]
+  if (isoDate) {
+    const byDate = slots.findIndex((slot) => slot.date === isoDate)
+    if (byDate >= 0) return byDate
   }
   return null
 }
@@ -159,6 +234,107 @@ function shortContext(text: string) {
   return normalized.length > 90 ? `${normalized.slice(0, 90)}...` : normalized
 }
 
+function sanitizeHistory(
+  messages?: Array<{ role: "assistant" | "user"; content: string; timestamp?: string | Date }> | null
+): ChatHistoryMessage[] {
+  return (messages || [])
+    .map<ChatHistoryMessage>((msg) => ({
+      role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
+      content: msg.content.replace(/\s+/g, " ").trim().slice(0, 400),
+      timestamp: msg.timestamp,
+    }))
+    .filter((msg) => {
+      if (!msg.content.length) return false
+      if (!msg.timestamp) return true
+      return !Number.isNaN(Date.parse(String(msg.timestamp)))
+    })
+    .slice(-24)
+}
+
+function withCurrentUserMessage(history: ChatHistoryMessage[], message: string): ChatHistoryMessage[] {
+  const normalizedMessage = message.replace(/\s+/g, " ").trim()
+  if (!normalizedMessage) return history
+  const last = history[history.length - 1]
+  if (last?.role === "user" && last.content === normalizedMessage) {
+    return history
+  }
+  return [...history, { role: "user" as const, content: normalizedMessage, timestamp: new Date().toISOString() }]
+}
+
+function selectTranscriptHistory(history: ChatHistoryMessage[], maxItems = 8, maxChars = 1400) {
+  const normalized = history
+    .map((item, index) => ({
+      item,
+      index,
+      ts: item.timestamp ? Date.parse(String(item.timestamp)) : Number.NaN,
+    }))
+    .sort((a, b) => {
+      const aTs = Number.isNaN(a.ts) ? -1 : a.ts
+      const bTs = Number.isNaN(b.ts) ? -1 : b.ts
+      if (aTs === bTs) return a.index - b.index
+      return aTs - bTs
+    })
+    .map((entry) => entry.item)
+    .slice(-maxItems)
+
+  const selected: ChatHistoryMessage[] = []
+  let chars = 0
+  for (let i = normalized.length - 1; i >= 0; i -= 1) {
+    const candidate = normalized[i]
+    const rendered = `${candidate.role}: ${candidate.content}`
+    if (selected.length > 0 && chars + rendered.length > maxChars) break
+    selected.unshift(candidate)
+    chars += rendered.length
+  }
+  return selected
+}
+
+function sanitizeSummary(summary?: string | null) {
+  return (summary || "").replace(/\s+/g, " ").trim().slice(0, 1800)
+}
+
+function summarizeArchivedMessages(existingSummary: string, archived: ChatHistoryMessage[]) {
+  const archivedText = archived
+    .map((item) => `${item.role === "assistant" ? "A" : "U"}: ${item.content.replace(/\s+/g, " ").trim()}`)
+    .join(" | ")
+  const merged = [sanitizeSummary(existingSummary), archivedText].filter(Boolean).join(" | ")
+  if (merged.length <= 1800) return merged
+  return merged.slice(merged.length - 1800)
+}
+
+function compactHistoryAndSummary(
+  history: ChatHistoryMessage[],
+  summary?: string | null,
+): { history: ChatHistoryMessage[]; summary: string } {
+  const maxHistory = 12
+  const keepRecent = 8
+  const cleanSummary = sanitizeSummary(summary)
+  if (history.length <= maxHistory) {
+    return { history: history.slice(-maxHistory), summary: cleanSummary }
+  }
+  const archiveCount = Math.max(1, history.length - keepRecent)
+  const archived = history.slice(0, archiveCount)
+  const recent = history.slice(archiveCount)
+  const nextSummary = summarizeArchivedMessages(cleanSummary, archived)
+  return { history: recent, summary: nextSummary }
+}
+
+function detectIntents(text: string) {
+  const normalized = normalizeText(text)
+  const deniesCancel = /\b(no|dont|don't|do not)\b.{0,20}\b(cancelar|cancel)\b/i.test(normalized)
+  const deniesReschedule = /\b(no|dont|don't|do not)\b.{0,25}\b(reagendar|reprogramar|reschedule|change appointment)\b/i.test(normalized)
+  const deniesBook = /\b(no|dont|don't|do not)\b.{0,20}\b(reservar|book|agendar|appointment)\b/i.test(normalized)
+
+  const wantsCancel = !deniesCancel && /\b(cancelar|cancela|anular|anula|dar de baja|cancel|cancellation)\b/i.test(normalized)
+  const wantsReschedule =
+    !deniesReschedule &&
+    /\b(reagendar|reprogramar|cambiar hora|cambiar cita|otro horario|mover cita|reschedule|change time|change appointment|another slot)\b/i.test(normalized)
+  const wantsBooking =
+    !deniesBook && /\b(reservar|reserva|demo|cita|agendar|agenda|book|booking|appointment|schedule|calendario|calendar)\b/i.test(normalized)
+
+  return { wantsBooking, wantsReschedule, wantsCancel }
+}
+
 const CHAT_SYSTEM_PROMPT = [
   "Eres el setter comercial de WhatsApp de ClinvetIA.",
   "Objetivo comercial: mover la conversacion hacia cita consultiva con datos completos.",
@@ -171,10 +347,46 @@ const CHAT_SYSTEM_PROMPT = [
   "No inventes precios ni promesas no confirmadas.",
 ].join(" ")
 
-async function generateConversationalReply(userMessage: string, locale: ChatLocale) {
+function buildConversationContext(params: {
+  userMessage: string
+  locale: ChatLocale
+  state: ChatState
+  hasActiveBooking: boolean
+  hasValidRoiSession: boolean
+  chatSummary?: string | null
+  history: ChatHistoryMessage[]
+}) {
+  const qualifiers = [
+    params.state.qualificationStage ? `qualification_stage=${params.state.qualificationStage}` : null,
+    params.state.leadContext ? `lead_context=${params.state.leadContext}` : null,
+    params.state.objectionAttempts ? `objection_attempts=${params.state.objectionAttempts}` : null,
+    params.hasActiveBooking ? "has_active_booking=true" : "has_active_booking=false",
+    params.hasValidRoiSession ? "roi_ready=true" : "roi_ready=false",
+  ]
+    .filter(Boolean)
+    .join(" | ")
+
+  const languageGuard = params.locale === "en" ? "Respond only in English." : "Responde solo en español."
+  const summary = sanitizeSummary(params.chatSummary)
+  const transcript = selectTranscriptHistory(params.history)
+    .map((item) => `${item.role === "assistant" ? "assistant" : "user"}: ${item.content.replace(/\s+/g, " ").trim()}`)
+    .join("\n")
+  return `${languageGuard}\nContext: ${qualifiers}\nLong-term summary: ${summary || "none"}\nRecent transcript:\n${transcript || "user: " + params.userMessage}\nCurrent user message: ${params.userMessage}`
+}
+
+async function generateConversationalReply(params: {
+  userMessage: string
+  locale: ChatLocale
+  state: ChatState
+  hasActiveBooking: boolean
+  hasValidRoiSession: boolean
+  chatSummary?: string | null
+  history: ChatHistoryMessage[]
+}) {
   const geminiApiKey = process.env.GEMINI_API_KEY
   const geminiPreferredModel = process.env.GEMINI_MODEL || "gemini-2.5-flash"
   const geminiModels = Array.from(new Set([geminiPreferredModel, "gemini-2.0-flash", "gemini-2.0-flash-lite"]))
+  const contextualInput = buildConversationContext(params)
 
   for (const model of geminiModels) {
     if (!geminiApiKey) break
@@ -188,12 +400,12 @@ async function generateConversationalReply(userMessage: string, locale: ChatLoca
           },
           body: JSON.stringify({
             systemInstruction: {
-              parts: [{ text: `${CHAT_SYSTEM_PROMPT} ${locale === "en" ? "Respond only in English." : "Responde solo en español."}` }],
+              parts: [{ text: CHAT_SYSTEM_PROMPT }],
             },
             contents: [
               {
                 role: "user",
-                parts: [{ text: userMessage }],
+                parts: [{ text: contextualInput }],
               },
             ],
             generationConfig: {
@@ -240,8 +452,8 @@ async function generateConversationalReply(userMessage: string, locale: ChatLoca
         body: JSON.stringify({
           model,
           input: [
-            { role: "system", content: `${CHAT_SYSTEM_PROMPT} ${locale === "en" ? "Respond only in English." : "Responde solo en español."}` },
-            { role: "user", content: userMessage },
+            { role: "system", content: CHAT_SYSTEM_PROMPT },
+            { role: "user", content: contextualInput },
           ],
           max_output_tokens: 220,
         }),
@@ -548,9 +760,7 @@ export async function POST(req: Request) {
     const t = (es: string, en: string) => (locale === "en" ? en : es)
     const message = parsed.message.trim()
     const lower = message.toLowerCase()
-    const wantsBooking = /\b(reservar|reserva|demo|cita|agendar|book|booking|appointment|schedule)\b/i.test(lower)
-    const wantsReschedule = /\b(reagendar|reprogramar|cambiar hora|cambiar cita|reschedule|change time|change appointment)\b/i.test(lower)
-    const wantsCancel = /\b(cancelar|cancela|anular|anula|cancel|cancellation)\b/i.test(lower)
+    const { wantsBooking, wantsReschedule, wantsCancel } = detectIntents(message)
     const webBookingUrl = `${(process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "").replace(/\/+$/, "")}/demo`
     const rawSessionToken = typeof parsed.sessionToken === "string" ? parsed.sessionToken.trim() : ""
     const sessionToken = rawSessionToken.length > 0 ? rawSessionToken : null
@@ -576,10 +786,12 @@ export async function POST(req: Request) {
 
     const activeSession = sessionToken
       ? await Session.findOne({ token: sessionToken, expiresAt: { $gt: new Date() } })
-          .select("token expiresAt roi")
+          .select("token expiresAt roi chatSummary chatHistory")
           .lean<{
             token: string
             expiresAt: Date
+            chatSummary?: string | null
+            chatHistory?: ChatHistoryMessage[]
             roi?: {
               monthlyPatients?: number | null
               averageTicket?: number | null
@@ -588,14 +800,43 @@ export async function POST(req: Request) {
             } | null
           } | null>()
       : null
+    const incomingHistory = sanitizeHistory(parsed.history)
+    const persistedHistory = sanitizeHistory(activeSession?.chatHistory)
+    const effectiveHistory = incomingHistory.length > 0 ? incomingHistory : persistedHistory
+    const compactedBeforeReply = compactHistoryAndSummary(withCurrentUserMessage(effectiveHistory, message), activeSession?.chatSummary ?? "")
+    const historyForCurrentTurn = compactedBeforeReply.history
+    const chatSummaryForCurrentTurn = compactedBeforeReply.summary
+
+    if (activeSession?.token) {
+      await Session.updateOne(
+        { token: activeSession.token, expiresAt: { $gt: new Date() } },
+        { $set: { chatHistory: historyForCurrentTurn, chatSummary: chatSummaryForCurrentTurn } },
+      )
+    }
+
     const hasValidRoiSession = hasCompleteRoi(activeSession)
     const isBookingFlowStep = ["await_timezone", "await_booking_id", "await_slot", "await_email", "await_email_confirm", "await_phone", "await_phone_confirm"].includes(
       current.step || "",
     )
     const hasBookingIntent = current.intent === "book" || current.intent === "reschedule"
 
+    const respond = async (payload: Record<string, unknown>, init?: ResponseInit) => {
+      const replyText = typeof payload.reply === "string" ? payload.reply.replace(/\s+/g, " ").trim() : ""
+      if (activeSession?.token && replyText) {
+        const compactedAfterReply = compactHistoryAndSummary(
+          [...historyForCurrentTurn, { role: "assistant" as const, content: replyText, timestamp: new Date().toISOString() }],
+          chatSummaryForCurrentTurn,
+        )
+        await Session.updateOne(
+          { token: activeSession.token, expiresAt: { $gt: new Date() } },
+          { $set: { chatHistory: compactedAfterReply.history, chatSummary: compactedAfterReply.summary } },
+        )
+      }
+      return NextResponse.json(payload, init)
+    }
+
     if (current.step === "idle" && wantsBooking && !hasValidRoiSession) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Antes de reservar, hagamos primero tu cálculo ROI para entender mejor tu clínica. Te abro la calculadora.",
           "Before booking, let's do your ROI calculation first so we can better understand your clinic. I'll open the calculator.",
@@ -606,7 +847,7 @@ export async function POST(req: Request) {
     }
 
     if (current.intent === "book" && current.step !== "idle" && !hasValidRoiSession) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Para seguir con la reserva, primero necesito tu ROI. Te abro la calculadora.",
           "To continue with booking, I need your ROI first. I'll open the calculator.",
@@ -617,7 +858,7 @@ export async function POST(req: Request) {
     }
 
     if (current.intent === "book" && current.step !== "idle") {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Para reservar una cita nueva necesitamos tus datos de contacto completos. Haz la reserva desde la web y yo me encargo de reagendar o cancelar cuando lo necesites.",
           "To book a new appointment we need your full contact details. Please book through the website and I can handle rescheduling or cancellation whenever you need.",
@@ -627,7 +868,7 @@ export async function POST(req: Request) {
     }
 
     if (isBookingFlowStep && !hasValidRoiSession) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Nos falta el ROI para continuar con la reserva. Te abro la calculadora ahora.",
           "We still need the ROI to continue with booking. I'll open the calculator now.",
@@ -638,7 +879,7 @@ export async function POST(req: Request) {
     }
 
     if (isBookingFlowStep && !hasBookingIntent) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "He perdido el contexto de la reserva. Si quieres, empezamos de nuevo y te propongo horarios.",
           "I lost the booking context. If you want, we can restart and I'll suggest available slots.",
@@ -648,7 +889,7 @@ export async function POST(req: Request) {
     }
 
     if (current.step === "idle" && /\b(clinvetia|clinvetia\.com|que es clinvetia|quien sois|quienes sois|what is clinvetia|who are you)\b/i.test(lower)) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "ClinvetIA desarrolla agentes para clinicas veterinarias que organizan citas y mejoran la atencion al cliente. Si te va bien, te propongo ahora mismo tres horarios y te reservo cita en un minuto.",
           "ClinvetIA builds agents for veterinary clinics that organize appointments and improve client support. If you want, I can suggest three slots right now and book you in under a minute.",
@@ -658,7 +899,7 @@ export async function POST(req: Request) {
     }
 
     if (current.step === "idle" && isGreeting(lower) && !wantsBooking && !wantsReschedule && !wantsCancel) {
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Hola 😊 Soy el agente de ClinvetIA. Me cuentas un poco de tu clínica y cómo captáis nuevos clientes?",
           "Hi 😊 I'm ClinvetIA's agent. Can you tell me a bit about your clinic and how you currently attract new clients?",
@@ -676,7 +917,7 @@ export async function POST(req: Request) {
       !isObjection(lower)
     ) {
       if ((current.qualificationStage || 0) <= 1) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             `Ah, interesante lo que me cuentas de "${shortContext(message)}". Cómo estáis gestionando ahora la captación y seguimiento?`,
             `Interesting what you shared about "${shortContext(message)}". How are you handling lead capture and follow-up now?`,
@@ -685,7 +926,7 @@ export async function POST(req: Request) {
         })
       }
       if ((current.qualificationStage || 0) === 2) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Ya veo. Os está dando los resultados que esperabais o se os escapan oportunidades?",
             "Got it. Is it giving you the results you expected, or are opportunities still slipping through?",
@@ -694,7 +935,7 @@ export async function POST(req: Request) {
         })
       }
       if ((current.qualificationStage || 0) === 3) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Entiendo. Qué meta de crecimiento tenéis para los próximos 3-6 meses?",
             "Understood. What's your growth target for the next 3-6 months?",
@@ -703,7 +944,7 @@ export async function POST(req: Request) {
         })
       }
       if ((current.qualificationStage || 0) === 4) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Tiene sentido. Si quieres, te paso el enlace para reservar consultoría y verlo con tu caso. Te lo comparto?",
             "Makes sense. If you want, I can share the link to book a consult and review your case. Should I send it?",
@@ -712,7 +953,7 @@ export async function POST(req: Request) {
         })
       }
       if ((current.qualificationStage || 0) >= 5 && isAffirmative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             `Genial 🚀 Reserva aquí: ${webBookingUrl}. En cuanto tengas ID de cita, yo te ayudo a reagendar o cancelar cuando lo necesites.`,
             `Great 🚀 Book here: ${webBookingUrl}. As soon as you have your booking ID, I can help you reschedule or cancel anytime.`,
@@ -725,7 +966,7 @@ export async function POST(req: Request) {
     if (current.step === "idle" && isObjection(lower) && !activeBooking) {
       const attempt = Math.min(4, (current.objectionAttempts || 0) + 1)
       if (attempt < 4) {
-        return NextResponse.json({
+        return respond({
           reply: objectionReply(attempt, locale),
           state: {
             ...current,
@@ -734,7 +975,7 @@ export async function POST(req: Request) {
           },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply:
           locale === "en"
             ? `${objectionReply(attempt, locale)} If you're open to it, we can review it in a short free consult.`
@@ -749,8 +990,16 @@ export async function POST(req: Request) {
     }
 
     if (current.step === "idle" && isServiceQuestion(lower)) {
-      const aiReply = await generateConversationalReply(message, locale)
-      return NextResponse.json({
+      const aiReply = await generateConversationalReply({
+        userMessage: message,
+        locale,
+        state: current,
+        hasActiveBooking: Boolean(activeBooking),
+        hasValidRoiSession,
+        chatSummary: chatSummaryForCurrentTurn,
+        history: historyForCurrentTurn,
+      })
+      return respond({
         reply: aiReply?.text || t(
           "Buena pregunta. Nuestros agentes atienden mensajes de clientes, priorizan casos y organizan citas para que tu equipo tenga menos carga operativa. Si quieres, te lo explico con un ejemplo real de clinica.",
           "Great question. Our agents handle client messages, prioritize cases, and organize appointments so your team has less operational load. If you want, I can explain with a real clinic example.",
@@ -763,7 +1012,7 @@ export async function POST(req: Request) {
     if (current.step === "await_timezone") {
       const city = extractCity(message)
       if (!city) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Para ajustar horario, dime ciudad y país donde estás.",
             "To adjust the schedule, tell me your city and country.",
@@ -773,7 +1022,7 @@ export async function POST(req: Request) {
       }
       const slots = await buildSlots(3, locale)
       if (!slots.length) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
             "I don't have available slots right now. Please try again in a few minutes.",
@@ -781,7 +1030,7 @@ export async function POST(req: Request) {
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Vale, te dejo tres opciones para ${city}:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nCuál te encaja mejor?`,
           `Great, here are three options for ${city}:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nWhich one works best for you?`,
@@ -803,7 +1052,7 @@ export async function POST(req: Request) {
       const bookingIdFromText = extractBookingId(message)
       const bookingTokenFromText = extractBookingToken(message)
       if (!bookingIdFromText && !bookingTokenFromText) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "No detecto un identificador de cita válido. Envíame el ID de cita o el token que recibiste por correo.",
             "I can't detect a valid booking identifier. Send me the booking ID or the token you received by email.",
@@ -824,7 +1073,7 @@ export async function POST(req: Request) {
           }).lean<{ _id: unknown; accessToken?: unknown } | null>()
       const bookingById = Array.isArray(bookingByIdRaw) ? bookingByIdRaw[0] : bookingByIdRaw
       if (!bookingById) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "No encuentro una cita activa con ese identificador. Revísalo y lo intentamos de nuevo.",
             "I can't find an active booking with that identifier. Check it and we'll try again.",
@@ -834,7 +1083,7 @@ export async function POST(req: Request) {
       }
       const slots = await buildSlots(3, locale)
       if (!slots.length) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
             "I don't have available slots right now. Please try again in a few minutes.",
@@ -842,7 +1091,7 @@ export async function POST(req: Request) {
           state: { intent: "none", step: "idle" },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Ya tengo tu cita ${String(bookingById._id)}. Te propongo 3 horarios:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nElige 1, 2 o 3.`,
           `I found your booking ${String(bookingById._id)}. Here are 3 time options:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nChoose 1, 2, or 3.`,
@@ -862,9 +1111,9 @@ export async function POST(req: Request) {
     }
 
     if (current.step === "await_slot") {
-      const slotIndex = extractSlotChoice(lower, current.proposedSlots?.length || 0)
+      const slotIndex = extractSlotChoice(message, current.proposedSlots || [])
       if (slotIndex === null) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Elige una opcion escribiendo 1, 2 o 3 para seguir.",
             "Choose an option by typing 1, 2, or 3 to continue.",
@@ -874,7 +1123,7 @@ export async function POST(req: Request) {
       }
       const selectedSlot = current.proposedSlots?.[slotIndex] || null
       if (!selectedSlot) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Ese horario ya no esta disponible. Te paso opciones nuevas.",
             "That slot is no longer available. I'll send new options.",
@@ -882,7 +1131,7 @@ export async function POST(req: Request) {
           state: { ...current, proposedSlots: await buildSlots(3, locale) },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Genial, te dejo ${selectedSlot.label}. Pásame tu email para enviarte confirmación.`,
           `Great, I'll set ${selectedSlot.label}. Send me your email so I can send confirmation.`,
@@ -899,7 +1148,7 @@ export async function POST(req: Request) {
     if (current.step === "await_email") {
       const email = extractEmail(message)
       if (!email) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "No veo un email valido. Escribelo completo, por ejemplo nombre@clinica.com.",
             "I can't see a valid email. Write it fully, for example name@clinic.com.",
@@ -907,7 +1156,7 @@ export async function POST(req: Request) {
           state: current,
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Me confirmas si este email está bien: ${email}`,
           `Can you confirm this email is correct: ${email}`,
@@ -922,7 +1171,7 @@ export async function POST(req: Request) {
 
     if (current.step === "await_email_confirm") {
       if (isNegative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Dale, pásame el email correcto y seguimos.",
             "Got it, send me the correct email and we'll continue.",
@@ -935,7 +1184,7 @@ export async function POST(req: Request) {
         })
       }
       if (!isAffirmative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Responde si o no para confirmar el email.",
             "Reply yes or no to confirm the email.",
@@ -943,7 +1192,7 @@ export async function POST(req: Request) {
           state: current,
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Ahora pásame tu teléfono de contacto.",
           "Now send me your contact phone number.",
@@ -959,7 +1208,7 @@ export async function POST(req: Request) {
     if (current.step === "await_phone") {
       const phone = extractPhone(message)
       if (!phone) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "No detecto un telefono valido. Enviamelo con prefijo si aplica.",
             "I can't detect a valid phone number. Send it with country code if needed.",
@@ -967,7 +1216,7 @@ export async function POST(req: Request) {
           state: current,
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Me confirmas este teléfono: ${phone}`,
           `Can you confirm this phone number: ${phone}`,
@@ -982,7 +1231,7 @@ export async function POST(req: Request) {
 
     if (current.step === "await_phone_confirm") {
       if (isNegative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Dale, pasame el telefono correcto.",
             "Got it, send me the correct phone number.",
@@ -995,7 +1244,7 @@ export async function POST(req: Request) {
         })
       }
       if (!isAffirmative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Responde si o no para confirmar el telefono.",
             "Reply yes or no to confirm the phone number.",
@@ -1006,7 +1255,7 @@ export async function POST(req: Request) {
 
       if (!current.selectedSlot) {
         const slots = await buildSlots(3, locale)
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Se perdio el horario seleccionado. Te paso opciones nuevas.",
             "The selected slot was lost. I'll send new options.",
@@ -1034,7 +1283,7 @@ export async function POST(req: Request) {
               })
             : activeBooking
         if (!targetBooking) {
-          return NextResponse.json({
+          return respond({
             reply: t(
               `No encuentro una cita activa con ese ID. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo aquí con cambios.`,
               `I can't find an active booking with that ID. If you want a new one, create it from ${webBookingUrl} and then I can help you with changes here.`,
@@ -1045,7 +1294,7 @@ export async function POST(req: Request) {
         const ok = await rescheduleBooking(String(targetBooking._id), current.selectedSlot)
         if (!ok) {
           const slots = await buildSlots(3, locale)
-          return NextResponse.json({
+          return respond({
             reply: t(
               "Ese horario ya no esta libre. Te dejo tres nuevas opciones.",
               "That slot is no longer available. Here are three new options.",
@@ -1073,7 +1322,7 @@ export async function POST(req: Request) {
             roi: activeSession?.roi ?? null,
           })
         }
-        return NextResponse.json({
+        return respond({
           reply: emailDelivered
             ? t(
                 `Listo, tu cita ${String(targetBooking._id)} quedó reagendada para ${current.selectedSlot.label}. Te he enviado el correo actualizado. ¿Necesitas algo más?`,
@@ -1094,7 +1343,7 @@ export async function POST(req: Request) {
         })
       }
 
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Gracias. Para crear citas nuevas necesitamos cerrar tus datos en el formulario web. Yo me quedo disponible para reagendar o cancelar cualquier cita existente.",
           "Thanks. To create new bookings we need to complete your details in the web form. I'm available here to reschedule or cancel any existing booking.",
@@ -1105,7 +1354,7 @@ export async function POST(req: Request) {
 
     if (current.step === "await_more_help") {
       if (isNegative(lower)) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Gracias por tu tiempo. Cuando quieras, aquí me tienes. Que tengas un gran día.",
             "Thanks for your time. I'm here whenever you need me. Have a great day.",
@@ -1113,7 +1362,7 @@ export async function POST(req: Request) {
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Cuéntame qué necesitas y te ayudo.",
           "Tell me what you need and I'll help you.",
@@ -1122,9 +1371,9 @@ export async function POST(req: Request) {
       })
     }
 
-    if (/\b(cancelar|cancela|anular|anula|cancel|cancellation)\b/i.test(lower)) {
+    if (wantsCancel) {
       if (!activeBooking) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             `No veo una cita activa para cancelar. Si quieres crear una nueva, hazlo desde ${webBookingUrl} y luego te ayudo con cambios.`,
             `I don't see an active booking to cancel. If you want a new one, create it from ${webBookingUrl} and then I can help you with changes.`,
@@ -1138,7 +1387,7 @@ export async function POST(req: Request) {
         contactSessionToken: activeBooking.sessionToken ?? null,
       })
       await Booking.updateOne({ _id: activeBooking._id }, { $set: { status: "cancelled" } })
-      return NextResponse.json({
+      return respond({
         reply: t(
           "He cancelado tu cita activa. Si quieres, te propongo nuevos horarios ahora.",
           "I canceled your active booking. If you want, I can suggest new slots now.",
@@ -1148,11 +1397,11 @@ export async function POST(req: Request) {
       })
     }
 
-    if (/\b(reagendar|reprogramar|cambiar hora|cambiar cita|reschedule|change time|change appointment)\b/i.test(lower)) {
+    if (wantsReschedule) {
       const bookingIdInMessage = extractBookingId(message)
       const bookingTokenInMessage = extractBookingToken(message)
       if (!bookingIdInMessage && !bookingTokenInMessage) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Claro. Para reagendar necesito el ID de cita o el token de reserva que te llegó por correo.",
             "Sure. To reschedule, I need the booking ID or booking token you received by email.",
@@ -1183,7 +1432,7 @@ export async function POST(req: Request) {
           }).lean<{ _id: unknown; accessToken?: unknown } | null>()
       const targetBooking = Array.isArray(targetBookingRaw) ? targetBookingRaw[0] : targetBookingRaw
       if (!targetBooking) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "No encuentro una cita activa con ese identificador. Revísalo y te ayudo a intentarlo de nuevo.",
             "I can't find an active booking with that identifier. Check it and I'll help you try again.",
@@ -1203,7 +1452,7 @@ export async function POST(req: Request) {
       }
       const slots = await buildSlots(3, locale)
       if (!slots.length) {
-        return NextResponse.json({
+        return respond({
           reply: t(
             "Ahora mismo no tengo huecos disponibles. Prueba en unos minutos.",
             "I don't have available slots right now. Please try again in a few minutes.",
@@ -1211,7 +1460,7 @@ export async function POST(req: Request) {
           state: { intent: "none", step: "idle" },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           `Ya tengo tu cita ${String(targetBooking._id)}. Te propongo estas opciones:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nEscribe 1, 2 o 3.`,
           `I found your booking ${String(targetBooking._id)}. Here are your options:\n1) ${slots[0].label}\n2) ${slots[1]?.label || "-"}\n3) ${slots[2]?.label || "-"}\nType 1, 2, or 3.`,
@@ -1234,7 +1483,7 @@ export async function POST(req: Request) {
       if (activeBooking) {
         const currentDate = new Date(activeBooking.date)
         const label = formatDateLabel(currentDate, String(activeBooking.time), locale)
-        return NextResponse.json({
+        return respond({
           reply: t(
             `Ya tienes una cita activa para ${label}. ID de cita: ${String(activeBooking._id)}. Si quieres la puedo reagendar o cancelar.`,
             `You already have an active booking for ${label}. Booking ID: ${String(activeBooking._id)}. I can reschedule or cancel it if you want.`,
@@ -1242,7 +1491,7 @@ export async function POST(req: Request) {
           state: { intent: "none", step: "idle", objectionAttempts: 0 },
         })
       }
-      return NextResponse.json({
+      return respond({
         reply: t(
           "Para reservar una cita nueva, hazlo desde el flujo web de ClinvetIA para completar tus datos. Cuando quieras, yo te ayudo a reagendar o cancelar con tu ID de cita.",
           "To book a new appointment, use ClinvetIA's web flow to complete your details. Whenever you want, I can help you reschedule or cancel using your booking ID.",
@@ -1251,8 +1500,16 @@ export async function POST(req: Request) {
       })
     }
 
-    const fallbackAiReply = await generateConversationalReply(message, locale)
-    return NextResponse.json({
+    const fallbackAiReply = await generateConversationalReply({
+      userMessage: message,
+      locale,
+      state: current,
+      hasActiveBooking: Boolean(activeBooking),
+      hasValidRoiSession,
+      chatSummary: chatSummaryForCurrentTurn,
+      history: historyForCurrentTurn,
+    })
+    return respond({
       reply: fallbackAiReply?.text || t(
         "Te ayudo con lo que necesites: puedo explicarte cómo funcionan nuestros agentes o ayudarte con tu cita. Qué prefieres?",
         "I can help with whatever you need: I can explain how our agents work or help with your booking. Which do you prefer?",

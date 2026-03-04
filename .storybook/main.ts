@@ -16,6 +16,7 @@ const config: StorybookConfig = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",   // docs, controls, actions, viewport, backgrounds, toolbars
     "@storybook/addon-interactions", // play functions & testing
+    "@storybook/addon-a11y",
   ],
 
   // ── Framework ──────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { ArchiveRestore, Inbox, Mail, Reply, RotateCcw, Send, Trash2 } from "lucide-react"
+import { ArchiveRestore, Inbox, Mail, Reply, Send, Trash2 } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Badge } from "@/components/ui/badge"
@@ -172,7 +172,6 @@ export default function AdminMailPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [resettingDemo, setResettingDemo] = useState(false)
   const [movingId, setMovingId] = useState<string | null>(null)
   const [data, setData] = useState<MailResponse | null>(null)
   const [mailbox, setMailbox] = useState<MailboxMode>("self")
@@ -183,6 +182,7 @@ export default function AdminMailPage() {
   const [toFilter, setToFilter] = useState("")
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined)
   const [page, setPage] = useState(1)
+  const [pageNavLoading, setPageNavLoading] = useState<"prev" | "next" | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<MailMessage | null>(null)
   const [conversationMessages, setConversationMessages] = useState<MailMessage[] | null>(null)
   const [conversationLoading, setConversationLoading] = useState(false)
@@ -383,7 +383,10 @@ export default function AdminMailPage() {
     return `Buzón personal (${data.mailboxes.self})`
   }, [data, mailbox])
 
-  const canShowMailboxSwitcher = data?.capabilities.canAccessShared && !data?.isSuperAdmin && data?.adminRole === "admin"
+  const canShowMailboxSwitcher =
+    data?.capabilities.canAccessShared &&
+    !data?.isSuperAdmin &&
+    (data?.adminRole === "admin" || data?.adminRole === "demo")
   const groupedMessages = useMemo(() => {
     const source = data?.messages || []
     const groups = new Map<string, MailMessage[]>()
@@ -420,38 +423,20 @@ export default function AdminMailPage() {
     return (email || "").trim().toLowerCase()
   }, [data, mailbox])
 
-  const resetDemoMailbox = async () => {
-    setResettingDemo(true)
-    try {
-      const res = await fetch("/api/admin/mail/demo-reset", { method: "POST" })
-      if (!res.ok) {
-        const payload = await res.json().catch(() => null)
-        throw new Error(payload?.error || "No se pudo reiniciar la demo")
-      }
-      setMailbox("self")
-      setFolder("inbox")
-      setPage(1)
-      setQuery("")
-      setStatusFilter("all")
-      setErrorFilter("all")
-      setToFilter("")
-      setSelectedDateRange(undefined)
-      await load()
-      toast({
-        variant: "success",
-        title: "Demo reiniciada",
-        description: "Se restauraron los correos mock del gestor.",
-      })
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "No se pudo reiniciar la demo",
-        description: error instanceof Error ? error.message : "Error inesperado",
-      })
-    } finally {
-      setResettingDemo(false)
-    }
-  }
+  const changePageWithLoader = useCallback((direction: "prev" | "next") => {
+    const totalPages = data?.pagination.totalPages ?? 1
+    const currentPage = data?.pagination.page ?? 1
+    if (pageNavLoading) return
+    if (direction === "prev" && currentPage <= 1) return
+    if (direction === "next" && currentPage >= totalPages) return
+    setPageNavLoading(direction)
+    window.setTimeout(() => {
+      setPage((current) =>
+        direction === "prev" ? Math.max(1, current - 1) : Math.min(totalPages, current + 1)
+      )
+      setPageNavLoading(null)
+    }, 1000)
+  }, [data?.pagination.page, data?.pagination.totalPages, pageNavLoading])
 
   useEffect(() => {
     if (!selectedMessage) {
@@ -675,19 +660,6 @@ export default function AdminMailPage() {
             <Icon icon={Mail} size="xs" variant="primary" />
             Nuevo correo
           </Button>
-          {data?.isDemo ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="!w-auto border border-warning/30 bg-warning/10 hover:bg-warning/15"
-              onClick={resetDemoMailbox}
-              disabled={resettingDemo}
-            >
-              <Icon icon={RotateCcw} size="xs" variant="warning" />
-              {resettingDemo ? "Reiniciando..." : "Reiniciar datos demo"}
-            </Button>
-          ) : null}
         </div>
       </div>
 
@@ -855,20 +827,30 @@ export default function AdminMailPage() {
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={data.pagination.page <= 1}
+                onClick={() => changePageWithLoader("prev")}
+                disabled={data.pagination.page <= 1 || pageNavLoading !== null}
               >
-                Anterior
+                {pageNavLoading === "prev" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="primary" />
+                    Cargando...
+                  </span>
+                ) : "Anterior"}
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                disabled={data.pagination.page >= data.pagination.totalPages}
+                onClick={() => changePageWithLoader("next")}
+                disabled={data.pagination.page >= data.pagination.totalPages || pageNavLoading !== null}
               >
-                Siguiente
+                {pageNavLoading === "next" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="primary" />
+                    Cargando...
+                  </span>
+                ) : "Siguiente"}
               </Button>
             </div>
           </div>

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { AdminSession } from "@/models/AdminSession"
 import { dbConnect } from "@/lib/db"
 import { getAdminCookieName } from "@/lib/admin-auth"
+import { resetDemoBookingsState } from "@/lib/admin-demo-bookings-state"
+import { resetDemoMailMessages } from "@/lib/admin-demo-mail-state"
 
 function getCookie(req: Request, name: string) {
   const header = req.headers.get("cookie")
@@ -19,7 +21,11 @@ export async function POST(req: Request) {
   const token = getCookie(req, cookieName)
   if (token) {
     await dbConnect()
-    await AdminSession.deleteOne({ token })
+    const session = await AdminSession.findOneAndDelete({ token }).lean<{ role?: string } | null>()
+    if (session?.role === "demo") {
+      resetDemoBookingsState()
+      resetDemoMailMessages()
+    }
   }
 
   const res = NextResponse.json({ ok: true })

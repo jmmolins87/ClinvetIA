@@ -23,6 +23,7 @@ import { Icon } from "@/components/ui/icon"
 import { CtaSection } from "@/components/marketing/cta-section"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MarketingCard } from "@/components/ui/marketing-card"
+import { Separator } from "@/components/ui/separator"
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -135,9 +136,10 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ── PASOS ─────────────────────────────────────────────────────────── */}
-      <section className="py-20 border-t border-white/8">
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <motion.div {...fadeUp} className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">El flujo en 4 pasos</h2>
@@ -156,9 +158,10 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ── INFORMACIÓN ────────────────────────────────────────────────────── */}
-      <section className="py-20 border-t border-white/8 bg-white/[0.02]">
+      <section className="py-20 bg-white/[0.02]">
         <div className="container mx-auto px-4">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <motion.div {...fadeUp}>
@@ -213,9 +216,10 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ── FAQ ───────────────────────────────────────────────────────────── */}
-      <section className="py-20 border-t border-white/8 bg-white/[0.01]">
+      <section className="py-20 bg-white/[0.01]">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center justify-center gap-3 mb-12">
@@ -235,6 +239,7 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       <CtaSection
         title="¿Tu clínica vive alguna de estas situaciones?"

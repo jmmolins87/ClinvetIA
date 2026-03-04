@@ -473,6 +473,12 @@ export function ChatPortal() {
     setShowTyping(false)
 
     try {
+      const recentHistory = [...messages, { role: "user" as const, content }]
+        .slice(-8)
+        .map((msg) => ({
+          role: msg.role,
+          content: msg.content.slice(0, 400),
+        }))
       const liveSessionToken = storage.get<string | null>("local", "roi_access_token", null)
       const liveBookingToken = storage.get<string | null>("local", "booking_access_token", null)
       const res = await fetch("/api/chat/assistant", {
@@ -480,6 +486,7 @@ export function ChatPortal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: content,
+          history: recentHistory,
           state: chatState,
           sessionToken: liveSessionToken,
           bookingToken: liveBookingToken,

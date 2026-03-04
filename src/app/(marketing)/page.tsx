@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Icon } from "@/components/ui/icon"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { CtaSection } from "@/components/marketing/cta-section"
 import { MarketingCard } from "@/components/ui/marketing-card"
@@ -113,7 +114,7 @@ const SOLUCION_MOCK_STEPS = [
 
 function Section({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
   return (
-    <section id={id} className={cn("relative overflow-hidden border-t border-white/8 px-4 py-20 sm:py-28", className)}>
+    <section id={id} className={cn("relative overflow-hidden px-4 py-20 sm:py-28", className)}>
       {children}
     </section>
   )
@@ -143,7 +144,7 @@ export default function MarketingPage() {
   return (
     <>
       {/* HERO */}
-      <Section id="hero" className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-0 border-t-0">
+      <Section id="hero" className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-0">
                 <motion.div initial="initial" animate="animate" variants={staggerContainer} className="relative z-10 mx-auto max-w-6xl px-4 text-center">
                   <motion.div 
                     variants={fadeUp}
@@ -196,6 +197,7 @@ export default function MarketingPage() {
           </motion.div>
         </motion.div>
       </Section>
+      <Separator />
 
       {/* PROBLEMA */}
       <Section id="problema">
@@ -215,6 +217,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <Separator />
 
       {/* SOLUCIÓN */}
       <Section id="solucion">
@@ -252,33 +255,33 @@ export default function MarketingPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }} className="relative aspect-square rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-primary/10 p-8 backdrop-blur-xl overflow-hidden">
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }} className="relative min-h-[34rem] sm:min-h-0 sm:aspect-square rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-primary/10 p-5 sm:p-8 backdrop-blur-xl overflow-hidden">
             {/* Background Decorator Icon */}
             <div className="absolute -top-10 -right-10 opacity-15 blur-3xl pointer-events-none">
               <Icon icon={MessageSquare} variant="primary" className="size-64" />
             </div>
 
-            <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
-              <div className="mb-10">
-                <p className="text-xl font-medium italic leading-relaxed text-foreground/90">
+            <div className="relative z-10 flex h-full flex-col items-center justify-start sm:justify-center text-center">
+              <div className="mb-6 mt-4 sm:mb-10 sm:mt-0">
+                <p className="text-base sm:text-xl font-medium italic leading-relaxed text-foreground/90">
                   <TranslatableText text="“Hola, Toby no quiere comer desde ayer y noto que tiene la tripa muy hinchada y dura al tacto. Me preocupa.”" />
                 </p>
               </div>
-              <div className="w-full max-w-sm space-y-4">
+              <div className="w-full max-w-sm space-y-3 sm:space-y-4">
                 {SOLUCION_MOCK_STEPS.map((item, i) => (
                   <motion.div 
                     key={i} 
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + (i * 0.1) }}
-                    className="rounded-2xl bg-white/5 border border-white/10 p-4 shadow-sm backdrop-blur-md"
+                    className="rounded-2xl bg-white/5 border border-white/10 p-3 sm:p-4 shadow-sm backdrop-blur-md"
                   >
                     {item.label && (
                       <span className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
                         <TranslatableText text={item.label} />
                       </span>
                     )}
-                    <span className={cn("text-base", item.color)}>
+                    <span className={cn("text-sm sm:text-base break-words", item.color)}>
                       <TranslatableText text={item.value} />
                     </span>
                   </motion.div>
@@ -288,6 +291,7 @@ export default function MarketingPage() {
           </motion.div>
         </div>
       </Section>
+      <Separator />
 
       {/* FLUJO */}
       <Section id="flujo">
@@ -306,6 +310,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <Separator />
 
       {/* BENEFICIOS */}
       <Section id="beneficios">
@@ -324,6 +329,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <Separator />
 
       {/* ESCENARIOS */}
       <Section id="escenarios">
@@ -340,6 +346,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <Separator />
 
       {/* ROI */}
       <Section id="roi">
@@ -366,6 +373,7 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           CTA FINAL

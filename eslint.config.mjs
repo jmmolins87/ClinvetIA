@@ -20,6 +20,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     ".DS_Store",
     ".mongo-data/**",
+    "coverage/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

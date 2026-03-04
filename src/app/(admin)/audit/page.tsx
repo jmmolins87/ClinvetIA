@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,7 @@ export default function AdminAuditPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
+  const [pageNavLoading, setPageNavLoading] = useState<"prev" | "next" | null>(null)
   const [viewMode, setViewMode] = useState<"pagination" | "scroll">("pagination")
   const listRef = useRef<HTMLDivElement | null>(null)
   const itemRef = useRef<HTMLDivElement | null>(null)
@@ -72,6 +73,19 @@ export default function AdminAuditPage() {
   const pagedItems = items.slice((pageSafe - 1) * pageSize, pageSafe * pageSize)
   const visibleItems = viewMode === "scroll" ? items : pagedItems
 
+  const changePageWithLoader = useCallback((direction: "prev" | "next") => {
+    if (pageNavLoading) return
+    if (direction === "prev" && pageSafe <= 1) return
+    if (direction === "next" && pageSafe >= totalPages) return
+    setPageNavLoading(direction)
+    window.setTimeout(() => {
+      setPage((current) =>
+        direction === "prev" ? Math.max(1, current - 1) : Math.min(totalPages, current + 1)
+      )
+      setPageNavLoading(null)
+    }, 1000)
+  }, [pageNavLoading, pageSafe, totalPages])
+
   return (
     <div className="flex min-h-0 flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -86,7 +100,6 @@ export default function AdminAuditPage() {
           >
             {viewMode === "scroll" ? "Ver por páginas" : "Ver en lista"}
           </Button>
-          <Badge variant="accent">Admin</Badge>
         </div>
       </div>
 
@@ -154,20 +167,30 @@ export default function AdminAuditPage() {
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                disabled={pageSafe <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={pageSafe <= 1 || pageNavLoading !== null}
+                onClick={() => changePageWithLoader("prev")}
               >
-                Anterior
+                {pageNavLoading === "prev" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="accent" />
+                    Cargando...
+                  </span>
+                ) : "Anterior"}
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                disabled={pageSafe >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={pageSafe >= totalPages || pageNavLoading !== null}
+                onClick={() => changePageWithLoader("next")}
               >
-                Siguiente
+                {pageNavLoading === "next" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="accent" />
+                    Cargando...
+                  </span>
+                ) : "Siguiente"}
               </Button>
             </div>
           </div>

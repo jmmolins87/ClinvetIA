@@ -10,6 +10,14 @@ const SessionSchema = new Schema(
       conversionLoss: { type: Number, default: null },
       roi: { type: Number, default: null },
     },
+    chatSummary: { type: String, default: "" },
+    chatHistory: [
+      {
+        role: { type: String, enum: ["user", "assistant"], required: true },
+        content: { type: String, required: true, maxlength: 400 },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 )

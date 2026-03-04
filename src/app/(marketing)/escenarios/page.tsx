@@ -22,6 +22,7 @@ import {
 import { CtaSection } from "@/components/marketing/cta-section"
 import { Badge } from "@/components/ui/badge"
 import { Icon } from "@/components/ui/icon"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -192,6 +193,7 @@ export default function EscenariosPage() {
           </motion.div>
         </div>
       </section>
+      <Separator />
 
       <section className="py-8 pb-24 md:py-16 md:pb-24">
         <div className="container mx-auto px-4">
@@ -230,6 +232,7 @@ export default function EscenariosPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       <CtaSection
         title="¿Tu clínica vive alguna de estas situaciones?"

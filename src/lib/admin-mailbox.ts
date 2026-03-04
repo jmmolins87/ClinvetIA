@@ -7,6 +7,5 @@ export function getSharedMailboxEmail() {
 }
 
 export function canUseSharedMailbox(role: AdminRole) {
-  return role === "superadmin" || role === "admin"
+  return role === "superadmin" || role === "admin" || role === "demo"
 }
-

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Icon } from "@/components/ui/icon"
+import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Spinner } from "@/components/ui/spinner"
 import { storage } from "@/lib/storage"
@@ -122,6 +123,7 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
           <motion.p {...fadeUp} transition={{ delay: 0.3 }} className="mx-auto max-w-2xl text-lg text-muted-foreground">Ajusta los valores a tu clínica y descubre el ROI real que obtendrías con <BrandName />.</motion.p>
         </div>
       </section>
+      <Separator />
 
       <section className="pb-20">
         <div className="container mx-auto px-4 max-w-5xl">

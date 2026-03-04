@@ -407,7 +407,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <nav className="mt-5 flex-1 space-y-2.5">
               {navItems.map((item) => {
                 const active = pathname === item.href
-                const auditDisabled = item.href === "/admin/audit" && ["manager", "worker", "demo"].includes(admin?.role || "")
+                const auditDisabled = item.href === "/admin/audit" && ["manager", "worker"].includes(admin?.role || "")
                 const className = cn(
                   "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-all",
                   active
@@ -450,8 +450,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
               <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-accent/30 bg-accent/10">
-                    <Icon icon={BarChart3} size="sm" variant="accent" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-white/15">
+                    <Icon icon={BarChart3} size="sm" variant="default" className="text-foreground" />
                   </div>
                   <span className="text-sm font-medium">Panel de gestión</span>
                 </div>

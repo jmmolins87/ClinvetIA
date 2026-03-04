@@ -14,6 +14,7 @@ import {
   buildGoogleMeetLink,
 } from "@/lib/booking-communication"
 import { canUseSharedMailbox, getSharedMailboxEmail } from "@/lib/admin-mailbox"
+import { addDemoSentMail } from "@/lib/admin-demo-mail-state"
 
 const schema = z.object({
   mailbox: z.enum(["self", "shared"]).default("shared"),
@@ -28,13 +29,21 @@ export async function POST(req: Request) {
   if (!auth.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (auth.data.admin.role === "demo") {
-    return NextResponse.json({ error: "Modo demo sin envío de correos" }, { status: 403 })
-  }
 
   try {
     const body = await req.json()
     const parsed = schema.parse(body)
+    if (auth.data.admin.role === "demo") {
+      addDemoSentMail({
+        mailbox: parsed.mailbox,
+        demoUserEmail: auth.data.admin.email.trim().toLowerCase(),
+        to: parsed.to,
+        customerName: parsed.customerName,
+        subject: parsed.subject,
+        body: parsed.message,
+      })
+      return NextResponse.json({ ok: true, demo: true })
+    }
     const canAccessShared = canUseSharedMailbox(auth.data.admin.role)
     if (parsed.mailbox === "shared" && !canAccessShared) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })

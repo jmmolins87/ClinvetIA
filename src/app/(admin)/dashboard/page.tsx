@@ -136,7 +136,11 @@ function SparkBars({ values }: { values: number[] }) {
   )
 }
 
-function StatusSparkBars({ values }: { values: Array<{ value: number; tone: "primary" | "warning" | "secondary" | "destructive" }> }) {
+function StatusSparkBars({
+  values,
+}: {
+  values: Array<{ label: string; value: number; tone: "primary" | "warning" | "secondary" | "destructive" }>
+}) {
   const max = Math.max(...values.map((entry) => entry.value), 1)
   const tones = {
     primary: "border-primary/20 from-primary/20 to-primary/50",
@@ -146,13 +150,17 @@ function StatusSparkBars({ values }: { values: Array<{ value: number; tone: "pri
   } as const
 
   return (
-    <div className="flex h-20 items-end gap-2">
+    <div className="grid grid-cols-4 gap-2">
       {values.map((entry, index) => (
-        <div key={`${entry.tone}-${index}`} className="flex flex-1 items-end">
-          <div
-            className={`w-full rounded-md border bg-gradient-to-t ${tones[entry.tone]}`}
-            style={{ height: `${Math.max(10, (entry.value / max) * 100)}%` }}
-          />
+        <div key={`${entry.tone}-${index}`} className="rounded-lg border border-white/10 bg-background/35 px-2 py-2">
+          <div className="text-center text-xs font-semibold">{entry.value}</div>
+          <div className="mt-1 flex h-14 items-end">
+            <div
+              className={`w-full rounded-md border bg-gradient-to-t ${tones[entry.tone]}`}
+              style={{ height: `${Math.max(10, (entry.value / max) * 100)}%` }}
+            />
+          </div>
+          <div className="mt-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">{entry.label}</div>
         </div>
       ))}
     </div>
@@ -372,6 +380,8 @@ export default function AdminDashboardPage() {
   const [canUseSharedMailbox, setCanUseSharedMailbox] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [desktopBookingIndex, setDesktopBookingIndex] = useState(0)
+  const [desktopBookingTransitioning, setDesktopBookingTransitioning] = useState(false)
+  const desktopSwitchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const openEmailDialog = (target: { nombre: string; email: string }) => {
     setEmailTarget(target)
@@ -457,7 +467,7 @@ export default function AdminDashboardPage() {
         const payload = await res.json()
         const role = String(payload?.admin?.role || "")
         if (!mounted) return
-        setCanUseSharedMailbox(role === "superadmin" || role === "admin")
+        setCanUseSharedMailbox(role === "superadmin" || role === "admin" || role === "demo")
       } catch {}
     }
     loadCapabilities()
@@ -503,17 +513,44 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (totalRecentBookings === 0) {
       setDesktopBookingIndex(0)
+      setDesktopBookingTransitioning(false)
       return
     }
     setDesktopBookingIndex((current) => Math.min(current, totalRecentBookings - 1))
   }, [totalRecentBookings])
 
-  const workloadBars = [
-    { value: kpis.pendingBookings, tone: "warning" as const },
-    { value: kpis.confirmedBookings, tone: "primary" as const },
-    { value: kpis.cancelledBookings, tone: "secondary" as const },
-    { value: kpis.expiredBookings, tone: "destructive" as const },
+  useEffect(() => {
+    return () => {
+      if (desktopSwitchTimeoutRef.current) {
+        clearTimeout(desktopSwitchTimeoutRef.current)
+        desktopSwitchTimeoutRef.current = null
+      }
+    }
+  }, [])
+
+  const changeDesktopBooking = useCallback((nextIndex: number) => {
+    if (totalRecentBookings <= 1 || desktopBookingTransitioning) return
+    if (desktopSwitchTimeoutRef.current) {
+      clearTimeout(desktopSwitchTimeoutRef.current)
+    }
+    setDesktopBookingTransitioning(true)
+    desktopSwitchTimeoutRef.current = setTimeout(() => {
+      setDesktopBookingIndex(nextIndex)
+      setDesktopBookingTransitioning(false)
+      desktopSwitchTimeoutRef.current = null
+    }, 1000)
+  }, [desktopBookingTransitioning, totalRecentBookings])
+
+  const rawWorkloadBars = [
+    { label: "Pend.", value: kpis.pendingBookings, tone: "warning" as const },
+    { label: "Conf.", value: kpis.confirmedBookings, tone: "primary" as const },
+    { label: "Canc.", value: kpis.cancelledBookings, tone: "secondary" as const },
+    { label: "Exp.", value: kpis.expiredBookings, tone: "destructive" as const },
   ]
+  const simulatedDemoWorkload = [4, 7, 2, 1]
+  const workloadBars = data?.mode === "demo"
+    ? rawWorkloadBars.map((entry, index) => ({ ...entry, value: Math.max(entry.value, simulatedDemoWorkload[index]) }))
+    : rawWorkloadBars
   const trendBars = [
     Math.max(1, kpis.pendingBookings),
     Math.max(1, Math.round(kpis.confirmedBookings * 0.6)),
@@ -710,7 +747,10 @@ export default function AdminDashboardPage() {
             />
           </div>
           <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Carga operativa</div>
+            <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Carga operativa</div>
+            <div className="mb-2 text-[11px] text-muted-foreground">
+              Volumen por estado para priorizar seguimiento diario.
+            </div>
             <StatusSparkBars values={workloadBars} />
           </div>
         </GlassCard>
@@ -748,33 +788,49 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
                 <div className="group relative hidden md:block">
-                  <RecentBookingCard booking={recentBookings[desktopBookingIndex]} />
+                  <div className={desktopBookingTransitioning ? "transition-all duration-200 blur-[2px] opacity-70" : "transition-all duration-200"}>
+                    <RecentBookingCard booking={recentBookings[desktopBookingIndex]} />
+                  </div>
+                  {desktopBookingTransitioning && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl border border-white/10 bg-background/60">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Spinner size="sm" variant="primary" />
+                        <span>Cargando cita...</span>
+                      </div>
+                    </div>
+                  )}
                   {totalRecentBookings > 1 && (
-                    <>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setDesktopBookingIndex((current) => (current - 1 + totalRecentBookings) % totalRecentBookings)}
-                        className="absolute left-3 top-1/2 h-8 w-8 -translate-y-1/2 opacity-0 shadow-neon-primary transition-opacity duration-200 group-hover:opacity-100"
-                        aria-label="Cita anterior"
-                      >
-                        <Icon icon={ChevronLeft} size="xs" variant="default" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setDesktopBookingIndex((current) => (current + 1) % totalRecentBookings)}
-                        className="absolute right-3 top-1/2 h-8 w-8 -translate-y-1/2 opacity-0 shadow-neon-primary transition-opacity duration-200 group-hover:opacity-100"
-                        aria-label="Siguiente cita"
-                      >
-                        <Icon icon={ChevronRight} size="xs" variant="default" />
-                      </Button>
-                      <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-background/70 px-2 py-0.5 text-[10px] text-muted-foreground">
+                    <div className="relative mt-3 h-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      <div className="absolute left-0 top-1/2 z-30 -translate-y-1/2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => changeDesktopBooking((desktopBookingIndex - 1 + totalRecentBookings) % totalRecentBookings)}
+                          className="!h-8 !w-8 shadow-neon-primary"
+                          aria-label="Cita anterior"
+                          disabled={desktopBookingTransitioning}
+                        >
+                          <Icon icon={ChevronLeft} size="xs" variant="default" />
+                        </Button>
+                      </div>
+                      <div className="absolute right-0 top-1/2 z-30 -translate-y-1/2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => changeDesktopBooking((desktopBookingIndex + 1) % totalRecentBookings)}
+                          className="!h-8 !w-8 shadow-neon-primary"
+                          aria-label="Siguiente cita"
+                          disabled={desktopBookingTransitioning}
+                        >
+                          <Icon icon={ChevronRight} size="xs" variant="default" />
+                        </Button>
+                      </div>
+                      <div className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-background/70 px-2 py-0.5 text-[10px] text-muted-foreground">
                         {desktopBookingIndex + 1}/{totalRecentBookings}
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </>

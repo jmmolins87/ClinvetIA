@@ -81,6 +81,7 @@ export default function AdminUsersPage() {
   const [editErrors, setEditErrors] = useState<{ name?: string }>({})
   const [editLoading, setEditLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [pageNavLoading, setPageNavLoading] = useState<"prev" | "next" | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const itemRef = useRef<HTMLDivElement | null>(null)
   const footerRef = useRef<HTMLDivElement | null>(null)
@@ -165,6 +166,19 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(users.length / pageSize))
   const pageSafe = Math.min(page, totalPages)
   const pagedUsers = users.slice((pageSafe - 1) * pageSize, pageSafe * pageSize)
+
+  const changePageWithLoader = useCallback((direction: "prev" | "next") => {
+    if (pageNavLoading) return
+    if (direction === "prev" && pageSafe <= 1) return
+    if (direction === "next" && pageSafe >= totalPages) return
+    setPageNavLoading(direction)
+    window.setTimeout(() => {
+      setPage((current) =>
+        direction === "prev" ? Math.max(1, current - 1) : Math.min(totalPages, current + 1)
+      )
+      setPageNavLoading(null)
+    }, 1000)
+  }, [pageNavLoading, pageSafe, totalPages])
 
   const validateCreateField = (field: "email" | "name", value: string) => {
     if (!value.trim()) return "Este campo es obligatorio"
@@ -590,20 +604,30 @@ export default function AdminUsersPage() {
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                disabled={pageSafe <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={pageSafe <= 1 || pageNavLoading !== null}
+                onClick={() => changePageWithLoader("prev")}
               >
-                Anterior
+                {pageNavLoading === "prev" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="primary" />
+                    Cargando...
+                  </span>
+                ) : "Anterior"}
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
                 className="!w-auto"
-                disabled={pageSafe >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={pageSafe >= totalPages || pageNavLoading !== null}
+                onClick={() => changePageWithLoader("next")}
               >
-                Siguiente
+                {pageNavLoading === "next" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" variant="primary" />
+                    Cargando...
+                  </span>
+                ) : "Siguiente"}
               </Button>
             </div>
           </div>

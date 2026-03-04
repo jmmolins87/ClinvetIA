@@ -8,6 +8,12 @@ interface SessionLeanView {
   _id: { toString(): string }
   token: string
   expiresAt: Date | string
+  chatSummary?: string | null
+  chatHistory?: Array<{
+    role: "assistant" | "user"
+    content: string
+    timestamp?: string | Date
+  }>
   roi?: {
     monthlyPatients?: number | null
     averageTicket?: number | null
@@ -92,6 +98,8 @@ export async function GET(req: Request) {
       accessToken: session.token,
       expiresAt: new Date(session.expiresAt).toISOString(),
       roi: session.roi ?? {},
+      chatSummary: session.chatSummary ?? "",
+      chatHistory: session.chatHistory ?? [],
     })
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 })

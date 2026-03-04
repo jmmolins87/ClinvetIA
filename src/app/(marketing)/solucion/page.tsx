@@ -23,6 +23,7 @@ import { CtaSection } from "@/components/marketing/cta-section"
 import { BrandName } from "@/components/ui/brand-name"
 import { MarketingCard } from "@/components/ui/marketing-card"
 import { Icon } from "@/components/ui/icon"
+import { Separator } from "@/components/ui/separator"
 
 const features = [
   {
@@ -143,6 +144,7 @@ export default function SolucionPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION: QUÉ ES (CONCEPTO)
@@ -171,6 +173,7 @@ export default function SolucionPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION: QUÉ HACE (GRID DE FEATURES)
@@ -199,6 +202,7 @@ export default function SolucionPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION: FLUJO SIN FRICCIONES (TIMELINE)
@@ -243,6 +247,7 @@ export default function SolucionPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION: SEGURIDAD Y CONTROL (GRID 2x2)
@@ -279,6 +284,7 @@ export default function SolucionPage() {
           </div>
         </div>
       </section>
+      <Separator />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           CTA FINAL
