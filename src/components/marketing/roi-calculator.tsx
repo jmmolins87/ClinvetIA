@@ -125,7 +125,7 @@ export function ROICalculator({ trigger, className }: ROICalculatorProps) {
       </section>
       <Separator />
 
-      <section className="pb-20">
+      <section className="pt-24 pb-20 md:pt-32">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_420px]">
             <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="space-y-6">
@@ -265,10 +265,11 @@ type MetricVariant = "primary" | "destructive" | "success" | "muted"
 function MetricCard({ label, value, icon: IconComponent, variant, isCalculating }: { label: string; value: string; icon: LucideIcon; variant: MetricVariant; isCalculating?: boolean }) {
   const styles: Record<MetricVariant, string> = { primary: "border-primary/30 bg-primary/5 text-primary", destructive: "border-destructive/30 bg-destructive/5 text-destructive", success: "border-success/30 bg-success/5 text-success", muted: "border-white/10 bg-white/5 text-muted-foreground" }
   const iconVariantMap: Record<MetricVariant, "primary" | "destructive" | "muted"> = { primary: "primary", destructive: "destructive", success: "primary", muted: "muted" }
+  const iconClassMap: Record<MetricVariant, string> = { primary: "", destructive: "", success: "text-success", muted: "" }
   return (
     <div className={`rounded-xl border p-3 space-y-1 ${styles[variant]}`}>
       <div className="flex items-center gap-1.5 opacity-70">
-        <Icon icon={IconComponent} size="sm" variant={iconVariantMap[variant]} />
+        <Icon icon={IconComponent} size="sm" variant={variant === "success" ? "muted" : iconVariantMap[variant]} className={iconClassMap[variant]} />
         <span className="text-base font-medium">{label}</span>
       </div>
       {isCalculating ? <div className="flex items-center justify-center h-7"><Spinner size="default" variant="default" /></div> : <p className="text-lg font-bold tabular-nums">{value}</p>}
