@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { dbConnect } from "@/lib/db"
 import { WhatsAppConversation } from "@/models/WhatsAppConversation"
 import { Session } from "@/models/Session"
+import { callN8nWebhook, isN8nConfigured } from "@/lib/n8n-integration"
 
 type ChatAssistantResponse = {
   reply: string
@@ -196,6 +197,27 @@ export async function POST(req: Request) {
 
     if (!messages.length) {
       return NextResponse.json({ ok: true, ignored: true })
+    }
+
+    if (isN8nConfigured()) {
+      for (const message of messages as Array<{
+        from: string
+        text: { body: string }
+      }>) {
+        const text = String(message.text?.body || "").trim()
+        const phone = String(message.from || "").trim()
+        if (!text || !phone) continue
+
+        await callN8nWebhook({
+          channel: "whatsapp",
+          message: text,
+          phone,
+          history: [],
+          locale: "es",
+        })
+      }
+
+      return NextResponse.json({ ok: true, delegatedToN8n: true })
     }
 
     await dbConnect()

@@ -10,6 +10,7 @@ import { buildICS } from "@/lib/ics"
 import { appendBookingEmailEvent, buildGoogleMeetLink } from "@/lib/booking-communication"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
 import { DEMO_BOOKABLE_TIME_SLOTS, isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
+import { callN8nWebhook, isN8nConfigured } from "@/lib/n8n-integration"
 
 type ChatSlot = {
   date: string
@@ -754,6 +755,22 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const parsed = schema.parse(body)
+
+    if (isN8nConfigured()) {
+      const n8nResult = await callN8nWebhook<{
+        reply?: string
+        intent?: string
+        email?: Record<string, unknown>
+      }>({
+        channel: "web",
+        ...parsed,
+      })
+
+      if (n8nResult?.ok && n8nResult.data) {
+        return NextResponse.json(n8nResult.data)
+      }
+    }
+
     await dbConnect()
 
     const locale: ChatLocale = parsed.locale === "en" ? "en" : "es"

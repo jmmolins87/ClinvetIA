@@ -15,6 +15,7 @@ import {
 } from "@/lib/booking-communication"
 import { canUseSharedMailbox, getSharedMailboxEmail } from "@/lib/admin-mailbox"
 import { addDemoSentMail } from "@/lib/admin-demo-mail-state"
+import { callN8nWebhook, isN8nConfigured } from "@/lib/n8n-integration"
 
 const schema = z.object({
   mailbox: z.enum(["self", "shared"]).default("shared"),
@@ -106,21 +107,40 @@ export async function POST(req: Request) {
           })()
         : undefined
 
-    const result = await sendBrevoEmail({
-      to: [{ email: parsed.to, name: parsed.customerName || parsed.to }],
-      subject: parsed.subject,
-      htmlContent: customerReplyEmail({
-        brandName,
-        customerName: parsed.customerName || parsed.to,
-        customerEmail: parsed.to,
-        supportEmail: selectedMailbox,
-        subject: parsed.subject,
-        message: parsed.message,
-        meetingLink,
-      }),
-      attachments,
-      replyTo: { email: selectedMailbox, name: brandName },
-    })
+    const n8nResult = isN8nConfigured()
+      ? await callN8nWebhook<{
+          ok?: boolean
+          reply?: string
+          sentTo?: string
+          error?: string
+        }>({
+          channel: "email",
+          message: parsed.message,
+          to: parsed.to,
+          customerName: parsed.customerName || parsed.to,
+          subject: parsed.subject,
+          locale: "es",
+        })
+      : null
+
+    const result =
+      n8nResult?.ok
+        ? { ok: true, error: null }
+        : await sendBrevoEmail({
+            to: [{ email: parsed.to, name: parsed.customerName || parsed.to }],
+            subject: parsed.subject,
+            htmlContent: customerReplyEmail({
+              brandName,
+              customerName: parsed.customerName || parsed.to,
+              customerEmail: parsed.to,
+              supportEmail: selectedMailbox,
+              subject: parsed.subject,
+              message: parsed.message,
+              meetingLink,
+            }),
+            attachments,
+            replyTo: { email: selectedMailbox, name: brandName },
+          })
 
     const preview = parsed.message.replace(/\s+/g, " ").trim().slice(0, 180)
     const docs: Array<Record<string, unknown>> = [
