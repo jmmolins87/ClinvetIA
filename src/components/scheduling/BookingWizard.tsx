@@ -52,6 +52,8 @@ export interface BookingWizardProps {
   subtitle?: string
   confirmCtaLabel?: string
   confirmingLabel?: string
+  confirmContent?: React.ReactNode
+  canSubmit?: boolean
   showDurationSelector?: boolean
   durationOptions?: { label: string; value: number; disabled?: boolean }[]
   initialDate?: Date | null
@@ -121,6 +123,8 @@ export function BookingWizard({
   subtitle = "Selecciona un día para ver horarios disponibles",
   confirmCtaLabel = "Confirmar",
   confirmingLabel = "Confirmando...",
+  confirmContent,
+  canSubmit = true,
   showDurationSelector = true,
   durationOptions = DEFAULT_DURATION_OPTIONS,
   initialDate = null,
@@ -469,8 +473,10 @@ export function BookingWizard({
 
                   {submitError && <div className="text-xs text-destructive">{submitError}</div>}
 
-                  <div>
-                    <Button type="button" className="w-full gap-2" disabled={!canConfirm || isSubmitting} onClick={submit}>
+                  <div className="space-y-4">
+                    {confirmContent}
+
+                    <Button type="button" className="w-full gap-2" disabled={!canConfirm || !canSubmit || isSubmitting} onClick={submit}>
                       {isSubmitting ? confirmingLabel : confirmCtaLabel}
                       <Icon icon={isSubmitting ? Clock : CheckCircle2} size="lg" />
                     </Button>

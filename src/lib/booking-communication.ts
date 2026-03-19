@@ -7,6 +7,25 @@ export function buildGoogleMeetLink(bookingId: string) {
   return `https://meet.google.com/new#booking-${bookingId}`
 }
 
+export async function ensureBookingGoogleMeetLink(bookingId: string) {
+  if (!Types.ObjectId.isValid(bookingId)) {
+    return buildGoogleMeetLink(bookingId)
+  }
+
+  const existing = await Booking.findById(bookingId).select("googleMeetLink").lean<{ googleMeetLink?: string | null }>()
+  const currentLink = Array.isArray(existing) ? existing[0]?.googleMeetLink : existing?.googleMeetLink
+  if (currentLink) {
+    return currentLink
+  }
+
+  const nextLink = buildGoogleMeetLink(bookingId)
+  await Booking.updateOne(
+    { _id: bookingId, $or: [{ googleMeetLink: null }, { googleMeetLink: "" }, { googleMeetLink: { $exists: false } }] },
+    { $set: { googleMeetLink: nextLink } }
+  )
+  return nextLink
+}
+
 type BookingEmailEventInput = {
   bookingId: string
   category: string

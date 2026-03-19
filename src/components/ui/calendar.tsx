@@ -28,11 +28,11 @@ function Calendar({ className, classNames, showOutsideDays = false, ...props }: 
         nav: "hidden",
         button_previous: cn(
           buttonVariants({ variant: "ghost", size: "icon" }),
-          "col-start-1 row-start-1 !inline-flex !h-8 !w-8 rounded-full border border-white/15 bg-white/10 p-0 text-foreground hover:bg-white/20"
+          "col-start-1 row-start-1 !inline-flex !h-8 !w-8 rounded-full border border-white/20 bg-white/12 p-0 text-white/90 hover:bg-white/22 hover:text-white"
         ),
         button_next: cn(
           buttonVariants({ variant: "ghost", size: "icon" }),
-          "col-start-3 row-start-1 !inline-flex !h-8 !w-8 rounded-full border border-white/15 bg-white/10 p-0 text-foreground hover:bg-white/20"
+          "col-start-3 row-start-1 !inline-flex !h-8 !w-8 rounded-full border border-white/20 bg-white/12 p-0 text-white/90 hover:bg-white/22 hover:text-white"
         ),
         month_grid: "col-span-3 w-full border-collapse space-y-1",
         weekdays: "flex",
@@ -41,7 +41,7 @@ function Calendar({ className, classNames, showOutsideDays = false, ...props }: 
         day: "h-9 w-9 p-0 text-center text-sm",
         day_button: cn(
           buttonVariants({ variant: "ghost", size: "icon" }),
-          "size-9 rounded-full border border-white/15 bg-white/10 p-0 text-sm font-medium text-foreground shadow-none",
+          "size-9 cursor-pointer rounded-full border border-white/15 bg-white/10 p-0 text-sm font-medium text-foreground shadow-none",
           "hover:border-[rgba(var(--primary-rgb),0.45)] hover:bg-primary/15 hover:text-primary",
           "focus-visible:ring-1 focus-visible:ring-primary"
         ),
@@ -56,9 +56,9 @@ function Calendar({ className, classNames, showOutsideDays = false, ...props }: 
       components={{
         Chevron: ({ orientation, className }) =>
           orientation === "left" ? (
-            <Icon icon={ChevronLeft} size="sm" variant="foreground" className={cn(className)} />
+            <Icon icon={ChevronLeft} size="sm" variant="foreground" className={cn("text-white/95", className)} />
           ) : (
-            <Icon icon={ChevronRight} size="sm" variant="foreground" className={cn(className)} />
+            <Icon icon={ChevronRight} size="sm" variant="foreground" className={cn("text-white/95", className)} />
           ),
       }}
       {...props}

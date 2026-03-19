@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/icon"
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "default" | "lg" | "xl"
-  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success"
+  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success" | "destructive"
 }
 
 const sizeClasses = {
@@ -25,6 +25,7 @@ const variantClasses = {
   accent: "text-accent",
   warning: "text-warning",
   success: "text-success",
+  destructive: "text-destructive",
 }
 
 export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
@@ -53,7 +54,7 @@ Spinner.displayName = "Spinner"
 // Pantalla completa con efecto glass para estados de carga
 export interface LoadingOverlayProps {
   message?: string
-  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success"
+  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success" | "destructive"
 }
 
 export function LoadingOverlay({
@@ -79,6 +80,7 @@ export function LoadingOverlay({
           variant === "accent" && "bg-accent",
           variant === "warning" && "bg-warning",
           variant === "success" && "bg-success",
+          variant === "destructive" && "bg-destructive",
           variant === "default" && "bg-muted-foreground"
         )} />
         
@@ -93,6 +95,7 @@ export function LoadingOverlay({
           variant === "accent" && "bg-accent shadow-[0_0_15px_rgba(var(--accent-rgb),0.8)]",
           variant === "warning" && "bg-warning shadow-[0_0_15px_rgba(var(--warning-rgb),0.8)]",
           variant === "success" && "bg-success shadow-[0_0_15px_rgba(var(--success-rgb),0.8)]",
+          variant === "destructive" && "bg-destructive shadow-[0_0_15px_rgba(var(--destructive-rgb),0.8)]",
           variant === "default" && "bg-muted-foreground"
         )} />
       </div>
@@ -112,7 +115,7 @@ export function LoadingOverlay({
 // ── Loading Dots ────────────────────────────────────────────────────────────────
 export interface LoadingDotsProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "default" | "lg"
-  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success"
+  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success" | "destructive"
 }
 
 const dotsSizeClasses = {
@@ -128,6 +131,7 @@ const dotsVariantClasses = {
   accent: "bg-accent",
   warning: "bg-warning",
   success: "bg-success",
+  destructive: "bg-destructive",
 }
 
 export function LoadingDots({
@@ -155,7 +159,7 @@ export function LoadingDots({
 // ── Loading Ring ─────────────────────────────────────────────────────────────────
 export interface LoadingRingProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "default" | "lg" | "xl"
-  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success"
+  variant?: "default" | "primary" | "secondary" | "accent" | "warning" | "success" | "destructive"
 }
 
 const ringSizeClasses = {
@@ -172,6 +176,7 @@ const ringVariantClasses = {
   accent: "border-accent/20 border-t-accent",
   warning: "border-warning/20 border-t-warning",
   success: "border-success/20 border-t-success",
+  destructive: "border-destructive/20 border-t-destructive",
 }
 
 export function LoadingRing({

@@ -1,0 +1,6 @@
+- generic [active] [ref=e1]:
+  - region "Notifications (F8)":
+    - list
+  - paragraph [ref=e8]: Clinvetia
+  - button "Open Next.js Dev Tools" [ref=e18] [cursor=pointer]:
+    - img [ref=e19]

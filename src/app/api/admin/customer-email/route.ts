@@ -11,7 +11,7 @@ import { AdminMailboxMessage } from "@/models/AdminMailboxMessage"
 import { buildICS } from "@/lib/ics"
 import {
   appendBookingEmailEvent,
-  buildGoogleMeetLink,
+  ensureBookingGoogleMeetLink,
 } from "@/lib/booking-communication"
 import { canUseSharedMailbox, getSharedMailboxEmail } from "@/lib/admin-mailbox"
 import { addDemoSentMail } from "@/lib/admin-demo-mail-state"
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
             duration?: number | string
           })
         : null
-    const meetingLink = bookingId ? bookingData?.googleMeetLink || buildGoogleMeetLink(bookingId) : null
+    const meetingLink = bookingId ? await ensureBookingGoogleMeetLink(bookingId) : null
 
     const attachments =
       bookingData && meetingLink

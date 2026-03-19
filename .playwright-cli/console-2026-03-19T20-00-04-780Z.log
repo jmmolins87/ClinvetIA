@@ -1,0 +1,4 @@
+[    1878ms] TypeError: Failed to execute 'measure' on 'Performance': '​AdminLayout' cannot have a negative time stamp.
+    at flushComponentPerformance (http://127.0.0.1:3000/_next/static/chunks/aaee4_next_dist_compiled_react-server-dom-turbopack_4bfa29da._.js:2152:45)
+    at flushComponentPerformance (http://127.0.0.1:3000/_next/static/chunks/aaee4_next_dist_compiled_react-server-dom-turbopack_4bfa29da._.js:2124:31)
+    at flushInitialRenderPerformance (http://127.0.0.1:3000/_next/static/chunks/aaee4_next_dist_compiled_react-server-dom-turbopack_4bfa29da._.js:2314:74)

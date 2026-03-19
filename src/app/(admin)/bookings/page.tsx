@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
+import { AlertTriangle, Check, Trash2, X } from "lucide-react"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -62,6 +62,7 @@ export default function AdminBookingsPage() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [rescheduleBooking, setRescheduleBooking] = useState<BookingRow | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [createEmail, setCreateEmail] = useState("")
   const [cancelDialogBooking, setCancelDialogBooking] = useState<BookingRow | null>(null)
   const [cancelEmailSubject, setCancelEmailSubject] = useState("")
   const [cancelEmailMessage, setCancelEmailMessage] = useState("")
@@ -398,6 +399,36 @@ export default function AdminBookingsPage() {
     return status
   }
 
+  const statusPanelClass = (status: string) => {
+    if (status === "confirmed") {
+      return "border-primary/30 bg-primary/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_35px_rgba(var(--primary-rgb),0.12)]"
+    }
+    if (status === "pending") {
+      return "border-warning/30 bg-warning/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_35px_rgba(var(--warning-rgb),0.12)]"
+    }
+    if (status === "cancelled") {
+      return "border-secondary/30 bg-secondary/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_35px_rgba(var(--secondary-rgb),0.12)]"
+    }
+    if (status === "expired") {
+      return "border-destructive/30 bg-destructive/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_35px_rgba(var(--destructive-rgb),0.12)]"
+    }
+    return "border-white/10 bg-white/5"
+  }
+
+  const statusIcon = (status: string) => {
+    if (status === "confirmed") return Check
+    if (status === "cancelled" || status === "expired") return X
+    return AlertTriangle
+  }
+
+  const statusIconVariant = (status: string): "primary" | "warning" | "secondary" | "destructive" | "muted" => {
+    if (status === "confirmed") return "primary"
+    if (status === "pending") return "warning"
+    if (status === "cancelled") return "secondary"
+    if (status === "expired") return "destructive"
+    return "muted"
+  }
+
   const openRescheduleDialog = (booking: BookingRow) => {
     setRescheduleBooking(booking)
     setRescheduleOpen(true)
@@ -405,6 +436,14 @@ export default function AdminBookingsPage() {
   const submitReschedule = async (payload: BookingWizardSubmitPayload) => {
     if (!rescheduleBooking) {
       throw new Error("Selecciona una cita para reagendar")
+    }
+    if (!rescheduleBooking.email?.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Correo obligatorio",
+        description: "La cita debe tener un correo asociado para poder enviar el reagendado.",
+      })
+      throw new Error("La cita no tiene correo asociado")
     }
     setUpdatingId(rescheduleBooking.id)
     try {
@@ -442,6 +481,16 @@ export default function AdminBookingsPage() {
   }
 
   const submitCreate = async (payload: BookingWizardSubmitPayload) => {
+    const email = createEmail.trim().toLowerCase()
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Correo obligatorio",
+        description: "Debes indicar un correo para crear y enviar la cita.",
+      })
+      throw new Error("Debes indicar un correo para crear la cita")
+    }
+
     setUpdatingId("create-demo-booking")
     try {
       const res = await fetch("/api/admin/bookings", {
@@ -452,6 +501,7 @@ export default function AdminBookingsPage() {
           date: payload.date.toISOString(),
           time: payload.time,
           duration: payload.duration,
+          email,
         }),
       })
 
@@ -462,9 +512,10 @@ export default function AdminBookingsPage() {
 
       await loadBookings()
       setCreateOpen(false)
+      setCreateEmail("")
       toast({
         title: "Cita creada",
-        description: "La nueva cita demo se ha añadido correctamente.",
+        description: "La nueva cita se ha creado y enviado correctamente.",
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : "No se pudo crear la cita"
@@ -515,7 +566,15 @@ export default function AdminBookingsPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+      <Dialog
+        open={rescheduleOpen}
+        onOpenChange={(open) => {
+          setRescheduleOpen(open)
+          if (!open) {
+            setRescheduleBooking(null)
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Reagendar cita</DialogTitle>
@@ -530,9 +589,10 @@ export default function AdminBookingsPage() {
               subtitle="Elige un nuevo día, revisa los horarios y confirma la nueva fecha"
               confirmCtaLabel="Confirmar reagendado"
               confirmingLabel="Reagendando..."
+              showDurationSelector={false}
               initialDate={new Date(rescheduleBooking.date)}
               initialTime={rescheduleBooking.time}
-              initialDuration={rescheduleBooking.duration}
+              initialDuration={30}
               initialStep="date"
               allowUnavailableSlot={(slot, date) => {
                 if (!rescheduleBooking) return false
@@ -553,19 +613,32 @@ export default function AdminBookingsPage() {
           )}
 
           <DialogFooter className="sm:[&>*]:flex-none">
-            <Button variant="ghost" onClick={() => setRescheduleOpen(false)} className="w-auto">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setRescheduleOpen(false)
+                setRescheduleBooking(null)
+              }}
+              className="w-auto"
+            >
               Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open)
+          if (!open) setCreateEmail("")
+        }}
+      >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Nueva cita</DialogTitle>
             <DialogDescription>
-              Selecciona fecha y hora para añadir una nueva cita demo.
+              Selecciona fecha y hora e indica el correo al que se enviará la cita.
             </DialogDescription>
           </DialogHeader>
           <BookingWizard
@@ -574,6 +647,24 @@ export default function AdminBookingsPage() {
             subtitle="Elige día, hora y duración para registrar una nueva cita"
             confirmCtaLabel="Crear cita"
             confirmingLabel="Creando..."
+            showDurationSelector={false}
+            initialDuration={30}
+            confirmContent={
+              <div className="space-y-2">
+                <label htmlFor="create-booking-email" className="text-sm font-medium">
+                  Correo del cliente
+                </label>
+                <Input
+                  id="create-booking-email"
+                  type="email"
+                  value={createEmail}
+                  onChange={(event) => setCreateEmail(event.target.value)}
+                  placeholder="cliente@clinica.com"
+                  required
+                />
+              </div>
+            }
+            canSubmit={Boolean(createEmail.trim())}
             initialStep="date"
             loadAvailability={async (date) => {
               const res = await fetch(`/api/availability?date=${encodeURIComponent(date.toISOString().slice(0, 10))}`, { cache: "no-store" })
@@ -685,7 +776,7 @@ export default function AdminBookingsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-semibold">Reservas</h2>
         <div className="flex items-center gap-2">
-          {mode === "demo" && (
+          {canOperate && (
             <Button type="button" size="sm" variant="accent" className="!w-auto px-3" onClick={() => setCreateOpen(true)}>
               Añadir cita
             </Button>
@@ -814,7 +905,7 @@ export default function AdminBookingsPage() {
                   pageNavLoading && "blur-[2px] opacity-70"
                 )}
               >
-                <div className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(260px,1.1fr)_auto] lg:items-stretch">
+                <div className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(260px,1.1fr)_minmax(220px,0.95fr)] lg:items-stretch">
                   <div className="h-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 space-y-2">
                     <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Cita</div>
                     <div className="text-sm font-semibold">
@@ -855,7 +946,7 @@ export default function AdminBookingsPage() {
                     )}
                   </div>
 
-                  <div className="h-full rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className={cn("h-full rounded-xl border px-4 py-3 backdrop-blur-md", statusPanelClass(booking.status))}>
                     <div className="flex h-full flex-col justify-between gap-4 lg:min-w-[220px]">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -888,6 +979,11 @@ export default function AdminBookingsPage() {
                         </div>
                         <Badge variant={badgeVariantForStatus(booking.status)}>{statusLabel(booking.status)}</Badge>
                       </div>
+                      <div className="flex flex-1 items-center justify-center">
+                        <div className="flex size-28 items-center justify-center rounded-full border border-white/10 bg-background/25 backdrop-blur-xl">
+                          <Icon icon={statusIcon(booking.status)} size="2xl" variant={statusIconVariant(booking.status)} className="size-16" />
+                        </div>
+                      </div>
                       <div className="border-t border-white/10 sm:hidden" />
 
                       {canOperate && (
@@ -897,7 +993,7 @@ export default function AdminBookingsPage() {
                               type="button"
                               variant="default"
                               size="sm"
-                              disabled={booking.status === "confirmed" || updatingId === booking.id}
+                              disabled={booking.status === "confirmed" || booking.status === "cancelled" || updatingId === booking.id}
                               onClick={() => updateBookingStatus(booking.id, "confirmed")}
                               className="w-full sm:w-[120px] shrink-0 cursor-pointer px-3"
                             >

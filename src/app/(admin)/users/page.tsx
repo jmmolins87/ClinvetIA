@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] space-y-6">
+    <div className="w-full space-y-6">
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -496,11 +496,11 @@ export default function AdminUsersPage() {
                       </div>
                     </div>
                     {role && canEditThisUser && (
-                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                      <div className="flex flex-nowrap items-center justify-end gap-2 overflow-x-auto">
                         <Button
                           variant="default"
                           size="sm"
-                          className="w-full sm:!w-auto shrink-0"
+                          className="!w-auto shrink-0 whitespace-nowrap"
                           disabled={!canEditThisUser}
                           onClick={() => openEditDialog(user)}
                         >
@@ -510,7 +510,7 @@ export default function AdminUsersPage() {
                           <Button
                             variant="secondary"
                             size="sm"
-                            className="w-full sm:!w-auto shrink-0"
+                            className="!w-auto shrink-0 whitespace-nowrap"
                             disabled={!canEditThisUser}
                             onClick={() => {
                               if (!user.id) return
@@ -525,7 +525,7 @@ export default function AdminUsersPage() {
                             <Button
                               variant="warning"
                               size="sm"
-                              className="w-full sm:!w-auto shrink-0"
+                              className="!w-auto shrink-0 whitespace-nowrap"
                               onClick={() => user.id && handleStatus(user.id, "disabled")}
                               disabled={statusLoading === user.id || !canEditThisUser}
                             >
@@ -534,7 +534,7 @@ export default function AdminUsersPage() {
                             <Button
                               variant="destructive"
                               size="sm"
-                              className="w-full sm:!w-auto shrink-0"
+                              className="!w-auto shrink-0 whitespace-nowrap"
                               disabled={!canEditThisUser}
                               onClick={() => user.id && setDeleteTarget({ id: user.id, name: user.name, email: user.email })}
                             >
@@ -546,7 +546,7 @@ export default function AdminUsersPage() {
                           <Button
                             variant="accent"
                             size="sm"
-                            className="w-full sm:!w-auto shrink-0"
+                            className="!w-auto shrink-0 whitespace-nowrap"
                             onClick={() => user.id && handleStatus(user.id, "active")}
                             disabled={statusLoading === user.id || !canEditThisUser}
                           >

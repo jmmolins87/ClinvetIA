@@ -5,6 +5,7 @@ import { Booking } from "@/models/Booking"
 import { Contact } from "@/models/Contact"
 import { verifyRecaptchaToken } from "@/lib/recaptcha-server"
 import { isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
+import { buildGoogleMeetLink } from "@/lib/booking-communication"
 
 interface BookingLeanView {
   _id: { toString(): string }
@@ -17,6 +18,7 @@ interface BookingLeanView {
   expiresAt: Date
   formExpiresAt: Date
   demoExpiresAt: Date
+  googleMeetLink?: string | null
 }
 
 interface ContactLeanView {
@@ -130,7 +132,7 @@ export async function POST(req: Request) {
 
     const accessToken = crypto.randomUUID()
 
-    const booking = await Booking.create({
+    const booking = new Booking({
       date,
       time: parsed.time,
       duration: parsed.duration,
@@ -141,6 +143,8 @@ export async function POST(req: Request) {
       demoExpiresAt,
       status: "confirmed",
     })
+    booking.googleMeetLink = buildGoogleMeetLink(booking._id.toString())
+    await booking.save()
 
     return NextResponse.json({
       bookingId: booking._id.toString(),
@@ -151,6 +155,7 @@ export async function POST(req: Request) {
       expiresAt: booking.expiresAt.toISOString(),
       formExpiresAt: booking.formExpiresAt.toISOString(),
       demoExpiresAt: booking.demoExpiresAt.toISOString(),
+      googleMeetLink: booking.googleMeetLink,
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -204,6 +209,7 @@ export async function GET(req: Request) {
         expiresAt: activeBooking.expiresAt.toISOString(),
         formExpiresAt: activeBooking.formExpiresAt.toISOString(),
         demoExpiresAt: activeBooking.demoExpiresAt.toISOString(),
+        googleMeetLink: activeBooking.googleMeetLink || buildGoogleMeetLink(activeBooking._id.toString()),
         status: activeBooking.status,
         contactSubmitted: Boolean(existingContact),
         contact: existingContact
@@ -254,6 +260,7 @@ export async function GET(req: Request) {
       expiresAt: booking.expiresAt.toISOString(),
       formExpiresAt: booking.formExpiresAt.toISOString(),
       demoExpiresAt: booking.demoExpiresAt.toISOString(),
+      googleMeetLink: booking.googleMeetLink || buildGoogleMeetLink(booking._id.toString()),
       status: booking.status,
       contactSubmitted: Boolean(existingContact),
       contact: existingContact

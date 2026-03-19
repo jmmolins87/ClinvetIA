@@ -6,13 +6,14 @@ import { Contact } from "@/models/Contact"
 import { dbConnect } from "@/lib/db"
 import { isSuperAdmin } from "@/lib/admin-auth"
 import { recordAdminAudit } from "@/lib/admin-audit"
+import { getSharedMailboxEmail } from "@/lib/admin-mailbox"
+import { addDemoSentMail } from "@/lib/admin-demo-mail-state"
 import { sendBrevoEmail } from "@/lib/brevo"
 import { leadSummaryEmail } from "@/lib/emails"
 import { buildICS } from "@/lib/ics"
 import {
   appendBookingEmailEvent,
   buildGoogleMeetLink,
-  CUSTOMER_DELIVERY_EMAIL,
 } from "@/lib/booking-communication"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
 import { expireOverdueBookings } from "@/lib/booking-expiration"
@@ -48,8 +49,23 @@ const updateBookingSchema = z.discriminatedUnion("action", [
     date: z.string().datetime(),
     time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
     duration: z.number().int().min(15).max(120),
+    email: z.string().email(),
   }),
 ])
+
+function buildCreateBookingDeliveryTargets(customerEmail: string, adminEmail: string) {
+  const sharedMailbox = getSharedMailboxEmail()
+  const normalizedCustomerEmail = customerEmail.trim().toLowerCase()
+  const normalizedAdminEmail = adminEmail.trim().toLowerCase()
+
+  return Array.from(
+    new Set([
+      normalizedCustomerEmail,
+      sharedMailbox,
+      normalizedAdminEmail !== sharedMailbox ? normalizedAdminEmail : null,
+    ].filter((value): value is string => Boolean(value)))
+  )
+}
 
 export async function GET(req: Request) {
   const auth = await requireAdmin(req)
@@ -129,11 +145,62 @@ export async function POST(req: Request) {
         if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
           return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
         }
+        const customerEmail = parsed.email.trim().toLowerCase()
+        const supportEmail = getSharedMailboxEmail()
+        const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail, auth.data.admin.email)
+        const meetingLink = buildGoogleMeetLink(`demo-${crypto.randomUUID()}`)
+        const start = new Date(parsed.date)
+        const [hour, min] = parsed.time.split(":").map(Number)
+        start.setHours(hour, min, 0, 0)
+        const dateLabel = start.toLocaleDateString("es-ES", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })
+        const subject = "Tu demo está confirmada"
+        const htmlContent = leadSummaryEmail({
+          brandName: "Clinvetia",
+          nombre: customerEmail,
+          email: customerEmail,
+          telefono: "-",
+          clinica: "Nueva clínica",
+          mensaje: "Cita creada manualmente desde el panel de administración.",
+          supportEmail,
+          booking: {
+            dateLabel,
+            timeLabel: parsed.time,
+            duration: parsed.duration,
+            meetingLink,
+          },
+          roi: null,
+        })
         const created = createDemoBooking({
           date: parsed.date,
           time: parsed.time,
           duration: parsed.duration,
+          email: customerEmail,
+          googleMeetLink: meetingLink,
+          emailEvents: deliveryTargets.map((target) => ({
+            category: "booking_confirmed",
+            subject,
+            intendedRecipient: customerEmail,
+            deliveredTo: target,
+            status: "sent",
+            error: null,
+            message: "Cita creada manualmente desde administración.",
+            sentAt: new Date().toISOString(),
+          })),
         })
+        for (const target of deliveryTargets) {
+          addDemoSentMail({
+            mailbox: target === supportEmail ? "shared" : "self",
+            demoUserEmail: auth.data.admin.email,
+            to: target,
+            customerName: target === customerEmail ? customerEmail : "Clinvetia",
+            subject,
+            body: htmlContent,
+          })
+        }
         return NextResponse.json({ ok: true, booking: created })
       }
 
@@ -179,7 +246,182 @@ export async function POST(req: Request) {
 
     await dbConnect()
     if (parsed.action === "create") {
-      return NextResponse.json({ error: "Unsupported action" }, { status: 400 })
+      if (!isValidDemoTimeSlot(parsed.time) || !isBookableDemoTimeSlot(parsed.time)) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
+
+      const customerEmail = parsed.email.trim().toLowerCase()
+      const date = new Date(parsed.date)
+      const [hour, min] = parsed.time.split(":").map(Number)
+      const start = new Date(date)
+      start.setHours(hour, min, 0, 0)
+      const end = new Date(start)
+      end.setMinutes(end.getMinutes() + parsed.duration)
+      const demoExpiresAt = new Date(end)
+      const expiresAt = new Date(date)
+      expiresAt.setHours(23, 59, 59, 999)
+      const formExpiresAt = new Date()
+      formExpiresAt.setMinutes(formExpiresAt.getMinutes() + 10)
+      const supportEmail = getSharedMailboxEmail()
+      const brandName = "Clinvetia"
+
+      const startDay = new Date(date)
+      startDay.setHours(0, 0, 0, 0)
+      const endDay = new Date(date)
+      endDay.setHours(23, 59, 59, 999)
+
+      const slotConflict = await Booking.findOne({
+        date: { $gte: startDay, $lte: endDay },
+        time: parsed.time,
+        status: "confirmed",
+      }).lean()
+      if (slotConflict) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
+
+      const duplicateContacts = await Contact.find({ email: customerEmail }).select("bookingId").lean()
+      const duplicateBookingIds = duplicateContacts
+        .map((contact) => contact.bookingId)
+        .filter(Boolean)
+        .map((id) => String(id))
+
+      if (duplicateBookingIds.length) {
+        const duplicateActiveBooking = await Booking.findOne({
+          _id: { $in: duplicateBookingIds },
+          status: { $in: ["pending", "confirmed"] },
+          demoExpiresAt: { $gt: new Date() },
+        }).lean()
+
+        if (duplicateActiveBooking) {
+          return NextResponse.json(
+            { error: "Este email ya tiene una cita activa. No se pueden duplicar demos por email." },
+            { status: 409 }
+          )
+        }
+      }
+
+      const booking = await Booking.create({
+        date,
+        time: parsed.time,
+        duration: parsed.duration,
+        status: "confirmed",
+        sessionToken: null,
+        accessToken: crypto.randomUUID(),
+        expiresAt,
+        formExpiresAt,
+        demoExpiresAt,
+      })
+
+      const bookingId = String(booking._id)
+      const meetingLink = buildGoogleMeetLink(bookingId)
+      await Booking.updateOne({ _id: booking._id }, { $set: { googleMeetLink: meetingLink } })
+      booking.googleMeetLink = meetingLink
+
+      const contact = await Contact.create({
+        nombre: customerEmail,
+        email: customerEmail,
+        telefono: "-",
+        clinica: "Creada desde panel",
+        mensaje: "Cita creada manualmente desde el panel de administración.",
+        bookingId: booking._id,
+        sessionToken: null,
+        roi: null,
+      })
+
+      const dateLabel = start.toLocaleDateString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+      const htmlContent = leadSummaryEmail({
+        brandName,
+        nombre: contact.nombre,
+        email: contact.email,
+        telefono: contact.telefono,
+        clinica: contact.clinica,
+        mensaje: contact.mensaje,
+        supportEmail,
+        booking: {
+          dateLabel,
+          timeLabel: parsed.time,
+          duration: parsed.duration,
+          meetingLink,
+        },
+        roi: contact.roi ?? null,
+      })
+      const attachments = [
+        {
+          name: "clinvetia-demo.ics",
+          content: Buffer.from(
+            buildICS({
+              uid: bookingId,
+              start,
+              end,
+              summary: "Demo Clinvetia",
+              description: `Demo personalizada con Clinvetia. Enlace Google Meet: ${meetingLink}`,
+              location: meetingLink,
+              url: meetingLink,
+              organizerEmail: supportEmail,
+              attendeeEmail: customerEmail,
+            })
+          ).toString("base64"),
+          contentType: "text/calendar",
+        },
+      ]
+      const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail, auth.data.admin.email)
+
+      for (const target of deliveryTargets) {
+        const result = await sendBrevoEmail({
+          to: [{ email: target, name: target === contact.email ? contact.nombre : brandName }],
+          subject: "Tu demo está confirmada",
+          htmlContent,
+          attachments,
+          replyTo: { email: supportEmail },
+        })
+
+        await appendBookingEmailEvent({
+          bookingId,
+          category: "booking_confirmed",
+          subject: "Tu demo está confirmada",
+          intendedRecipient: contact.email,
+          deliveredTo: target,
+          status: result.ok ? "sent" : "failed",
+          error: result.error ?? null,
+          message: contact.mensaje,
+          googleMeetLink: meetingLink,
+        })
+      }
+
+      try {
+        await recordAdminAudit({
+          adminId: auth.data.admin.id,
+          action: "CREATE_BOOKING",
+          targetType: "booking",
+          targetId: bookingId,
+          metadata: {
+            status: booking.status,
+            time: booking.time,
+            date: booking.date.toISOString(),
+            duration: booking.duration,
+            action: parsed.action,
+            email: contact.email,
+          },
+        })
+      } catch (auditError) {
+        console.error("Admin audit failed while creating booking", auditError)
+      }
+
+      return NextResponse.json({
+        ok: true,
+        booking: {
+          id: bookingId,
+          status: booking.status,
+          date: booking.date.toISOString(),
+          time: booking.time,
+          duration: booking.duration,
+          googleMeetLink: meetingLink,
+        },
+      })
     }
     const booking = await Booking.findById(parsed.id)
     if (!booking) {
@@ -254,7 +496,7 @@ export async function POST(req: Request) {
                       location: meetingLink,
                       url: meetingLink,
                       organizerEmail: supportEmail,
-                      attendeeEmail: CUSTOMER_DELIVERY_EMAIL,
+                      attendeeEmail: contact.email,
                     })
                   ).toString("base64"),
                   contentType: "text/calendar",
@@ -262,7 +504,7 @@ export async function POST(req: Request) {
               ]
             : undefined
 
-        const deliveryTargets = Array.from(new Set([contact.email, CUSTOMER_DELIVERY_EMAIL]))
+        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email, auth.data.admin.email)
         for (const target of deliveryTargets) {
           const result = await sendBrevoEmail({
             to: [{ email: target, name: target === contact.email ? contact.nombre : brandName }],
@@ -377,6 +619,13 @@ export async function POST(req: Request) {
       booking.demoExpiresAt = demoExpiresAt
       booking.status = "confirmed"
 
+      if (!contact?.email) {
+        return NextResponse.json(
+          { error: "La cita no tiene un correo asociado para enviar el reagendado." },
+          { status: 409 }
+        )
+      }
+
       if (contact?.email) {
         const start = new Date(date)
         start.setHours(hour, min, 0, 0)
@@ -394,7 +643,7 @@ export async function POST(req: Request) {
           location: meetingLink,
           url: meetingLink,
           organizerEmail: supportEmail,
-          attendeeEmail: CUSTOMER_DELIVERY_EMAIL,
+          attendeeEmail: contact.email,
         })
 
         const subject = "Tu demo ha sido reagendada"
@@ -416,7 +665,7 @@ export async function POST(req: Request) {
             contentType: "text/calendar",
           },
         ]
-        const deliveryTargets = Array.from(new Set([contact.email, CUSTOMER_DELIVERY_EMAIL]))
+        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email, auth.data.admin.email)
         for (const target of deliveryTargets) {
           const result = await sendBrevoEmail({
             to: [{ email: target, name: target === contact.email ? contact.nombre : brandName }],

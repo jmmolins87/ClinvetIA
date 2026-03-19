@@ -14,6 +14,10 @@ const CookieConsent = dynamic(
   () => import("@/components/marketing/cookie-consent").then((mod) => mod.CookieConsent),
   { ssr: false }
 )
+const ExitIntentGuard = dynamic(
+  () => import("@/components/marketing/exit-intent-guard").then((mod) => mod.ExitIntentGuard),
+  { ssr: false }
+)
 
 export function MarketingOverlays() {
   return (
@@ -21,6 +25,7 @@ export function MarketingOverlays() {
       <GlobalBookingTimer />
       <ChatPortal />
       <CookieConsent />
+      <ExitIntentGuard />
     </>
   )
 }

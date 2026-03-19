@@ -10,6 +10,7 @@ type DemoBooking = {
   telefono?: string
   clinica?: string
   email?: string
+  googleMeetLink?: string | null
   createdAt?: string
   emailEvents?: Array<{
     category: string
@@ -69,6 +70,9 @@ export function createDemoBooking(params: {
   date: string
   time: string
   duration: number
+  email: string
+  googleMeetLink: string
+  emailEvents?: DemoBooking["emailEvents"]
 }) {
   const maxId = demoBookingsState.reduce((max, item) => {
     const raw = Number(item.id.replace("DEMO-", ""))
@@ -80,13 +84,14 @@ export function createDemoBooking(params: {
     date: params.date,
     time: params.time,
     duration: params.duration,
-    status: "pending",
+    status: "confirmed",
     nombre: "Lead Demo",
     telefono: "",
     clinica: "Nueva clínica",
-    email: "",
+    email: params.email,
+    googleMeetLink: params.googleMeetLink,
     createdAt: new Date().toISOString(),
-    emailEvents: [],
+    emailEvents: params.emailEvents || [],
   }
   demoBookingsState = [booking, ...demoBookingsState]
   return booking

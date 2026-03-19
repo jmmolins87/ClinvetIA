@@ -12,7 +12,7 @@ import {
 import { buildICS } from "@/lib/ics"
 import {
   appendBookingEmailEvent,
-  buildGoogleMeetLink,
+  ensureBookingGoogleMeetLink,
 } from "@/lib/booking-communication"
 import { getSharedMailboxEmail } from "@/lib/admin-mailbox"
 import { verifyRecaptchaToken } from "@/lib/recaptcha-server"
@@ -164,7 +164,13 @@ export async function POST(req: Request) {
       | null = null
 
     if (bookingForEmail) {
-      const meetingLink = buildGoogleMeetLink(bookingId || crypto.randomUUID())
+      const meetingLink =
+        bookingId
+          ? await ensureBookingGoogleMeetLink(bookingId)
+          : null
+      if (!meetingLink) {
+        return NextResponse.json({ error: "Meeting link unavailable" }, { status: 500 })
+      }
       bookingMeetingLink = meetingLink
       const [hour, min] = bookingForEmail.time.split(":").map(Number)
       const start = new Date(bookingForEmail.date)

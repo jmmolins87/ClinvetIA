@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { BarChart3, CalendarDays, CalendarRange, FileClock, Inbox, LayoutGrid, LogOut, Mail, Menu, Settings, Sparkles, Users, X } from "lucide-react"
+import { CalendarDays, CalendarRange, FileClock, Inbox, LayoutGrid, LogOut, Mail, Menu, Settings, Sparkles, Users, X } from "lucide-react"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { BrandName } from "@/components/ui/brand-name"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { ThemeSwitcher } from "@/components/layout/theme-switcher"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,17 @@ const baseNavItems = [
   { href: "/admin/users", label: "Usuarios", icon: Users },
   { href: "/admin/audit", label: "Auditoría", icon: FileClock },
 ]
+
+function roleLabel(role?: AdminRole | null) {
+  if (role === "demo") return "Demo"
+  return role || "admin"
+}
+
+function adminDisplayName(admin: { name: string; role: AdminRole } | null) {
+  if (!admin) return "Usuario interno"
+  if (admin.role === "demo") return "Usuario Demo"
+  return admin.name
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -190,8 +202,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="admin-no-glow h-screen overflow-hidden bg-[radial-gradient(circle_at_10%_0%,rgba(var(--primary-rgb),0.12),transparent_35%),radial-gradient(circle_at_100%_20%,rgba(var(--secondary-rgb),0.10),transparent_40%)] no-scroll-dashboard">
-      <div className="mx-auto flex h-full w-full max-w-[1920px] flex-col px-3 py-4 md:px-5 md:py-6 2xl:px-8">
+    <div className="admin-no-glow min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(var(--primary-rgb),0.12),transparent_35%),radial-gradient(circle_at_100%_20%,rgba(var(--secondary-rgb),0.10),transparent_40%)] no-scroll-dashboard">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1920px] flex-col px-3 py-4 md:px-5 md:py-6 2xl:px-8">
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="glass sm:max-w-[520px]">
             <DialogHeader>
@@ -400,10 +412,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </GlassCard>
         </div>
 
-        <div className="flex flex-1 min-h-0 items-start gap-4 lg:gap-5 xl:gap-6">
-        <aside className="hidden w-[250px] shrink-0 self-start xl:sticky xl:top-6 xl:block 2xl:w-[280px]">
-          <div>
-              <GlassCard className="flex flex-col p-5">
+        <div className="flex flex-1 items-start gap-4 lg:gap-5 xl:gap-6">
+        <aside className="sticky top-6 hidden h-fit w-[250px] shrink-0 self-start xl:block 2xl:w-[280px]">
+              <GlassCard className="flex h-fit flex-col p-5">
             <div className="space-y-4 border-b border-white/10 pb-5">
               <div className="space-y-2.5">
                 <div className="text-lg font-semibold leading-tight">
@@ -460,24 +471,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-white/15">
-                    <Icon icon={BarChart3} size="sm" variant="default" className="text-foreground" />
-                  </div>
-                  <span className="text-sm font-medium">Panel de gestión</span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Diseño interno orientado a operación diaria y seguimiento de agenda.
-                </p>
-              </div>
-
             </div>
               </GlassCard>
-          </div>
         </aside>
 
-        <div className={cn("min-w-0 flex-1 flex flex-col min-h-0", isDashboard && "overflow-y-auto")}>
+        <div className="min-w-0 flex-1 pr-1">
           <GlassCard className="mb-5 hidden p-5 md:p-6 xl:block">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
@@ -490,15 +488,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     <Icon icon={Settings} size="sm" variant="primary" />
                   </div>
                   <div className="min-w-0 text-right">
-                    <div className="truncate text-sm md:text-md font-semibold leading-none">{admin?.name || "Usuario interno"}</div>
+                    <div className="truncate text-sm md:text-md font-semibold leading-none">{adminDisplayName(admin)}</div>
                     <div className="pt-0.5">
                       <span className="inline-flex w-fit items-center rounded-full border border-secondary/40 bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">
-                        {admin?.role || "admin"}
+                        {roleLabel(admin?.role)}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex w-full flex-wrap items-center justify-end gap-2 md:w-auto md:flex-nowrap">
+                  <ThemeSwitcher />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -522,7 +521,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </GlassCard>
 
-          <div className="flex-1 min-h-0 space-y-5 pb-6">
+          <div className="space-y-5 pb-6">
             {children}
           </div>
         </div>
