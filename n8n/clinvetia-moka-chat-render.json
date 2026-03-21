@@ -21,7 +21,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const expectedSecret = $env.N8N_CHAT_WEBHOOK_SECRET || '';\nconst input = items[0]?.json || {};\nconst headers = input.headers || {};\nconst receivedSecret = headers['x-clinvetia-n8n-secret'] || headers['X-Clinvetia-N8n-Secret'] || '';\nif (!expectedSecret || receivedSecret !== expectedSecret) {\n  return [{ json: { reply: 'Moka no está disponible ahora mismo.', state: { intent: 'none', step: 'idle' }, booking: null } }];\n}\nconst body = input.body && typeof input.body === 'object' ? input.body : {};\nreturn [{ json: body }];"
+        "jsCode": "const expectedSecret = 'd1683be39187b1559a38c8f80293cb0866778d55613596ba45125c6de3abf37b';\nconst input = items[0]?.json || {};\nconst headers = input.headers || {};\nconst receivedSecret = headers['x-clinvetia-n8n-secret'] || headers['X-Clinvetia-N8n-Secret'] || '';\nif (receivedSecret !== expectedSecret) {\n  return [{ json: { reply: 'Moka no está disponible ahora mismo.', state: { intent: 'none', step: 'idle' }, booking: null } }];\n}\nconst body = input.body && typeof input.body === 'object' ? input.body : {};\nreturn [{ json: body }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -35,7 +35,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.CLINVETIA_BASE_URL || 'https://clinvetia.com').replace(/\\/$/, '') + '/api/chat/assistant' }}",
+        "url": "https://clinvetia.com/api/chat/assistant",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -45,7 +45,7 @@
             },
             {
               "name": "x-clinvetia-chat-bypass-n8n",
-              "value": "={{ $env.N8N_CHAT_WEBHOOK_SECRET }}"
+              "value": "d1683be39187b1559a38c8f80293cb0866778d55613596ba45125c6de3abf37b"
             }
           ]
         },
