@@ -153,6 +153,7 @@ const preview: Preview = {
       },
       codePanel: true,
       source: {
+        type: "dynamic",
         transform: (code: string) => code,
       },
     },
