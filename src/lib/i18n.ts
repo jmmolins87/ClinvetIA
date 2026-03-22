@@ -1,5 +1,6 @@
 import esMessages from "../../messages/es.json"
 import enMessages from "../../messages/en.json"
+import { translationOverridesEn } from "@/lib/translation-overrides"
 
 export const localeStorageKey = "clinvetia:locale"
 
@@ -35,6 +36,11 @@ function buildMessageValueMap() {
     if (!enValue || enValue === esValue) continue
     map[esValue] = enValue
   }
+
+  for (const [esValue, enValue] of Object.entries(translationOverridesEn)) {
+    map[esValue] = enValue
+  }
+
   return map
 }
 

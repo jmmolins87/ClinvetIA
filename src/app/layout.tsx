@@ -4,6 +4,7 @@ import { PageLoader } from "@/components/providers/page-loader";
 import { LoadingProvider } from "@/components/providers/loading-provider";
 import { TranslationSkeletonProvider } from "@/components/providers/translation-skeleton";
 import { GlobalAutoTranslate } from "@/components/providers/global-auto-translate";
+import { LocalizedDocumentMetadata } from "@/components/providers/localized-document-metadata";
 import { GlobalBackground } from "@/components/ui/global-background";
 import { Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -131,6 +132,7 @@ export default function RootLayout({
           <LoadingProvider>
             <TranslationSkeletonProvider>
               <GlobalAutoTranslate />
+              <LocalizedDocumentMetadata />
               <GlobalBackground />
               <PageLoader />
               <Sonner />

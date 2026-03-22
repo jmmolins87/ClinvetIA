@@ -1,3 +1,6 @@
+import type { Locale } from "@/lib/i18n"
+import { seoLandingTranslationsEn } from "@/lib/seo-landings-translations"
+
 export interface SeoLandingConfig {
   slug: string
   category: "operaciones" | "marketing"
@@ -9,17 +12,19 @@ export interface SeoLandingConfig {
   heroDescription: string
   intro: string
   problemTitle: string
-  problemPoints: string[]
+  problemPoints: readonly string[]
   solutionTitle: string
-  solutionPoints: string[]
+  solutionPoints: readonly string[]
   useCasesTitle: string
-  useCases: { title: string; description: string }[]
+  useCases: readonly { title: string; description: string }[]
   benefitsTitle: string
-  benefits: string[]
+  benefits: readonly string[]
   faqTitle: string
-  faqs: { question: string; answer: string }[]
-  clusterLinks: { href: string; title: string; description: string }[]
+  faqs: readonly { question: string; answer: string }[]
+  clusterLinks: readonly { href: string; title: string; description: string }[]
 }
+
+export type SeoLandingTranslation = Omit<SeoLandingConfig, "slug" | "category">
 
 export const seoLandings: Record<string, SeoLandingConfig> = {
   "software-veterinario-con-ia": {
@@ -1146,16 +1151,32 @@ export const seoLandings: Record<string, SeoLandingConfig> = {
   },
 }
 
-export function getSeoLandingConfig(slug: string): SeoLandingConfig {
+export function getSeoLandingConfig(slug: string, locale: Locale = "es"): SeoLandingConfig {
   const config = seoLandings[slug]
 
   if (!config) {
     throw new Error(`Unknown SEO landing: ${slug}`)
   }
 
-  return config
+  if (locale === "es") {
+    return config
+  }
+
+  const translation = seoLandingTranslationsEn[slug as keyof typeof seoLandingTranslationsEn] as SeoLandingTranslation | undefined
+
+  if (!translation) {
+    return config
+  }
+
+  return {
+    slug: config.slug,
+    category: config.category,
+    ...translation,
+  }
 }
 
-export function getSeoLandingConfigs(): SeoLandingConfig[] {
-  return Object.values(seoLandings).sort((a, b) => a.metaTitle.localeCompare(b.metaTitle, "es"))
+export function getSeoLandingConfigs(locale: Locale = "es"): SeoLandingConfig[] {
+  return Object.keys(seoLandings)
+    .map((slug) => getSeoLandingConfig(slug, locale))
+    .sort((a, b) => a.metaTitle.localeCompare(b.metaTitle, locale))
 }
