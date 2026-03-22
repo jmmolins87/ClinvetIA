@@ -47,11 +47,9 @@ next-env.d.ts
 # data
 .mongo-data
 .pnpm-store
-.n8n
+.n8n/
 .n8n*
 n8n
-!n8n/
+n8n/
 n8n/*
-!n8n/clinvetia-moka-chat-render.json
-.activepieces
-activepieces
+n8n/clinvetia-moka-chat-render.json
