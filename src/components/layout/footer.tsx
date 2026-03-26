@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Instagram } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BrandName } from "@/components/ui/brand-name"
+import { Icon } from "@/components/ui/icon"
 import { SkeletonWrapper } from "@/components/ui/skeleton-wrapper"
 import { TranslatableText, useTranslationSkeleton } from "@/components/providers/translation-skeleton"
 
@@ -54,9 +56,7 @@ const FOOTER_COLUMNS = [
 ] as const
 
 const SOCIAL_LINKS = [
-  { href: "https://twitter.com/clinvetia",           label: "X (Twitter)" },
-  { href: "https://linkedin.com/company/clinvetia",  label: "LinkedIn"    },
-  { href: "https://github.com/clinvetia",            label: "GitHub"      },
+  { href: "https://instagram.com/clinvetia", label: "Instagram" },
 ] as const
 
 // ── Sub-componentes ───────────────────────────────────────────────────────────
@@ -92,12 +92,13 @@ function FooterLogo() {
             rel="noopener noreferrer"
             aria-label={label}
             className={cn(
-              "text-sm text-muted-foreground",
+              "inline-flex items-center gap-2 text-sm text-muted-foreground",
               "transition-colors duration-200",
               "hover:text-primary",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded",
             )}
           >
+            <Icon icon={Instagram} size="sm" className="text-current" />
             {label}
           </a>
         ))}
@@ -173,9 +174,15 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
+        <div className="mt-12">
+          <div
+            aria-hidden
+            className="h-px w-full bg-gradient-to-r from-transparent via-foreground/12 to-transparent"
+          />
+        </div>
+
         <div className={cn(
-          "mt-12 pt-6",
-          "border-t border-white/8",
+          "pt-6",
           "flex flex-col items-center justify-between gap-3 sm:flex-row",
         )}>
           <p className="text-sm text-muted-foreground">

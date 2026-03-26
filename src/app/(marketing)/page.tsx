@@ -8,6 +8,9 @@ import {
   CalendarDays, Sparkles, Moon, Phone, Clock,
   Bell, Brain, Heart,
   CheckCircle2, MessageSquare, Calculator, AlertCircle,
+  BookOpenText, Stethoscope, Workflow, Route, CircleHelp,
+  FileStack, ClipboardList, Megaphone, MessageCircleMore,
+  Syringe, ArrowRight, Funnel,
   type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -76,61 +79,73 @@ const SEO_CLUSTER_ITEMS = [
     href: "/recursos-ia-veterinaria",
     title: "Recursos de IA veterinaria",
     description: "Accede al hub completo con landings de operaciones, atención y marketing veterinario.",
+    icon: BookOpenText,
   },
   {
     href: "/solucion",
     title: "Solución de IA veterinaria",
     description: "Entiende qué hace Clinvetia y cómo automatiza atención, triaje y agenda.",
+    icon: Stethoscope,
   },
   {
     href: "/como-funciona",
     title: "Cómo funciona",
     description: "Revisa el flujo real desde la consulta del dueño hasta la cita confirmada.",
+    icon: Workflow,
   },
   {
     href: "/escenarios",
     title: "Escenarios de uso",
     description: "Descubre casos reales para urgencias, vacunas y seguimiento clínico.",
+    icon: Route,
   },
   {
     href: "/faqs",
     title: "Preguntas frecuentes",
     description: "Aclara dudas sobre implementación, tiempos, operación y retorno.",
+    icon: CircleHelp,
   },
   {
     href: "/software-veterinario-con-ia",
     title: "Software veterinario con IA",
     description: "Página orientada a la búsqueda principal del cluster comercial.",
+    icon: FileStack,
   },
   {
     href: "/gestion-de-citas-veterinarias",
     title: "Gestión de citas veterinarias",
     description: "Conecta la intención de agenda con la propuesta operativa de Clinvetia.",
+    icon: ClipboardList,
   },
   {
     href: "/marketing-digital-para-veterinarios",
     title: "Marketing digital para veterinarios",
     description: "Aborda el crecimiento comercial desde leads, seguimiento y citas reales.",
+    icon: Megaphone,
   },
   {
     href: "/whatsapp-para-clinicas-veterinarias",
     title: "WhatsApp para clínicas veterinarias",
     description: "Empuja uno de los canales con más intención hacia seguimiento y cierre de citas.",
+    icon: MessageCircleMore,
   },
   {
     href: "/automatizacion-de-leads-veterinarios",
     title: "Automatización de leads veterinarios",
     description: "Ordena respuesta, seguimiento y trazabilidad del funnel comercial de la clínica.",
+    icon: Syringe,
   },
   {
     href: "/conversion-de-leads-veterinarios",
     title: "Conversión de leads veterinarios",
     description: "Enlaza marketing y respuesta rápida para convertir más consultas en agenda.",
+    icon: ArrowRight,
   },
   {
     href: "/embudo-de-citas-veterinarias",
     title: "Embudo de citas veterinarias",
     description: "Conecta captación, conversación y agenda dentro de un mismo recorrido comercial.",
+    icon: Funnel,
   },
 ] as const
 

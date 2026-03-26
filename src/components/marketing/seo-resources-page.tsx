@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useTranslationSkeleton } from "@/components/providers/translation-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SeoCard } from "@/components/marketing/seo-card"
 import { CtaSection } from "@/components/marketing/cta-section"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { getSeoLandingConfigs } from "@/lib/seo-landings"
@@ -142,7 +143,7 @@ export function SeoResourcesPage() {
           <p className="mt-4 text-muted-foreground">{copy.heroDescription}</p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-4">
           <GlassCard className="p-6 md:p-8">
             <Badge variant="secondary">{copy.recommendedPath}</Badge>
             <h2 className="mt-4 text-2xl font-bold tracking-tight">{copy.pathTitle}</h2>
@@ -161,12 +162,13 @@ export function SeoResourcesPage() {
             <Badge variant="secondary">{copy.priorities}</Badge>
             <div className="mt-4 space-y-4">
               {featuredMarketingLandings.map((item) => (
-                <div key={item.slug} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <Link href={`/${item.slug}`} className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <h3 className="text-base font-semibold">{item.metaTitle}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">{item.metaDescription}</p>
-                  </Link>
-                </div>
+                <SeoCard
+                  key={item.slug}
+                  href={`/${item.slug}`}
+                  title={item.metaTitle}
+                  description={item.metaDescription}
+                  className="min-h-0"
+                />
               ))}
             </div>
           </GlassCard>
@@ -180,12 +182,12 @@ export function SeoResourcesPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {operationLandings.map((item) => (
-                <GlassCard key={item.slug} className="h-full p-5 transition-colors hover:border-primary/30">
-                  <Link href={`/${item.slug}`} className="block h-full rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <h3 className="text-lg font-semibold">{item.metaTitle}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">{item.metaDescription}</p>
-                  </Link>
-                </GlassCard>
+                <SeoCard
+                  key={item.slug}
+                  href={`/${item.slug}`}
+                  title={item.metaTitle}
+                  description={item.metaDescription}
+                />
               ))}
             </div>
           </section>
@@ -206,12 +208,12 @@ export function SeoResourcesPage() {
               }
             >
               {marketingLandings.map((item) => (
-                <GlassCard key={item.slug} className="h-full p-5 transition-colors hover:border-primary/30">
-                  <Link href={`/${item.slug}`} className="block h-full rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <h3 className="text-lg font-semibold">{item.metaTitle}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">{item.metaDescription}</p>
-                  </Link>
-                </GlassCard>
+                <SeoCard
+                  key={item.slug}
+                  href={`/${item.slug}`}
+                  title={item.metaTitle}
+                  description={item.metaDescription}
+                />
               ))}
             </div>
           </section>

@@ -26,6 +26,7 @@ import {
   EyeOff,
   Euro,
   TrendingUp,
+  Instagram,
 } from "lucide-react"
 import { Icon, type IconProps } from "@/components/ui/icon"
 
@@ -264,6 +265,7 @@ const commonIcons = [
   { icon: EyeOff, name: "EyeOff" },
   { icon: Euro, name: "Euro" },
   { icon: TrendingUp, name: "Trending" },
+  { icon: Instagram, name: "Instagram" },
 ]
 
 export function IconGallery() {

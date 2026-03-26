@@ -1,12 +1,13 @@
-import Link from "next/link"
+import { type LucideIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { GlassCard } from "@/components/ui/GlassCard"
+import { SeoCard } from "@/components/marketing/seo-card"
 
 export interface SeoLinkClusterItem {
   href: string
   title: string
   description: string
+  icon?: LucideIcon
 }
 
 export interface SeoLinkClusterProps {
@@ -36,12 +37,13 @@ export function SeoLinkCluster({
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {items.map((item) => (
-              <GlassCard key={item.href} className="flex h-full p-5 transition-colors hover:border-primary/30">
-                <Link href={item.href} className="flex h-full w-full flex-col rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-2 flex-1 text-sm text-muted-foreground">{item.description}</p>
-                </Link>
-              </GlassCard>
+              <SeoCard
+                key={item.href}
+                href={item.href}
+                title={item.title}
+                description={item.description}
+                icon={item.icon}
+              />
             ))}
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 
+import { SeoCard } from "@/components/marketing/seo-card"
 import { SeoLinkCluster } from "@/components/marketing/seo-link-cluster"
 import { useTranslationSkeleton } from "@/components/providers/translation-skeleton"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -204,12 +205,11 @@ export function SeoLandingPage({ config }: { config: SeoLandingConfig }) {
             <h2 className="text-center text-3xl font-bold tracking-tight md:text-4xl">{localizedConfig.useCasesTitle}</h2>
             <div className="mt-10 grid items-stretch gap-4 md:grid-cols-3">
               {localizedConfig.useCases.map((item) => (
-                <GlassCard key={item.title} className="flex h-full p-5">
-                  <div className="flex h-full w-full flex-col">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-2 flex-1 text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                </GlassCard>
+                <SeoCard
+                  key={item.title}
+                  title={item.title}
+                  description={item.description}
+                />
               ))}
             </div>
           </div>
