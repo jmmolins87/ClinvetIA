@@ -721,8 +721,25 @@ export async function POST(req: Request) {
       if (n8nResult?.ok && n8nResult.data) {
         const externalResponse = chatAssistantResponseSchema.safeParse(n8nResult.data)
         if (externalResponse.success) {
+          console.info("N8N chat webhook accepted", {
+            requestId: payload.requestId,
+            status: n8nResult.status,
+          })
           return NextResponse.json(externalResponse.data)
         }
+
+        console.error("N8N chat webhook returned invalid payload", {
+          requestId: payload.requestId,
+          status: n8nResult.status,
+          data: n8nResult.data,
+        })
+      } else if (n8nResult) {
+        console.error("N8N chat webhook failed", {
+          requestId: payload.requestId,
+          status: n8nResult.status,
+          error: n8nResult.error,
+          data: n8nResult.data,
+        })
       }
     }
 

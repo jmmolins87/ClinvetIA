@@ -14,7 +14,7 @@ Si desarrollas en local, van en `.env`.
 Si despliegas la web en Vercel o Render, van en las variables de entorno de ese servicio.
 
 ```env
-N8N_CHAT_WEBHOOK_URL=https://n8n-hhef.onrender.com/webhook/moka-chat
+N8N_CHAT_WEBHOOK_URL=https://n8n.clinvetia.com/webhook/moka-chat
 N8N_CHAT_WEBHOOK_SECRET=change-me-moka-secret
 ```
 
@@ -28,7 +28,7 @@ OPENAI_API_KEY=sk-...
 N8N_CHAT_WEBHOOK_SECRET=change-me-moka-secret
 ```
 
-Luego importa el workflow [clinvetia-moka-chat-render.json](/Users/juanmamolinscortes/Documentos/clinvetia-glass/n8n/clinvetia-moka-chat-render.json).
+Luego importa el workflow desde un export externo de `n8n`; no se guarda dentro de este proyecto.
 
 Ese workflow ya viene preparado para:
 

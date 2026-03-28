@@ -167,7 +167,14 @@ export async function POST(req: Request) {
         roi: parsed.roi ?? {},
       })
 
-      if (n8nResult && !n8nResult.ok) {
+      if (n8nResult?.ok) {
+        console.info("N8N lead webhook accepted", {
+          contactId: createdContact._id.toString(),
+          bookingId,
+          email: parsed.email,
+          status: n8nResult.status,
+        })
+      } else if (n8nResult) {
         console.error("N8N lead webhook failed", {
           contactId: createdContact._id.toString(),
           bookingId,
