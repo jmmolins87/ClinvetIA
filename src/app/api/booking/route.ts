@@ -48,6 +48,9 @@ interface SessionConversationLeanView {
   }>
 }
 
+type SessionConversationMessage = NonNullable<SessionConversationLeanView["chatHistory"]>[number]
+type BookingConversationMessage = NonNullable<BookingLeanView["conversationMessages"]>[number]
+
 const bookingSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -76,14 +79,14 @@ async function buildBookingConversationSnapshot(sessionToken?: string | null) {
     .lean<SessionConversationLeanView | null>()
   const session = Array.isArray(rawSession) ? rawSession[0] : rawSession
   const conversationMessages = Array.isArray(session?.chatHistory)
-    ? session.chatHistory
-        .map((message) => ({
+    ? (session.chatHistory
+        .map((message: SessionConversationMessage) => ({
           role: message.role === "assistant" ? ("assistant" as const) : ("user" as const),
           content: String(message.content || "").replace(/\s+/g, " ").trim().slice(0, 400),
           timestamp: message.timestamp ? new Date(message.timestamp) : new Date(),
         }))
-        .filter((message) => message.content.length > 0)
-        .slice(-24)
+        .filter((message: BookingConversationMessage) => message.content.length > 0)
+        .slice(-24))
     : []
   const conversationSummary = String(session?.chatSummary || "").replace(/\s+/g, " ").trim().slice(0, 1800)
 
