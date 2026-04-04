@@ -7,6 +7,7 @@ import { AdminMailboxMessage } from "@/models/AdminMailboxMessage"
 import { canUseSharedMailbox, getSharedMailboxEmail, SHARED_MAILBOX_DEFAULT } from "@/lib/admin-mailbox"
 import { listDemoMailMessages, moveDemoMailMessages } from "@/lib/admin-demo-mail-state"
 import { canUseRealMailbox, listRealMailboxMessages, moveRealMailboxMessages } from "@/lib/real-mailbox"
+import { recordAdminAudit, recordLatestMailboxObservation } from "@/lib/admin-audit"
 
 const querySchema = z.object({
   mailbox: z.enum(["self", "shared"]).default("self"),
@@ -216,6 +217,20 @@ export async function GET(req: Request) {
         total = listData.total
       }
 
+      if (!parsed.conversationWith && parsed.folder === "inbox" && messages.length > 0) {
+        const latestMessage = messages[0]
+        await recordLatestMailboxObservation({
+          adminId: auth.data.admin.id,
+          mailbox: effectiveMailbox,
+          mailboxEmail: selectedMailboxEmail,
+          latestMessageId: latestMessage.id,
+          latestSubject: latestMessage.subject,
+          latestFrom: latestMessage.from?.email || null,
+          count: total,
+          source: "real",
+        })
+      }
+
       return NextResponse.json({
         messages,
         pagination: {
@@ -314,6 +329,21 @@ export async function GET(req: Request) {
     AdminMailboxMessage.countDocuments(filter),
   ])
 
+  if (!parsed.conversationWith && parsed.folder === "inbox" && messages.length > 0) {
+    const latestMessage = messages[0]
+    const latestId = String(latestMessage._id)
+    await recordLatestMailboxObservation({
+      adminId: auth.data.admin.id,
+      mailbox: effectiveMailbox,
+      mailboxEmail: selectedMailboxEmail,
+      latestMessageId: latestId,
+      latestSubject: latestMessage.subject,
+      latestFrom: latestMessage.from?.email || null,
+      count: total,
+      source: "db",
+    })
+  }
+
   return NextResponse.json({
     messages: messages.map((message) => ({
       id: String(message._id),
@@ -362,6 +392,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const parsed = moveSchema.parse(body)
+    const sourceFolder = parsed.sourceFolder || "inbox"
     const isActorSuperAdmin = isSuperAdmin(auth.data.admin.role)
     if (auth.data.admin.role === "demo") {
       const demoSelf = auth.data.admin.email.trim().toLowerCase()
@@ -370,12 +401,24 @@ export async function POST(req: Request) {
         folder: parsed.folder,
         demoUserEmail: demoSelf,
       })
+      await recordAdminAudit({
+        adminId: auth.data.admin.id,
+        action: "MOVE_MAILBOX_MESSAGE",
+        targetType: "mailbox",
+        targetId: parsed.ids.join(","),
+        metadata: {
+          mailbox: parsed.mailbox || "self",
+          sourceFolder,
+          targetFolder: parsed.folder,
+          count: parsed.ids.length,
+          provider: "demo",
+        },
+      })
       return NextResponse.json({ ok: true, demo: true })
     }
     const canAccessShared = canUseSharedMailbox(auth.data.admin.role)
     const ownMailbox = auth.data.admin.email.trim().toLowerCase()
     const sharedMailbox = getSharedMailboxEmail()
-    const sourceFolder = parsed.sourceFolder || "inbox"
     const mailboxMode = isActorSuperAdmin ? "shared" : (parsed.mailbox || "self")
     if (mailboxMode === "shared" && !canAccessShared) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -393,6 +436,19 @@ export async function POST(req: Request) {
         sourceFolder,
         targetFolder: parsed.folder,
         ids: parsed.ids,
+      })
+      await recordAdminAudit({
+        adminId: auth.data.admin.id,
+        action: "MOVE_MAILBOX_MESSAGE",
+        targetType: "mailbox",
+        targetId: parsed.ids.join(","),
+        metadata: {
+          mailbox: mailboxMode,
+          sourceFolder,
+          targetFolder: parsed.folder,
+          count: parsed.ids.length,
+          provider: "real",
+        },
       })
       return NextResponse.json({ ok: true, provider: "real" })
     }
@@ -430,6 +486,19 @@ export async function POST(req: Request) {
           targetFolder: parsed.folder,
           ids: parsed.ids,
         })
+        await recordAdminAudit({
+          adminId: auth.data.admin.id,
+          action: "MOVE_MAILBOX_MESSAGE",
+          targetType: "mailbox",
+          targetId: parsed.ids.join(","),
+          metadata: {
+            mailbox: messageMailboxMode,
+            sourceFolder,
+            targetFolder: parsed.folder,
+            count: parsed.ids.length,
+            provider: "real",
+          },
+        })
         return NextResponse.json({ ok: true, provider: "real" })
       } catch (error) {
         return NextResponse.json(
@@ -443,6 +512,20 @@ export async function POST(req: Request) {
       { _id: { $in: parsed.ids } },
       { $set: { folder: parsed.folder } }
     )
+
+    await recordAdminAudit({
+      adminId: auth.data.admin.id,
+      action: "MOVE_MAILBOX_MESSAGE",
+      targetType: "mailbox",
+      targetId: parsed.ids.join(","),
+      metadata: {
+        mailbox: mailboxMode,
+        sourceFolder,
+        targetFolder: parsed.folder,
+        count: parsed.ids.length,
+        provider: "db",
+      },
+    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {

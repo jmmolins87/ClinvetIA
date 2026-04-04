@@ -258,6 +258,8 @@ export async function GET(req: Request) {
         time: b.time,
         duration: b.duration,
         status: b.status,
+        rescheduledFromBookingId: b.rescheduledFromBookingId ? String(b.rescheduledFromBookingId) : null,
+        rescheduledToBookingId: b.rescheduledToBookingId ? String(b.rescheduledToBookingId) : null,
         googleMeetLink: b.googleMeetLink || buildGoogleMeetLink(String(b._id)),
         conversationSummary: typeof b.conversationSummary === "string" ? b.conversationSummary : "",
         conversationMessages: Array.isArray(b.conversationMessages)

@@ -34,6 +34,7 @@ export async function POST(
       return NextResponse.json({ error: "No puedes editar este usuario" }, { status: 403 })
     }
 
+    const previousStatus = user.status
     user.status = parsed.status
     await user.save()
 
@@ -42,7 +43,7 @@ export async function POST(
       action: parsed.status === "disabled" ? "DISABLE_USER" : "ENABLE_USER",
       targetType: "user",
       targetId: id,
-      metadata: { email: user.email, status: parsed.status },
+      metadata: { email: user.email, previousStatus, nextStatus: parsed.status },
     })
 
     return NextResponse.json({ ok: true })

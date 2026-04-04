@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/db"
 import { getAdminCookieName } from "@/lib/admin-auth"
 import { resetDemoBookingsState } from "@/lib/admin-demo-bookings-state"
 import { resetDemoMailMessages } from "@/lib/admin-demo-mail-state"
+import { recordAdminAudit } from "@/lib/admin-audit"
 
 function getCookie(req: Request, name: string) {
   const header = req.headers.get("cookie")
@@ -24,7 +25,16 @@ export async function POST(req: Request) {
 
   if (token) {
     await dbConnect()
-    const session = await AdminSession.findOneAndDelete({ token }).lean<{ role?: string } | null>()
+    const session = await AdminSession.findOneAndDelete({ token }).lean<{ role?: string; adminId?: string | { toString(): string } } | null>()
+    if (session?.adminId) {
+      await recordAdminAudit({
+        adminId: typeof session.adminId === "string" ? session.adminId : session.adminId.toString(),
+        action: "ADMIN_LOGOUT",
+        targetType: "admin_session",
+        targetId: token,
+        metadata: { role: session.role || null, explicitDemoLogout: isExplicitDemoLogout },
+      })
+    }
     shouldResetDemoState = shouldResetDemoState || session?.role === "demo"
   }
 

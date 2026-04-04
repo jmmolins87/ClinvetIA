@@ -47,16 +47,24 @@ export async function PATCH(
       return NextResponse.json({ error: "No puedes asignar ese rol" }, { status: 403 })
     }
 
+    const previousName = user.name
+    const previousRole = user.role
     user.name = parsed.name
     user.role = parsed.role
     await user.save()
 
     await recordAdminAudit({
       adminId: auth.data.admin.id,
-      action: "UPDATE_USER",
+      action: previousRole !== parsed.role ? "CHANGE_USER_ROLE" : "UPDATE_USER_PROFILE",
       targetType: "user",
       targetId: id,
-      metadata: { email: user.email, role: user.role },
+      metadata: {
+        email: user.email,
+        previousName,
+        nextName: user.name,
+        previousRole,
+        nextRole: user.role,
+      },
     })
 
     return NextResponse.json({

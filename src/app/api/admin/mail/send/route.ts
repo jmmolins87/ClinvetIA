@@ -150,6 +150,8 @@ export async function POST(req: Request) {
         mailbox: mailboxMode,
         subject: parsed.subject,
         status: result.ok ? "sent" : "failed",
+        conversationWith: parsed.conversationWith || null,
+        replyToId: parsed.replyToId || null,
       },
     })
 

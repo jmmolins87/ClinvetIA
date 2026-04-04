@@ -224,6 +224,8 @@ export async function POST(req: Request) {
         subject: parsed.subject,
         mailbox: parsed.mailbox,
         by: auth.data.admin.email,
+        bookingId,
+        status: "sent",
       },
     })
 

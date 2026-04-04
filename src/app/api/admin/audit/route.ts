@@ -17,13 +17,15 @@ export async function GET(req: Request) {
   await dbConnect()
   const items = await AdminAudit.find({})
     .sort({ createdAt: -1 })
-    .limit(50)
+    .limit(200)
     .lean()
 
   return NextResponse.json({
     audit: items.map((item) => ({
       id: String(item._id),
-      adminId: String(item.adminId),
+      adminId: item.adminId ? String(item.adminId) : null,
+      actorType: item.actorType || (item.adminId ? "admin" : "system"),
+      actorLabel: item.actorLabel || null,
       action: item.action,
       targetType: item.targetType,
       targetId: item.targetId,

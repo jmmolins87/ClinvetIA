@@ -6,6 +6,7 @@ import { verifyPassword } from "@/lib/auth"
 import { createAdminSession, getAdminCookieName } from "@/lib/admin-auth"
 import { type AdminRole } from "@/lib/admin-roles"
 import { verifyRecaptchaToken } from "@/lib/recaptcha-server"
+import { recordAdminAudit } from "@/lib/admin-audit"
 
 interface LoginUser {
   _id: { toString(): string }
@@ -34,6 +35,14 @@ export async function POST(req: Request) {
       ip,
     })
     if (!recaptcha.ok) {
+      await recordAdminAudit({
+        actorType: "external",
+        actorLabel: parsed.email.trim().toLowerCase(),
+        action: "ADMIN_LOGIN_REJECTED",
+        targetType: "admin_auth",
+        targetId: parsed.email.trim().toLowerCase(),
+        metadata: { reason: recaptcha.reason || "recaptcha_failed", ip },
+      })
       return NextResponse.json({ error: recaptcha.reason || "reCAPTCHA validation failed" }, { status: 400 })
     }
 
@@ -42,14 +51,38 @@ export async function POST(req: Request) {
     const rawUser = await User.findOne({ email: parsed.email }).lean<LoginUser>()
     const user = Array.isArray(rawUser) ? rawUser[0] : rawUser
     if (!user) {
+      await recordAdminAudit({
+        actorType: "external",
+        actorLabel: parsed.email.trim().toLowerCase(),
+        action: "ADMIN_LOGIN_REJECTED",
+        targetType: "admin_auth",
+        targetId: parsed.email.trim().toLowerCase(),
+        metadata: { reason: "user_not_found", ip },
+      })
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     if (user.status !== "active") {
+      await recordAdminAudit({
+        adminId: String(user._id),
+        actorLabel: user.email,
+        action: "ADMIN_LOGIN_REJECTED",
+        targetType: "admin_auth",
+        targetId: String(user._id),
+        metadata: { reason: "user_disabled", email: user.email, ip },
+      })
       return NextResponse.json({ error: "User disabled" }, { status: 403 })
     }
 
     if (!verifyPassword(parsed.password, user.passwordHash)) {
+      await recordAdminAudit({
+        adminId: String(user._id),
+        actorLabel: user.email,
+        action: "ADMIN_LOGIN_REJECTED",
+        targetType: "admin_auth",
+        targetId: String(user._id),
+        metadata: { reason: "invalid_password", email: user.email, ip },
+      })
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
@@ -73,6 +106,15 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       expires: session.expiresAt,
       path: "/",
+    })
+
+    await recordAdminAudit({
+      adminId: userId,
+      actorLabel: user.email,
+      action: "ADMIN_LOGIN_SUCCESS",
+      targetType: "admin_session",
+      targetId: session.token,
+      metadata: { email: user.email, role: user.role, ip },
     })
 
     return res

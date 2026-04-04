@@ -87,14 +87,20 @@ export async function POST(
       return NextResponse.json({ error: emailResult.error || "No se pudo enviar el correo de verificación" }, { status: 502 })
     }
 
-    await AdminSession.deleteMany({ adminId: user._id })
+    const revokedSessions = await AdminSession.deleteMany({ adminId: user._id })
 
     await recordAdminAudit({
       adminId: auth.data.admin.id,
       action: "REQUEST_RESET_PASSWORD",
       targetType: "user",
       targetId: id,
-      metadata: { email: user.email, expiresAt: expiresAt.toISOString() },
+      metadata: {
+        email: user.email,
+        expiresAt: expiresAt.toISOString(),
+        previousStatus,
+        nextStatus: user.status,
+        revokedSessions: revokedSessions.deletedCount ?? 0,
+      },
     })
 
     return NextResponse.json({

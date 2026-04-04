@@ -15,6 +15,8 @@ import {
   appendBookingEmailEvent,
   buildGoogleMeetLink,
 } from "@/lib/booking-communication"
+import { deleteBookingFromGoogleCalendar, syncBookingToGoogleCalendar } from "@/lib/google-calendar"
+import { rescheduleExistingBooking } from "@/lib/booking-reschedule"
 import { clearRoiForBookingContext } from "@/lib/roi-cleanup"
 import { expireOverdueBookings } from "@/lib/booking-expiration"
 import { isBookableDemoTimeSlot, isValidDemoTimeSlot } from "@/lib/demo-schedule"
@@ -54,14 +56,16 @@ const updateBookingSchema = z.discriminatedUnion("action", [
   }),
 ])
 
-function buildCreateBookingDeliveryTargets(customerEmail: string) {
+function buildCreateBookingDeliveryTargets(customerEmail: string, operatorEmail?: string | null) {
   const sharedMailbox = getSharedMailboxEmail()
   const normalizedCustomerEmail = customerEmail.trim().toLowerCase()
+  const normalizedOperatorEmail = operatorEmail?.trim().toLowerCase() || null
 
   return Array.from(
     new Set([
       normalizedCustomerEmail,
       sharedMailbox,
+      normalizedOperatorEmail,
     ].filter((value): value is string => Boolean(value)))
   )
 }
@@ -158,6 +162,8 @@ export async function GET(req: Request) {
       time: b.time,
       duration: b.duration,
       status: b.status,
+      rescheduledFromBookingId: b.rescheduledFromBookingId ? String(b.rescheduledFromBookingId) : null,
+      rescheduledToBookingId: b.rescheduledToBookingId ? String(b.rescheduledToBookingId) : null,
       googleMeetLink: b.googleMeetLink ?? null,
       conversationSummary: typeof b.conversationSummary === "string" ? b.conversationSummary : "",
       conversationMessages: Array.isArray(b.conversationMessages)
@@ -198,7 +204,8 @@ export async function POST(req: Request) {
         }
         const customerEmail = parsed.email.trim().toLowerCase()
         const supportEmail = getSharedMailboxEmail()
-        const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail)
+        const operatorEmail = auth.data.admin.email.trim().toLowerCase()
+        const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail, operatorEmail)
         const meetingLink = buildGoogleMeetLink(`demo-${crypto.randomUUID()}`)
         const start = new Date(parsed.date)
         const [hour, min] = parsed.time.split(":").map(Number)
@@ -362,6 +369,7 @@ export async function POST(req: Request) {
         duration: parsed.duration,
         status: "confirmed",
         sessionToken: null,
+        operatorEmail: auth.data.admin.email.trim().toLowerCase(),
         accessToken: crypto.randomUUID(),
         expiresAt,
         formExpiresAt,
@@ -369,9 +377,26 @@ export async function POST(req: Request) {
       })
 
       const bookingId = String(booking._id)
-      const meetingLink = buildGoogleMeetLink(bookingId)
-      await Booking.updateOne({ _id: booking._id }, { $set: { googleMeetLink: meetingLink } })
+      const syncedCalendarEvent = await syncBookingToGoogleCalendar({
+        bookingId,
+        date,
+        time: parsed.time,
+        duration: parsed.duration,
+        description: `Demo personalizada con Clinvetia.\nBooking ID: ${bookingId}`,
+      })
+      const meetingLink = syncedCalendarEvent?.googleMeetLink || buildGoogleMeetLink(bookingId)
+      await Booking.updateOne(
+        { _id: booking._id },
+        {
+          $set: {
+            googleMeetLink: meetingLink,
+            googleCalendarEventId: syncedCalendarEvent?.eventId ?? null,
+            googleCalendarHtmlLink: syncedCalendarEvent?.htmlLink ?? null,
+          },
+        },
+      )
       booking.googleMeetLink = meetingLink
+      booking.googleCalendarEventId = syncedCalendarEvent?.eventId ?? null
 
       const contact = await Contact.create({
         nombre: customerEmail,
@@ -424,7 +449,7 @@ export async function POST(req: Request) {
           contentType: "text/calendar",
         },
       ]
-      const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail)
+      const deliveryTargets = buildCreateBookingDeliveryTargets(customerEmail, booking.operatorEmail)
 
       for (const target of deliveryTargets) {
         const result = await sendBrevoEmail({
@@ -490,6 +515,7 @@ export async function POST(req: Request) {
     const supportEmail = process.env.BREVO_REPLY_TO || "info@clinvetia.com"
     const brandName = "Clinvetia"
     const bookingId = String(booking._id)
+    let responseBookingId = bookingId
     const meetingLink = booking.googleMeetLink || buildGoogleMeetLink(bookingId)
 
     const deleteCancelsBooking = parsed.action === "delete" && !["cancelled", "expired"].includes(booking.status)
@@ -498,6 +524,7 @@ export async function POST(req: Request) {
       if (deleteCancelsBooking) {
         await Booking.updateOne({ _id: booking._id }, { $set: { status: "cancelled" } })
         booking.status = "cancelled"
+        await deleteBookingFromGoogleCalendar(booking.googleCalendarEventId ?? null)
 
         if (contact?.email) {
           const [hour, min] = booking.time.split(":").map(Number)
@@ -542,7 +569,7 @@ export async function POST(req: Request) {
               contentType: "text/calendar",
             },
           ]
-          const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email)
+          const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email, booking.operatorEmail)
 
           for (const target of deliveryTargets) {
             const result = await sendBrevoEmail({
@@ -573,10 +600,40 @@ export async function POST(req: Request) {
         bookingSessionToken: booking.sessionToken ?? null,
         contactSessionToken: contact?.sessionToken ? String(contact.sessionToken) : null,
       })
+      await deleteBookingFromGoogleCalendar(booking.googleCalendarEventId ?? null)
       await Booking.deleteOne({ _id: booking._id })
     } else if (parsed.action === "status") {
       await Booking.updateOne({ _id: booking._id }, { $set: { status: parsed.status } })
       booking.status = parsed.status
+
+      if (parsed.status === "confirmed") {
+        const syncedCalendarEvent = await syncBookingToGoogleCalendar({
+          bookingId,
+          date: booking.date,
+          time: booking.time,
+          duration: booking.duration,
+          eventId: booking.googleCalendarEventId ?? null,
+          description: `Demo personalizada con Clinvetia.\nBooking ID: ${bookingId}`,
+        })
+        if (syncedCalendarEvent) {
+          await Booking.updateOne(
+            { _id: booking._id },
+            {
+              $set: {
+                googleMeetLink: syncedCalendarEvent.googleMeetLink || meetingLink,
+                googleCalendarEventId: syncedCalendarEvent.eventId,
+                googleCalendarHtmlLink: syncedCalendarEvent.htmlLink,
+              },
+            },
+          )
+          booking.googleMeetLink = syncedCalendarEvent.googleMeetLink || meetingLink
+          booking.googleCalendarEventId = syncedCalendarEvent.eventId
+        }
+      }
+
+      if (parsed.status === "cancelled" || parsed.status === "expired") {
+        await deleteBookingFromGoogleCalendar(booking.googleCalendarEventId ?? null)
+      }
 
       if (contact?.email && (parsed.status === "confirmed" || parsed.status === "cancelled")) {
         const [hour, min] = booking.time.split(":").map(Number)
@@ -630,7 +687,7 @@ export async function POST(req: Request) {
               ]
             : undefined
 
-        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email)
+        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email, booking.operatorEmail)
         for (const target of deliveryTargets) {
           const result = await sendBrevoEmail({
             to: [{ email: target, name: target === contact.email ? contact.nombre : brandName }],
@@ -717,36 +774,19 @@ export async function POST(req: Request) {
         }
       }
 
-      const expiresAt = new Date(date)
-      expiresAt.setHours(23, 59, 59, 999)
-      const formExpiresAt = new Date()
-      formExpiresAt.setMinutes(formExpiresAt.getMinutes() + 10)
-      const nextMeetingLink = buildGoogleMeetLink(`${bookingId}-${crypto.randomUUID()}`)
+      const rescheduled = await rescheduleExistingBooking({
+        bookingId,
+        date,
+        time: parsed.time,
+        duration: parsed.duration,
+      })
+      if (!rescheduled.ok) {
+        return NextResponse.json({ error: "Slot unavailable" }, { status: 409 })
+      }
 
-      await Booking.updateOne(
-        { _id: booking._id },
-        {
-          $set: {
-            date,
-            time: parsed.time,
-            duration: parsed.duration,
-            expiresAt,
-            formExpiresAt,
-            demoExpiresAt,
-            status: "confirmed",
-            googleMeetLink: nextMeetingLink,
-          },
-        }
-      )
-
-      booking.date = date
-      booking.time = parsed.time
-      booking.duration = parsed.duration
-      booking.expiresAt = expiresAt
-      booking.formExpiresAt = formExpiresAt
-      booking.demoExpiresAt = demoExpiresAt
-      booking.status = "confirmed"
-      booking.googleMeetLink = nextMeetingLink
+      const nextBooking = rescheduled.booking
+      responseBookingId = nextBooking.id
+      const nextMeetingLink = nextBooking.googleMeetLink
 
       if (!contact?.email) {
         return NextResponse.json(
@@ -756,19 +796,19 @@ export async function POST(req: Request) {
       }
 
       if (contact?.email) {
-        const start = new Date(date)
+        const start = new Date(nextBooking.date)
         start.setHours(hour, min, 0, 0)
         const end = new Date(start)
         end.setMinutes(end.getMinutes() + parsed.duration)
         const dateLabel = start.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })
-        const timeLabel = parsed.time
+        const timeLabel = nextBooking.time
 
         const ics = buildICS({
-          uid: bookingId,
+          uid: nextBooking.id,
           start,
           end,
           summary: "Demo Clinvetia (reagendada)",
-          description: `Demo personalizada con Clinvetia - cita reagendada. Enlace Google Meet: ${nextMeetingLink}`,
+          description: `Demo personalizada con Clinvetia - cita reagendada desde ${bookingId}. Enlace Google Meet: ${nextMeetingLink}`,
           location: nextMeetingLink,
           url: nextMeetingLink,
           organizerEmail: supportEmail,
@@ -784,7 +824,7 @@ export async function POST(req: Request) {
           clinica: contact.clinica,
           mensaje: contact.mensaje,
           supportEmail,
-          booking: { dateLabel, timeLabel, duration: parsed.duration, meetingLink: nextMeetingLink },
+          booking: { dateLabel, timeLabel, duration: nextBooking.duration, meetingLink: nextMeetingLink },
           roi: contact.roi ?? null,
         })
         const attachments = [
@@ -794,7 +834,7 @@ export async function POST(req: Request) {
             contentType: "text/calendar",
           },
         ]
-        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email)
+        const deliveryTargets = buildCreateBookingDeliveryTargets(contact.email, booking.operatorEmail)
         for (const target of deliveryTargets) {
           const result = await sendBrevoEmail({
             to: [{ email: target, name: target === contact.email ? contact.nombre : brandName }],
@@ -805,7 +845,7 @@ export async function POST(req: Request) {
           })
 
           await appendBookingEmailEvent({
-            bookingId,
+            bookingId: nextBooking.id,
             category: "booking_rescheduled",
             subject,
             intendedRecipient: contact.email,
@@ -816,8 +856,16 @@ export async function POST(req: Request) {
             googleMeetLink: nextMeetingLink,
           })
         }
-        await normalizeHistoricalBookingsByEmail(contact.email, bookingId)
       }
+
+      booking.date = nextBooking.date
+      booking.time = nextBooking.time
+      booking.duration = nextBooking.duration
+      booking.expiresAt = nextBooking.expiresAt
+      booking.formExpiresAt = nextBooking.formExpiresAt
+      booking.demoExpiresAt = nextBooking.demoExpiresAt
+      booking.status = "confirmed"
+      booking.googleMeetLink = nextMeetingLink
     }
 
     const auditAction =
@@ -836,7 +884,7 @@ export async function POST(req: Request) {
         adminId: auth.data.admin.id,
         action: auditAction,
         targetType: "booking",
-        targetId: parsed.id,
+        targetId: responseBookingId,
         metadata: {
           status: booking.status,
           time: booking.time,
@@ -853,7 +901,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       booking: {
-        id: String(booking._id),
+        id: responseBookingId,
         status: parsed.action === "delete" ? "deleted" : booking.status,
         date: booking.date.toISOString(),
         time: booking.time,
