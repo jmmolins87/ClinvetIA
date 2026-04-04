@@ -674,7 +674,13 @@ async function sendBookingSummaryEmailFromChat(params: {
     roi: roiForEmail,
   })
 
-  const deliveryTargets = Array.from(new Set([params.email, supportEmail, params.operatorEmail].filter(Boolean)))
+  const deliveryTargets = Array.from(
+    new Set(
+      [params.email, supportEmail, params.operatorEmail].filter(
+        (value): value is string => Boolean(value)
+      )
+    )
+  )
   let allDelivered = true
   for (const target of deliveryTargets) {
     const emailResult = await sendBrevoEmail({
@@ -695,7 +701,7 @@ async function sendBookingSummaryEmailFromChat(params: {
       bookingId: params.bookingId,
       category: params.emailEventCategory || "customer_summary",
       subject,
-      intendedRecipient: params.email,
+      intendedRecipient: params.email ?? null,
       deliveredTo: target,
       status: emailResult.ok ? "sent" : "failed",
       error: emailResult.ok ? null : emailResult.error ?? "Email delivery failed",

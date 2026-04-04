@@ -115,7 +115,11 @@ export async function rescheduleExistingBooking(params: {
     demoExpiresAt,
     conversationSummary: originalBooking.conversationSummary ?? "",
     conversationMessages: Array.isArray(originalBooking.conversationMessages)
-      ? originalBooking.conversationMessages.map((message) => ({
+      ? originalBooking.conversationMessages.map((message: {
+          role: string
+          content: string
+          timestamp?: Date | string | null
+        }) => ({
           role: message.role,
           content: message.content,
           timestamp: message.timestamp ? new Date(message.timestamp) : new Date(),

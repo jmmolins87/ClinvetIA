@@ -445,7 +445,13 @@ export async function PATCH(req: Request) {
         organizerEmail: supportEmail,
         attendeeEmail: contact.email,
       })
-      const deliveryTargets = Array.from(new Set([contact.email, supportEmail, nextBooking.operatorEmail].filter(Boolean)))
+      const deliveryTargets = Array.from(
+        new Set(
+          [contact.email, supportEmail, nextBooking.operatorEmail].filter(
+            (value): value is string => Boolean(value)
+          )
+        )
+      )
 
       for (const target of deliveryTargets) {
         const result = await sendBrevoEmail({
@@ -464,7 +470,7 @@ export async function PATCH(req: Request) {
           bookingId: nextBooking.id,
           category: "booking_rescheduled",
           subject,
-          intendedRecipient: contact.email,
+          intendedRecipient: contact.email ?? null,
           deliveredTo: target,
           status: result.ok ? "sent" : "failed",
           error: result.error ?? null,
