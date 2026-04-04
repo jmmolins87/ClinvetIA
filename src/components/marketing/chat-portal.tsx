@@ -1061,7 +1061,10 @@ export function ChatPortal() {
           }
         }}
       >
-        <DialogContent data-chat-scrollable="true" className="w-[98vw] sm:max-w-5xl max-h-[94vh] overflow-y-auto p-3 md:p-5">
+        <DialogContent
+          data-chat-scrollable="true"
+          className="w-[98vw] sm:max-w-5xl max-h-[94vh] overflow-y-auto p-3 md:p-5 lg:left-[calc(50%-14rem)] lg:w-[calc(100vw-26rem)] xl:left-[calc(50%-16rem)]"
+        >
           <DialogHeader>
             <DialogTitle>{calendarMode === "reschedule" ? "Moka te ayuda a reagendar tu cita" : "Moka te ayuda a seleccionar tu cita"}</DialogTitle>
             <DialogDescription>
