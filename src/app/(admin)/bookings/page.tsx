@@ -32,6 +32,8 @@ type BookingRow = {
   time: string
   duration: number
   status: string
+  rescheduledFromBookingId?: string | null
+  rescheduledToBookingId?: string | null
   nombre?: string
   telefono?: string
   clinica?: string
@@ -437,6 +439,16 @@ export default function AdminBookingsPage() {
     if (status === "expired") return "Expirada"
     if (status === "rescheduled") return "Reagendada"
     return status
+  }
+
+  const rescheduleTrace = (booking: BookingRow) => {
+    if (booking.rescheduledFromBookingId) {
+      return `Reagendada desde la cita ${booking.rescheduledFromBookingId}`
+    }
+    if (booking.rescheduledToBookingId) {
+      return `Reagendada como la cita ${booking.rescheduledToBookingId}`
+    }
+    return null
   }
 
   const statusPanelClass = (status: string) => {
@@ -1100,6 +1112,11 @@ export default function AdminBookingsPage() {
                         </div>
                         <Badge variant={badgeVariantForStatus(booking.status)}>{statusLabel(booking.status)}</Badge>
                       </div>
+                      {rescheduleTrace(booking) ? (
+                        <div className="rounded-lg border border-accent/20 bg-accent/5 px-3 py-2 text-xs text-accent">
+                          {rescheduleTrace(booking)}
+                        </div>
+                      ) : null}
                       <div className="flex flex-1 items-center justify-center">
                         <div className="flex size-28 items-center justify-center rounded-full border border-white/10 bg-background/25 backdrop-blur-xl">
                           <Icon icon={statusIcon(booking.status)} size="2xl" variant={statusIconVariant(booking.status)} className="size-16" />
@@ -1144,7 +1161,7 @@ export default function AdminBookingsPage() {
                                 icon={CalendarDays}
                                 size="xs"
                                 variant="default"
-                                className="text-[rgb(var(--white-rgb))] drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.72)]"
+                                className="text-accent drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.72)]"
                               />
                             </span>
                           </Button>

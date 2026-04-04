@@ -67,6 +67,8 @@ type OverviewResponse = {
     time: string
     duration: number
     status: string
+    rescheduledFromBookingId?: string | null
+    rescheduledToBookingId?: string | null
     email: string
     nombre?: string
     telefono?: string
@@ -125,7 +127,18 @@ function statusLabel(status: string) {
   if (status === "pending") return "Pendiente"
   if (status === "cancelled") return "Cancelada"
   if (status === "expired") return "Expirada"
+  if (status === "rescheduled") return "Reagendada"
   return status
+}
+
+function rescheduleTrace(booking: RecentBooking) {
+  if (booking.rescheduledFromBookingId) {
+    return `Reagendada desde la cita ${booking.rescheduledFromBookingId}`
+  }
+  if (booking.rescheduledToBookingId) {
+    return `Reagendada como la cita ${booking.rescheduledToBookingId}`
+  }
+  return null
 }
 
 function SparkBars({ values }: { values: number[] }) {
@@ -312,6 +325,9 @@ function RecentBookingCard({
             {new Date(booking.date).toLocaleDateString("es-ES")} · {booking.time}
           </div>
           <div className="break-all text-xs text-muted-foreground">{booking.duration} min · ID {booking.id.slice(-6)}</div>
+          {rescheduleTrace(booking) ? (
+            <div className="mt-1 text-xs text-accent">{rescheduleTrace(booking)}</div>
+          ) : null}
         </div>
         <Badge className="self-start" variant={statusBadgeVariant(booking.status)}>{statusLabel(booking.status)}</Badge>
       </div>

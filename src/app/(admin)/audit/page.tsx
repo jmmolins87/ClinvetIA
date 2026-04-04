@@ -11,7 +11,9 @@ import { ContentScroll } from "@/components/ui/content-scroll"
 
 type AuditItem = {
   id: string
-  adminId: string
+  adminId: string | null
+  actorType?: "admin" | "system" | "external"
+  actorLabel?: string | null
   action: string
   targetType: string
   targetId: string
@@ -86,6 +88,13 @@ export default function AdminAuditPage() {
     }, 1000)
   }, [pageNavLoading, pageSafe, totalPages])
 
+  const getActorBadge = useCallback((item: AuditItem) => {
+    if (item.actorLabel) return item.actorLabel
+    if (item.actorType === "external") return "externo"
+    if (item.actorType === "system") return "sistema"
+    return item.adminId ? item.adminId.slice(0, 6) : "admin"
+  }, [])
+
   return (
     <div className="flex min-h-0 flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -129,7 +138,7 @@ export default function AdminAuditPage() {
                       <div className="break-all text-xs text-muted-foreground">{item.targetType} · {item.targetId}</div>
                       <div className="text-[10px] text-muted-foreground">{new Date(item.createdAt).toLocaleString("es-ES")}</div>
                     </div>
-                    <Badge variant="outline">{item.adminId.slice(0, 6)}</Badge>
+                    <Badge variant="outline">{getActorBadge(item)}</Badge>
                   </div>
                 ))}
               </div>
@@ -147,7 +156,7 @@ export default function AdminAuditPage() {
                     <div className="break-all text-xs text-muted-foreground">{item.targetType} · {item.targetId}</div>
                     <div className="text-[10px] text-muted-foreground">{new Date(item.createdAt).toLocaleString("es-ES")}</div>
                   </div>
-                  <Badge variant="outline">{item.adminId.slice(0, 6)}</Badge>
+                  <Badge variant="outline">{getActorBadge(item)}</Badge>
                 </div>
               ))}
             </div>

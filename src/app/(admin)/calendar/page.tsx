@@ -34,6 +34,8 @@ type CalendarBooking = {
   time: string
   duration: number
   status: string
+  rescheduledFromBookingId?: string | null
+  rescheduledToBookingId?: string | null
   nombre?: string
   clinica?: string
   email?: string
@@ -137,6 +139,16 @@ function summaryFilterLabel(filter: SummaryFilter) {
   if (filter === "pending") return "Pendientes"
   if (filter === "cancelled") return "Canceladas"
   return "Reagendadas"
+}
+
+function rescheduleTrace(booking: CalendarBooking) {
+  if (booking.rescheduledFromBookingId) {
+    return `Reagendada desde la cita ${booking.rescheduledFromBookingId}`
+  }
+  if (booking.rescheduledToBookingId) {
+    return `Reagendada como la cita ${booking.rescheduledToBookingId}`
+  }
+  return null
 }
 
 function HoverPopoverLabel({
@@ -388,6 +400,16 @@ export default function AdminCalendarPage() {
       })
     }
 
+    if (bookingMeetLink) {
+      actions.push({
+        key: "meet",
+        label: "Abrir Meet",
+        variant: "default",
+        icon: Video,
+        spinnerVariant: "primary",
+      })
+    }
+
     if (canOperate) {
       actions.push({
         key: "reschedule",
@@ -407,16 +429,6 @@ export default function AdminCalendarPage() {
         icon: X,
         spinnerVariant: "destructive",
         disabled: updatingId === booking.id,
-      })
-    }
-
-    if (bookingMeetLink) {
-      actions.push({
-        key: "meet",
-        label: "Abrir Meet",
-        variant: "default",
-        icon: Video,
-        spinnerVariant: "primary",
       })
     }
 
@@ -821,15 +833,15 @@ export default function AdminCalendarPage() {
             ? "Abrir Google Meet"
             : confirmAction === "delete"
               ? "Eliminar cita"
-            : ""
+              : ""
 
   const confirmActionDescription =
     confirmAction === "confirm"
       ? "Se actualizará el estado de la cita y se notificará según el flujo configurado."
       : confirmAction === "cancel"
         ? "La cita pasará a cancelada."
-        : confirmAction === "reschedule"
-          ? "Abrirás el flujo para seleccionar una nueva fecha y hora. Al confirmar, se enviará al cliente y a info@clinvetia.com con el nuevo enlace de Meet."
+      : confirmAction === "reschedule"
+          ? "Abrirás el flujo para seleccionar una nueva fecha y hora. Al confirmar, se enviará al cliente y a info@clinvetia.com."
           : confirmAction === "meet"
             ? "Se abrirá el enlace de videollamada asociado a esta cita."
             : confirmAction === "delete"
@@ -975,6 +987,9 @@ export default function AdminCalendarPage() {
                             {new Date(booking.date).toLocaleDateString("es-ES", { day: "numeric", month: "long" })} · {booking.time} · {booking.duration} min
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">ID {booking.id}</div>
+                          {rescheduleTrace(booking) ? (
+                            <div className="mt-1 text-xs text-accent">{rescheduleTrace(booking)}</div>
+                          ) : null}
                           <div className="mt-1 text-sm text-muted-foreground">
                             {booking.nombre || booking.clinica || booking.email || "Cita sin contacto asignado"}
                           </div>
@@ -1015,6 +1030,9 @@ export default function AdminCalendarPage() {
                       <div className="mt-1 text-xs font-medium text-muted-foreground">
                         ID {summaryDetailBooking.id}
                       </div>
+                      {rescheduleTrace(summaryDetailBooking) ? (
+                        <div className="mt-1 text-xs text-accent">{rescheduleTrace(summaryDetailBooking)}</div>
+                      ) : null}
                     </div>
                     <Badge variant={statusBadgeVariant(summaryDetailBooking.status)}>
                       {statusLabel(summaryDetailBooking.status)}
@@ -1432,7 +1450,7 @@ export default function AdminCalendarPage() {
                           variant="default"
                           className={cn(
                             action.variant === "default" && "text-primary drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.45)]",
-                            action.variant === "accent" && "text-[rgb(var(--white-rgb))] drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.6)]",
+                            action.variant === "accent" && "text-accent drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.6)]",
                             action.variant === "destructive" && "text-destructive drop-shadow-[0_0_8px_rgba(var(--destructive-rgb),0.45)]",
                           )}
                         />
@@ -1526,6 +1544,9 @@ export default function AdminCalendarPage() {
                   <div>
                     <div className="text-sm font-semibold">{booking.time} · {booking.duration} min</div>
                     <div className="mt-1 text-xs text-muted-foreground">ID {booking.id}</div>
+                    {rescheduleTrace(booking) ? (
+                      <div className="mt-1 text-xs text-accent">{rescheduleTrace(booking)}</div>
+                    ) : null}
                     <div className="mt-1 text-sm text-muted-foreground">
                       {booking.nombre || booking.clinica || booking.email || "Cita sin contacto asignado"}
                     </div>
