@@ -120,6 +120,20 @@ export default function AdminLoginPage() {
                 />
               </Button>
             </div>
+            <div className="flex justify-end">
+              <Button
+                asChild
+                type="button"
+                variant="link"
+                className="h-auto px-0 text-xs text-primary"
+              >
+                <a
+                  href={`/api/admin/auth/forgot-password${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ""}`}
+                >
+                  He olvidado mi contraseña
+                </a>
+              </Button>
+            </div>
           </div>
 
           {error && <div className="text-xs text-destructive">{error}</div>}
