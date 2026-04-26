@@ -1,8 +1,10 @@
+import { createHmac, timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 import { dbConnect } from "@/lib/db"
 import { WhatsAppConversation } from "@/models/WhatsAppConversation"
 import { Session } from "@/models/Session"
 import { callN8nWebhook, isN8nConfigured } from "@/lib/n8n-integration"
+import { sendWhatsAppText } from "@/lib/kapso-whatsapp"
 
 type ChatAssistantResponse = {
   reply: string
@@ -21,6 +23,12 @@ type ChatAssistantResponse = {
 }
 
 const DEFAULT_CHAT_STATE = { intent: "none", step: "idle" }
+
+type InboundWhatsAppMessage = {
+  from: string
+  text: string
+  timestamp?: string
+}
 
 function getBaseUrl(req: Request) {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL
@@ -43,39 +51,6 @@ function parseNumberFromText(text: string) {
   return Number.isFinite(value) ? value : null
 }
 
-async function sendWhatsAppText(to: string, body: string) {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
-
-  if (!token || !phoneNumberId) {
-    console.warn("WhatsApp send skipped: missing WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID", { to, body })
-    return { ok: false as const, skipped: true as const }
-  }
-
-  const res = await fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(phoneNumberId)}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to,
-      type: "text",
-      text: { body },
-    }),
-    cache: "no-store",
-  })
-
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "")
-    console.error("WhatsApp send failed", { status: res.status, detail, to })
-    return { ok: false as const, skipped: false as const }
-  }
-
-  return { ok: true as const, skipped: false as const }
-}
-
 function splitForWhatsApp(text: string) {
   if (text.length <= 900) return [text]
   const chunks: string[] = []
@@ -88,6 +63,88 @@ function splitForWhatsApp(text: string) {
   }
   if (rest) chunks.push(rest)
   return chunks
+}
+
+function extractMetaWebhookMessages(body: unknown): InboundWhatsAppMessage[] {
+  if (!body || typeof body !== "object") return []
+
+  const entries = Array.isArray((body as { entry?: unknown }).entry) ? (body as { entry: unknown[] }).entry : []
+  return entries
+    .flatMap((entry) => (Array.isArray((entry as { changes?: unknown }).changes) ? (entry as { changes: unknown[] }).changes : []))
+    .flatMap((change) => {
+      const messages = (change as { value?: { messages?: unknown } }).value?.messages
+      return Array.isArray(messages) ? messages : []
+    })
+    .filter((message): message is { type?: string; text?: { body?: string }; from?: string; timestamp?: string } => {
+      return Boolean(
+        message &&
+          typeof message === "object" &&
+          (message as { type?: unknown }).type === "text" &&
+          typeof (message as { text?: { body?: unknown } }).text?.body === "string" &&
+          typeof (message as { from?: unknown }).from === "string",
+      )
+    })
+    .map((message) => ({
+      from: message.from || "",
+      text: message.text?.body || "",
+      timestamp: message.timestamp,
+    }))
+}
+
+function extractKapsoWebhookMessages(body: unknown): InboundWhatsAppMessage[] {
+  if (!body || typeof body !== "object") return []
+
+  const payload = body as {
+    event?: unknown
+    message?: {
+      type?: unknown
+      text?: { body?: unknown }
+      timestamp?: unknown
+      kapso?: { content?: unknown; direction?: unknown }
+    }
+    messages?: unknown
+    conversation?: { phone_number?: unknown; kapso?: { contact_name?: unknown } }
+  }
+
+  const messages = Array.isArray(payload.messages) ? payload.messages : payload.message ? [payload.message] : []
+  if (!messages.length) return []
+
+  return messages
+    .filter((message): message is NonNullable<typeof payload.message> => {
+      if (!message || typeof message !== "object") return false
+      const direction = message.kapso?.direction
+      const event = typeof payload.event === "string" ? payload.event : null
+      return direction === "inbound" || event === "whatsapp.message.received" || !event
+    })
+    .map((message) => {
+      const textBody = typeof message.text?.body === "string" ? message.text.body : null
+      const kapsoContent = typeof message.kapso?.content === "string" ? message.kapso.content : null
+      const from = typeof payload.conversation?.phone_number === "string" ? payload.conversation.phone_number.replace(/[^\d]/g, "") : ""
+      return {
+        from,
+        text: textBody || kapsoContent || "",
+        timestamp: typeof message.timestamp === "string" ? message.timestamp : undefined,
+      }
+    })
+    .filter((message) => message.from && message.text)
+}
+
+function extractInboundMessages(body: unknown): InboundWhatsAppMessage[] {
+  const kapsoMessages = extractKapsoWebhookMessages(body)
+  if (kapsoMessages.length) return kapsoMessages
+  return extractMetaWebhookMessages(body)
+}
+
+function verifyKapsoWebhookSignature(rawBody: string, signature: string | null) {
+  const secret = process.env.KAPSO_WEBHOOK_SECRET?.trim()
+  if (!secret || !signature) return true
+
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
+  const expectedBuffer = Buffer.from(expected, "hex")
+  const actualBuffer = Buffer.from(signature, "hex")
+
+  if (expectedBuffer.length !== actualBuffer.length) return false
+  return timingSafeEqual(expectedBuffer, actualBuffer)
 }
 
 async function callChatAssistant(req: Request, payload: {
@@ -189,22 +246,22 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const messages = (body?.entry || [])
-      .flatMap((entry: { changes?: Array<{ value?: { messages?: unknown[] } }> }) => entry?.changes || [])
-      .flatMap((change: { value?: { messages?: unknown[] } }) => change?.value?.messages || [])
-      .filter((message: { type?: string; text?: { body?: string }; from?: string }) => message?.type === "text" && message?.text?.body && message?.from)
+    const rawBody = await req.text()
+    const signature = req.headers.get("x-webhook-signature")
+    if (!verifyKapsoWebhookSignature(rawBody, signature)) {
+      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
+    }
+
+    const body = JSON.parse(rawBody)
+    const messages = extractInboundMessages(body)
 
     if (!messages.length) {
       return NextResponse.json({ ok: true, ignored: true })
     }
 
     if (isN8nConfigured()) {
-      for (const message of messages as Array<{
-        from: string
-        text: { body: string }
-      }>) {
-        const text = String(message.text?.body || "").trim()
+      for (const message of messages) {
+        const text = String(message.text || "").trim()
         const phone = String(message.from || "").trim()
         if (!text || !phone) continue
 
@@ -222,13 +279,9 @@ export async function POST(req: Request) {
 
     await dbConnect()
 
-    for (const message of messages as Array<{
-      from: string
-      text: { body: string }
-      timestamp?: string
-    }>) {
+    for (const message of messages) {
       const phone = String(message.from)
-      const text = String(message.text.body || "").trim()
+      const text = String(message.text || "").trim()
       if (!text) continue
 
       const conversationRaw = await WhatsAppConversation.findOne({ phone }).lean<{
