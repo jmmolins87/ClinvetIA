@@ -23,7 +23,6 @@ type ChatAssistantResponse = {
 }
 
 const DEFAULT_CHAT_STATE = { intent: "none", step: "idle" }
-
 type InboundWhatsAppMessage = {
   from: string
   text: string
@@ -259,17 +258,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, ignored: true })
     }
 
-    let messagesToProcess = messages
-
     if (isN8nWhatsAppConfigured()) {
-      const failedMessages: InboundWhatsAppMessage[] = []
-
       for (const message of messages) {
         const text = String(message.text || "").trim()
         const phone = String(message.from || "").trim()
         if (!text || !phone) continue
 
-        const n8nResult = await callN8nWhatsAppWebhook({
+        void callN8nWhatsAppWebhook({
           event: "whatsapp.message.received",
           channel: "whatsapp",
           source: "kapso",
@@ -278,28 +273,28 @@ export async function POST(req: Request) {
           phoneNumberId: typeof body?.phone_number_id === "string" ? body.phone_number_id : null,
           history: [],
           locale: "es",
-        })
-
-        if (!n8nResult?.ok) {
-          failedMessages.push(message)
-          console.error("N8N WhatsApp webhook failed, falling back to local handling", {
+        }).then((result) => {
+          if (!result?.ok) {
+            console.error("N8N WhatsApp webhook failed", {
+              phone,
+              status: result?.status ?? null,
+              error: result?.error ?? "N8N request failed",
+            })
+          }
+        }).catch((error) => {
+          console.error("N8N WhatsApp webhook threw", {
             phone,
-            status: n8nResult?.status ?? null,
-            error: n8nResult?.error ?? "N8N request failed",
+            error: error instanceof Error ? error.message : "N8N request failed",
           })
-        }
+        })
       }
 
-      if (!failedMessages.length) {
-        return NextResponse.json({ ok: true, delegatedToN8n: true })
-      }
-
-      messagesToProcess = failedMessages
+      return NextResponse.json({ ok: true, delegatedToN8n: true })
     }
 
     await dbConnect()
 
-    for (const message of messagesToProcess) {
+    for (const message of messages) {
       const phone = String(message.from)
       const text = String(message.text || "").trim()
       if (!text) continue

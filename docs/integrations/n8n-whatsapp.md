@@ -45,6 +45,15 @@ KAPSO_WHATSAPP_PHONE_NUMBER_ID=1131536336707887
 META_GRAPH_VERSION=v24.0
 ```
 
+Opcionalmente, si quieres que el workflow use una plantilla aprobada de WhatsApp cuando el envío libre no sea válido, añade:
+
+```env
+KAPSO_WHATSAPP_REPLY_TEMPLATE_NAME=moka_out_of_window
+KAPSO_WHATSAPP_REPLY_TEMPLATE_LANGUAGE=es_ES
+```
+
+La plantilla debe tener un `BODY` con un único parámetro, porque el workflow le pasa el texto completo de MOKA como argumento.
+
 Cuando MOKA detecta que el usuario quiere una cita o el backend devuelve `openCalendar`/`openRoiCalculator`, el workflow anade un enlace a:
 
 ```txt

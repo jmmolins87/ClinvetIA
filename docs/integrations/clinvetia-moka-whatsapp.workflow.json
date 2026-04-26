@@ -156,7 +156,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { messaging_product: 'whatsapp', to: $json.phone, type: 'text', text: { body: $json.reply } } }}",
+        "jsonBody": "={{ ($env.KAPSO_WHATSAPP_REPLY_TEMPLATE_NAME ? { messaging_product: 'whatsapp', recipient_type: 'individual', to: $json.phone, type: 'template', template: { name: $env.KAPSO_WHATSAPP_REPLY_TEMPLATE_NAME, language: { code: $env.KAPSO_WHATSAPP_REPLY_TEMPLATE_LANGUAGE || 'es_ES' }, components: [{ type: 'body', parameters: [{ type: 'text', text: $json.reply }] }] } } : { messaging_product: 'whatsapp', recipient_type: 'individual', to: $json.phone, type: 'text', text: { body: $json.reply } }) }}",
         "options": {}
       },
       "id": "http-send-kapso",

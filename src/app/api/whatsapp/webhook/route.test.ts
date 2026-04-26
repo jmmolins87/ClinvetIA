@@ -52,7 +52,13 @@ describe("POST /api/whatsapp/webhook", () => {
     })
   })
 
-  it("falls back to local handling when n8n fails", async () => {
+  it("returns before waiting for n8n to finish", async () => {
+    let resolveN8n: ((value: unknown) => void) | null = null
+    const pendingN8n = new Promise((resolve) => {
+      resolveN8n = resolve
+    })
+    mockCallN8nWhatsAppWebhook.mockReturnValue(pendingN8n)
+
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -92,13 +98,16 @@ describe("POST /api/whatsapp/webhook", () => {
       }),
     })
 
-    const response = await POST(request)
-    const data = await response.json()
+    const responsePromise = POST(request)
+    const settled = await Promise.race([
+      responsePromise.then(() => "resolved"),
+      new Promise<string>((resolve) => setTimeout(() => resolve("timeout"), 200)),
+    ])
 
-    expect(response.status).toBe(200)
-    expect(data.ok).toBe(true)
+    resolveN8n?.({ ok: true, data: { reply: "Hola" } })
+
+    expect(settled).toBe("resolved")
+    await expect(responsePromise).resolves.toMatchObject({ status: 200 })
     expect(mockCallN8nWhatsAppWebhook).toHaveBeenCalledTimes(1)
-    expect(mockSendWhatsAppText).toHaveBeenCalledWith("34600111222", "Hola, te ayudo ahora mismo.")
-    expect(mockConversationUpdateOne).toHaveBeenCalled()
   })
 })
