@@ -1,10 +1,12 @@
 import { createHmac, timingSafeEqual } from "crypto"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import { dbConnect } from "@/lib/db"
 import { WhatsAppConversation } from "@/models/WhatsAppConversation"
 import { Session } from "@/models/Session"
 import { callN8nWhatsAppWebhook, isN8nWhatsAppConfigured } from "@/lib/n8n-integration"
 import { sendWhatsAppText } from "@/lib/kapso-whatsapp"
+
+export const maxDuration = 60
 
 type ChatAssistantResponse = {
   reply: string
@@ -259,31 +261,32 @@ export async function POST(req: Request) {
     }
 
     if (isN8nWhatsAppConfigured()) {
-      for (const message of messages) {
-        const text = String(message.text || "").trim()
-        const phone = String(message.from || "").trim()
-        if (!text || !phone) continue
+      after(async () => {
+        for (const message of messages) {
+          const text = String(message.text || "").trim()
+          const phone = String(message.from || "").trim()
+          if (!text || !phone) continue
 
-        const n8nResult = await callN8nWhatsAppWebhook({
-          event: "whatsapp.message.received",
-          channel: "whatsapp",
-          source: "kapso",
-          message: text,
-          phone,
-          phoneNumberId: typeof body?.phone_number_id === "string" ? body.phone_number_id : null,
-          history: [],
-          locale: "es",
-        })
-
-        if (!n8nResult?.ok) {
-          console.error("N8N WhatsApp webhook failed", {
+          const n8nResult = await callN8nWhatsAppWebhook({
+            event: "whatsapp.message.received",
+            channel: "whatsapp",
+            source: "kapso",
+            message: text,
             phone,
-            status: n8nResult?.status ?? null,
-            error: n8nResult?.error ?? "N8N request failed",
+            phoneNumberId: typeof body?.phone_number_id === "string" ? body.phone_number_id : null,
+            history: [],
+            locale: "es",
           })
-        }
-      }
 
+          if (!n8nResult?.ok) {
+            console.error("N8N WhatsApp webhook failed", {
+              phone,
+              status: n8nResult?.status ?? null,
+              error: n8nResult?.error ?? "N8N request failed",
+            })
+          }
+        }
+      })
       return NextResponse.json({ ok: true, delegatedToN8n: true })
     }
 

@@ -42,3 +42,25 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 # ClinvetIA
 # ClinvetIA
 # ClinvetIA
+
+## Local Docker
+
+Levanta la app con Mongo:
+
+```bash
+docker compose up --build
+```
+
+Para probar Kapso contra la copia local, expón la app con un túnel público:
+
+```bash
+docker compose --profile tunnel up --build
+```
+
+Kapso debe apuntar a la URL pública del túnel en:
+
+```txt
+/api/whatsapp/webhook
+```
+
+Si quieres, copia [.env.docker.example](/Users/juanmamolinncortes/Documentos/clinvetia-glass/.env.docker.example) a `.env.docker` y rellena solo los valores que necesites para la prueba local.

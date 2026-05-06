@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+.mongo-data
+.playwright-cli
+coverage
+test-results
+storybook-static
+.env
+.env.*
+*.log
+Dockerfile
+docker-compose.yml

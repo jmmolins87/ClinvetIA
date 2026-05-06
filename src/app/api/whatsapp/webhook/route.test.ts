@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+vi.mock("next/server", async () => {
+  const actual = await vi.importActual<typeof import("next/server")>("next/server")
+  return {
+    ...actual,
+    after: (callback: () => void | Promise<void>) => {
+      void callback()
+    },
+  }
+})
+
 const mockDbConnect = vi.fn()
 const mockConversationFindOne = vi.fn()
 const mockConversationUpdateOne = vi.fn()
@@ -53,7 +63,7 @@ describe("POST /api/whatsapp/webhook", () => {
     })
   })
 
-  it("waits for n8n to finish before responding", async () => {
+  it("responds before n8n finishes", async () => {
     vi.useFakeTimers()
     vi.stubGlobal(
       "fetch",
@@ -101,8 +111,8 @@ describe("POST /api/whatsapp/webhook", () => {
     })
 
     const responsePromise = POST(request)
-    await vi.advanceTimersByTimeAsync(20)
     const response = await responsePromise
+    await vi.advanceTimersByTimeAsync(20)
 
     expect(response.status).toBe(200)
     expect(mockCallN8nWhatsAppWebhook).toHaveBeenCalledTimes(1)
